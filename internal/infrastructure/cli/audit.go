@@ -22,18 +22,18 @@ var auditVerifyCmd = &cobra.Command{
 		repo := storage.NewFilesystemRepository(cwd)
 		service := application.NewAuditService(repo)
 
-		fmt.Println("🛡️  Verifying audit trail integrity...")
+		fmt.Println("Verifying audit trail integrity...")
 		violations, err := service.VerifyIntegrity()
 		if err != nil {
 			return fmt.Errorf("verification failed: %w", err)
 		}
 
 		if len(violations) == 0 {
-			fmt.Println("✅ Audit trail is intact and verified.")
+			fmt.Println("Audit trail is intact and verified.")
 			return nil
 		}
 
-		fmt.Printf("❌ Found %d integrity violations:\n", len(violations))
+		fmt.Printf("Found %d integrity violations:\n", len(violations))
 		for _, v := range violations {
 			fmt.Printf("  - %s\n", v)
 		}

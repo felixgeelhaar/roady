@@ -197,14 +197,14 @@ func (m model) View() string {
 
 				m.table.View(),
 
-				driftView,
+				                             driftView,
 
-				"\n[q] Quit  [↑/↓] Navigate",
+				                             "\n[q] Quit  [Up/Down] Navigate",
 
-			),
+				                     ),
 
-		) + "\n"
+				             ) + "\n"
 
-	}
+				     }
 
 	

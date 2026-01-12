@@ -23,7 +23,7 @@ var usageCmd = &cobra.Command{
 			return fmt.Errorf("failed to load usage stats: %w", err)
 		}
 
-		fmt.Println("📊 Project Usage Metrics")
+		fmt.Println("Project Usage Metrics")
 		fmt.Println("-----------------------")
 		fmt.Printf("Total Commands: %d\n", stats.TotalCommands)
 		if !stats.LastCommandAt.IsZero() {
@@ -31,7 +31,7 @@ var usageCmd = &cobra.Command{
 		}
 
 		if len(stats.ProviderStats) > 0 {
-			fmt.Println("\n🤖 AI Token Consumption")
+			fmt.Println("\nAI Token Consumption")
 			
 			// Sort keys for stable output
 			keys := make([]string, 0, len(stats.ProviderStats))

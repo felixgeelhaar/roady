@@ -2,13 +2,13 @@
   <img src="logo.svg" width="150" alt="Roady Logo">
 </p>
 
-# Roady 🚗
+# Roady
 
 **Roady** is a planning-first system of record for software work. It acts as a durable, high-integrity memory layer between **intent** (what you want to build), **plans** (how you'll build it), and **execution** (the actual work).
 
 Designed for individuals, teams, and AI agents, Roady ensures that your development roadmap never drifts from your original intent.
 
-## 🌟 Key Features
+## Key Features
 
 *   **Spec-Driven Inference:** Automatically derive functional specifications from multiple markdown documents (`roady spec analyze`).
 *   **Adaptive AI Planning:** Decompose high-level features into granular task graphs using OpenAI or local Ollama models (`roady plan generate --ai`).
@@ -20,7 +20,7 @@ Designed for individuals, teams, and AI agents, Roady ensures that your developm
 *   **Interactive TUI:** Real-time visibility into your project's health and velocity (`roady dashboard`).
 *   **MCP First:** Seamlessly expose planning capabilities to AI agents via the Model Context Protocol.
 
-## 🚀 Quick Start
+## Quick Start
 
 ### 1. Installation
 ```bash
@@ -54,7 +54,7 @@ roady drift detect
 roady forecast
 ```
 
-## 🛡️ Governance & Policy
+## Governance & Policy
 
 Configure project guardrails in `.roady/policy.yaml`:
 
@@ -66,7 +66,7 @@ ai_model: gpt-4o      # Your preferred model
 token_limit: 50000    # Hard budget for AI operations
 ```
 
-## 🧩 AI Integration (MCP)
+## AI Integration (MCP)
 
 Roady is a first-class MCP server. Add it to your `claude_desktop_config.json`:
 
@@ -81,13 +81,13 @@ Roady is a first-class MCP server. Add it to your `claude_desktop_config.json`:
 }
 ```
 
-## 🏗️ Architecture
+## Architecture
 
 Roady is built on clean **Domain-Driven Design (DDD)** principles:
 *   **Domain:** Pure business logic for Specs, Plans, Drift, and Policy.
 *   **Infrastructure:** Modern Go stack using `cobra`, `bubbletea`, `mcp-go`, and `fortify`.
 *   **Storage:** Git-friendly YAML/JSON artifacts in `.roady/`.
 
-## 📜 License
+## License
 
 MIT License. See `LICENSE` for details.

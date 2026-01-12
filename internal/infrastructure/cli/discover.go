@@ -17,7 +17,7 @@ var discoverCmd = &cobra.Command{
 			root = args[0]
 		}
 
-		fmt.Printf("🔍 Searching for Roady projects in: %s\n", root)
+		fmt.Printf("Searching for Roady projects in: %s\n", root)
 		
 		projects := []string{}
 		err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {

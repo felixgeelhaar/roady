@@ -23,7 +23,7 @@ var timelineCmd = &cobra.Command{
 			return fmt.Errorf("failed to load timeline: %w", err)
 		}
 
-		fmt.Println("📜 Project Timeline")
+		fmt.Println("Project Timeline")
 		fmt.Println("------------------")
 		for i := len(events) - 1; i >= 0; i-- {
 			e := events[i]

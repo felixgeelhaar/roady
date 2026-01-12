@@ -13,7 +13,7 @@ var doctorCmd = &cobra.Command{
 	Use:   "doctor",
 	Short: "Check the health of the Roady environment",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		fmt.Println("🩺 Running Roady Doctor...")
+		fmt.Println("Running Roady Doctor...")
 	
 cwd, _ := os.Getwd()
 	repo := storage.NewFilesystemRepository(cwd)
@@ -22,10 +22,10 @@ cwd, _ := os.Getwd()
 	check := func(name string, fn func() error) {
 		fmt.Printf("Checking %s... ", name)
 		if err := fn(); err != nil {
-			fmt.Printf("❌ FAIL\n  Error: %v\n", err)
+			fmt.Printf("FAIL\n  Error: %v\n", err)
 			hasIssues = true
 		} else {
-			fmt.Printf("✅ PASS\n")
+			fmt.Printf("PASS\n")
 		}
 	}
 
@@ -103,7 +103,7 @@ cwd, _ := os.Getwd()
 			fmt.Println("\nissues found! Please fix them before continuing.")
 			return fmt.Errorf("doctor found issues")
 		} else {
-			fmt.Println("\nEverything looks good! 🚗")
+			fmt.Println("\nEverything looks good!")
 		}
 		return nil
 	},

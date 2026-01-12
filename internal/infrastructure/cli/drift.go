@@ -89,7 +89,7 @@ var driftDetectCmd = &cobra.Command{
 		for _, issue := range report.Issues {
 			fmt.Printf("- [%s] (%s/%s) %s\n", issue.Severity, issue.Type, issue.Category, issue.Message)
 			if issue.Hint != "" {
-				fmt.Printf("  💡 Hint: %s\n", issue.Hint)
+				fmt.Printf("  Hint: %s\n", issue.Hint)
 			}
 		}
 		

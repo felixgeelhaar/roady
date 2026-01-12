@@ -111,7 +111,7 @@ rows := []table.Row{}
 		s.Selected = lipgloss.NewStyle() // Disable selection style for static view
 		t.SetStyles(s)
 
-		fmt.Printf("🏢 Organizational Status (%d projects)\n", len(projects))
+		fmt.Printf("Organizational Status (%d projects)\n", len(projects))
 		fmt.Println(t.View())
 		return nil
 	},

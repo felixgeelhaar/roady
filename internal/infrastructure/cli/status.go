@@ -54,11 +54,11 @@ var statusCmd = &cobra.Command{
 		}
 
 		fmt.Printf("Plan tasks: %d\n", len(plan.Tasks))
-		fmt.Printf("- ⏳ Pending:     %d\n", counts[planning.StatusPending])
-		fmt.Printf("- ✋ Blocked:     %d\n", counts[planning.StatusBlocked])
-		fmt.Printf("- 🚧 In Progress: %d\n", counts[planning.StatusInProgress])
-		fmt.Printf("- 🏁 Done:        %d (awaiting verification)\n", counts[planning.StatusDone])
-		fmt.Printf("- ✅ Verified:    %d\n", counts[planning.StatusVerified])
+		fmt.Printf("- Pending:     %d\n", counts[planning.StatusPending])
+		fmt.Printf("- Blocked:     %d\n", counts[planning.StatusBlocked])
+		fmt.Printf("- In Progress: %d\n", counts[planning.StatusInProgress])
+		fmt.Printf("- Done:        %d (awaiting verification)\n", counts[planning.StatusDone])
+		fmt.Printf("- Verified:    %d\n", counts[planning.StatusVerified])
 
 		if len(plan.Tasks) > 0 {
 			totalDone := counts[planning.StatusDone] + counts[planning.StatusVerified]
@@ -67,7 +67,7 @@ var statusCmd = &cobra.Command{
 		}
 
 		// List tasks sorted by status
-		fmt.Println("\n📋 Task Overview")
+		fmt.Println("\nTask Overview")
 		fmt.Println("----------------")
 		
 		statusRank := map[planning.TaskStatus]int{
@@ -96,28 +96,26 @@ var statusCmd = &cobra.Command{
 
 		for _, t := range sortedTasks {
 			status := planning.StatusPending
-			icon := "⏳"
+			prefix := "[ ]"
 			if state != nil {
 				if res, ok := state.TaskStates[t.ID]; ok {
 					status = res.Status
 					switch status {
-					case planning.StatusVerified: icon = "✅"
-					case planning.StatusDone: icon = "🏁"
-					case planning.StatusInProgress: icon = "🚧"
-					case planning.StatusBlocked: icon = "✋"
+					case planning.StatusVerified: prefix = "[V]"
+					case planning.StatusDone: prefix = "[D]"
+					case planning.StatusInProgress: prefix = "[W]"
+					case planning.StatusBlocked: prefix = "[B]"
 					}
 				}
 			}
-			fmt.Printf("%s [%-11s] %-40s (Priority: %s)\n", icon, status, t.Title, t.Priority)
+			fmt.Printf("%s [%-11s] %-40s (Priority: %s)\n", prefix, status, t.Title, t.Priority)
 		}
-
-		// Implicit Drift Check
 
 		// Implicit Drift Check
 		driftSvc := application.NewDriftService(repo)
 		report, err := driftSvc.DetectDrift()
 		if err == nil && len(report.Issues) > 0 {
-			fmt.Printf("\n⚠️  DRIFT DETECTED: %d issues found. Run 'roady drift detect' for details.\n", len(report.Issues))
+			fmt.Printf("\nDRIFT DETECTED: %d issues found. Run 'roady drift detect' for details.\n", len(report.Issues))
 		}
 
 		fmt.Printf("\nAudit Trail: .roady/events.jsonl\n")

@@ -130,7 +130,7 @@ var specAnalyzeCmd = &cobra.Command{
 			provider := ai.NewResilientProvider(baseProvider)
 			aiSvc := application.NewAIPlanningService(repo, provider, audit)
 
-			fmt.Println("🧠 Reconciling specification using AI...")
+			fmt.Println("Reconciling specification using AI...")
 			spec, err = aiSvc.ReconcileSpec(cmd.Context(), spec)
 			if err != nil {
 				return fmt.Errorf("failed to reconcile spec: %w", err)

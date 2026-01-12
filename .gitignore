@@ -1,6 +1,7 @@
 # Binaries
 roady
 roady-plugin-*
+dist/
 
 # OS files
 .DS_Store

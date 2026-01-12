@@ -43,13 +43,13 @@ var forecastCmd = &cobra.Command{
 			}
 		}
 
-		fmt.Println("📈 Project Forecast")
+		fmt.Println("Project Forecast")
 		fmt.Println("------------------")
 		fmt.Printf("Current Velocity: %.2f tasks/day\n", velocity)
 		fmt.Printf("Remaining Tasks:  %d\n", remaining)
 
 		if remaining == 0 {
-			fmt.Println("\nAll tasks verified. Mission complete! 🚀")
+			fmt.Println("\nAll tasks verified. Mission complete!")
 			return nil
 		}
 

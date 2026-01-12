@@ -32,7 +32,7 @@ var gitSyncCmd = &cobra.Command{
 		}
 
 		lines := strings.Split(string(out), "\n")
-		fmt.Printf("🔍 Scanning %d recent commits for Roady markers...\n", len(lines))
+		fmt.Printf("Scanning %d recent commits for Roady markers...\n", len(lines))
 
 		for _, line := range lines {
 			parts := strings.Split(line, "|")
@@ -48,12 +48,12 @@ var gitSyncCmd = &cobra.Command{
 					fmt.Printf("Found marker for task '%s' in commit %s\n", taskID, hash[:8])
 					
 					// Transition to complete
-					err := taskSvc.TransitionTask(taskID, "complete", "git-automation", "Commit: "+hash)
-					if err != nil {
+				err := taskSvc.TransitionTask(taskID, "complete", "git-automation", "Commit: "+hash)
+				if err != nil {
 						// It might already be complete, or blocked
-						fmt.Printf("  ⚠️  Could not transition: %v\n", err)
+						fmt.Printf("  Could not transition: %v\n", err)
 					} else {
-						fmt.Printf("  ✅ Task %s marked as complete via git.\n", taskID)
+						fmt.Printf("  Task %s marked as complete via git.\n", taskID)
 					}
 				}
 			}
