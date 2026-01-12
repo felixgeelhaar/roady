@@ -1,0 +1,33 @@
+package application_test
+
+import (
+	"github.com/felixgeelhaar/roady/internal/domain"
+	"github.com/felixgeelhaar/roady/internal/domain/planning"
+	"github.com/felixgeelhaar/roady/internal/domain/spec"
+)
+
+type MockRepo struct {
+	Spec      *spec.ProductSpec
+	Plan      *planning.Plan
+	State     *planning.ExecutionState
+	Policy    *domain.PolicyConfig
+	Initialized bool
+	SaveError error
+	LoadError error
+}
+
+func (m *MockRepo) Initialize() error { m.Initialized = true; return nil }
+func (m *MockRepo) IsInitialized() bool { return m.Initialized }
+func (m *MockRepo) SaveSpec(s *spec.ProductSpec) error { m.Spec = s; return m.SaveError }
+func (m *MockRepo) LoadSpec() (*spec.ProductSpec, error) { return m.Spec, m.LoadError }
+func (m *MockRepo) SaveSpecLock(s *spec.ProductSpec) error { return m.SaveError }
+func (m *MockRepo) LoadSpecLock() (*spec.ProductSpec, error) { return m.Spec, m.LoadError }
+func (m *MockRepo) SavePlan(p *planning.Plan) error { m.Plan = p; return m.SaveError }
+func (m *MockRepo) LoadPlan() (*planning.Plan, error) { return m.Plan, m.LoadError }
+func (m *MockRepo) SaveState(s *planning.ExecutionState) error { m.State = s; return m.SaveError }
+func (m *MockRepo) LoadState() (*planning.ExecutionState, error) { return m.State, m.LoadError }
+func (m *MockRepo) SavePolicy(c *domain.PolicyConfig) error { m.Policy = c; return m.SaveError }
+func (m *MockRepo) LoadPolicy() (*domain.PolicyConfig, error) { return m.Policy, m.LoadError }
+func (m *MockRepo) RecordEvent(e domain.Event) error { return m.SaveError }
+func (m *MockRepo) UpdateUsage(u domain.UsageStats) error { return m.SaveError }
+func (m *MockRepo) LoadUsage() (*domain.UsageStats, error) { return &domain.UsageStats{}, m.LoadError }

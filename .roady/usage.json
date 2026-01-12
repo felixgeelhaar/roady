@@ -1,0 +1,12 @@
+{
+  "total_commands": 131,
+  "last_command_at": "2026-01-12T23:06:44.024361+01:00",
+  "provider_stats": {
+    "gpt-4o:input": 5190,
+    "gpt-4o:output": 13512,
+    "llama3.2:latest:input": 5351,
+    "llama3.2:latest:output": 6744,
+    "llama3:input": 666,
+    "llama3:output": 1641
+  }
+}

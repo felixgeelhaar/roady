@@ -1,0 +1,5 @@
+max_wip: 3
+allow_ai: true
+ai_provider: openai
+ai_model: gpt-4o
+token_limit: 50000

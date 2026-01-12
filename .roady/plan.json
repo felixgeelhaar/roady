@@ -1,0 +1,416 @@
+{
+  "id": "plan-roady-core-1768253698",
+  "spec_id": "analyzed-spec",
+  "tasks": [
+    {
+      "id": "task-product-mission",
+      "title": "Define Product Mission",
+      "description": "Develop a clear and concise product mission statement.",
+      "priority": "medium",
+      "estimate": "4h",
+      "depends_on": null,
+      "feature_id": "product-mission"
+    },
+    {
+      "id": "task-target-users",
+      "title": "Identify Target Users",
+      "description": "Research and document the primary target audience and their needs.",
+      "priority": "medium",
+      "estimate": "4h",
+      "depends_on": null,
+      "feature_id": "target-users"
+    },
+    {
+      "id": "task-key-jobs-to-be-done",
+      "title": "Identify Key Jobs To Be Done",
+      "description": "Outline the crucial tasks and objectives for the product based on user needs.",
+      "priority": "medium",
+      "estimate": "4h",
+      "depends_on": null,
+      "feature_id": "key-jobs-to-be-done"
+    },
+    {
+      "id": "task-core-functional-areas",
+      "title": "Define Core Functional Areas",
+      "description": "Identify and document the core functional areas of the product.",
+      "priority": "medium",
+      "estimate": "4h",
+      "depends_on": null,
+      "feature_id": "core-functional-areas"
+    },
+    {
+      "id": "task-collaboration-model-core",
+      "title": "Establish Collaboration Model",
+      "description": "Design a collaboration model for the core areas of the product.",
+      "priority": "medium",
+      "estimate": "4h",
+      "depends_on": null,
+      "feature_id": "collaboration-model-(core)"
+    },
+    {
+      "id": "task-out-of-scope-core",
+      "title": "Document Out of Scope Features",
+      "description": "List features and components that are out of scope for the core functionalities.",
+      "priority": "medium",
+      "estimate": "4h",
+      "depends_on": null,
+      "feature_id": "out-of-scope-(core)"
+    },
+    {
+      "id": "task-success-metrics",
+      "title": "Define Success Metrics",
+      "description": "Identify and document metrics to measure product success.",
+      "priority": "medium",
+      "estimate": "4h",
+      "depends_on": null,
+      "feature_id": "success-metrics"
+    },
+    {
+      "id": "task-architectural-style",
+      "title": "Determine Architectural Style",
+      "description": "Select and document the architectural style for the product.",
+      "priority": "medium",
+      "estimate": "4h",
+      "depends_on": null,
+      "feature_id": "architectural-style"
+    },
+    {
+      "id": "task-core-domains",
+      "title": "Define Core Domains",
+      "description": "Identify and define the core domains applicable to the product.",
+      "priority": "medium",
+      "estimate": "4h",
+      "depends_on": null,
+      "feature_id": "core-domains"
+    },
+    {
+      "id": "task-state-management",
+      "title": "Design State Management Strategy",
+      "description": "Create a plan for managing application state effectively.",
+      "priority": "medium",
+      "estimate": "4h",
+      "depends_on": null,
+      "feature_id": "state-management"
+    },
+    {
+      "id": "implement-resilience-mechanisms",
+      "title": "Implement Resilience Mechanisms",
+      "description": "Develop and implement mechanisms to ensure the system is resilient to failures.",
+      "priority": "medium",
+      "estimate": "4h",
+      "depends_on": ["core-lib:task-core-foundation"],
+      "feature_id": "resilience"
+    },
+    {
+      "id": "task-ai-routing",
+      "title": "Develop AI Routing Engine",
+      "description": "Create AI components to optimize routing within the product.",
+      "priority": "medium",
+      "estimate": "4h",
+      "depends_on": null,
+      "feature_id": "ai-routing"
+    },
+    {
+      "id": "task-cli-design",
+      "title": "Design CLI",
+      "description": "Develop a command line interface for interacting with product features.",
+      "priority": "medium",
+      "estimate": "4h",
+      "depends_on": null,
+      "feature_id": "cli-design"
+    },
+    {
+      "id": "task-plugin-system",
+      "title": "Implement Plugin System",
+      "description": "Develop a system to support plugins and extensions.",
+      "priority": "medium",
+      "estimate": "4h",
+      "depends_on": null,
+      "feature_id": "plugin-system"
+    },
+    {
+      "id": "task-audit-telemetry",
+      "title": "Integrate Audit \u0026 Telemetry",
+      "description": "Add audit logs and telemetry for monitoring purposes.",
+      "priority": "medium",
+      "estimate": "4h",
+      "depends_on": null,
+      "feature_id": "audit-\u0026-telemetry"
+    },
+    {
+      "id": "task-guard-based-enforcement",
+      "title": "Develop Guard-based Enforcement",
+      "description": "Implement guards to ensure compliance with system rules and policies.",
+      "priority": "medium",
+      "estimate": "4h",
+      "depends_on": null,
+      "feature_id": "guard-based-enforcement"
+    },
+    {
+      "id": "task-drift-classification-details",
+      "title": "Define Drift Classification Details",
+      "description": "Outline the criteria and details for classifying drift in the system.",
+      "priority": "medium",
+      "estimate": "4h",
+      "depends_on": null,
+      "feature_id": "drift-classification-details"
+    },
+    {
+      "id": "task-mcp-interface",
+      "title": "Design MCP Interface",
+      "description": "Develop the interface for the main control panel.",
+      "priority": "medium",
+      "estimate": "4h",
+      "depends_on": null,
+      "feature_id": "mcp-interface"
+    },
+    {
+      "id": "task-storage-roady",
+      "title": "Setup Storage Structure: `.roady/`",
+      "description": "Configure the storage directory and structure under `.roady/`.",
+      "priority": "medium",
+      "estimate": "4h",
+      "depends_on": null,
+      "feature_id": "storage:-`.roady/`"
+    },
+    {
+      "id": "task-observability",
+      "title": "Enhance Observability Features",
+      "description": "Implement features to improve system observability and monitoring.",
+      "priority": "medium",
+      "estimate": "4h",
+      "depends_on": null,
+      "feature_id": "observability"
+    },
+    {
+      "id": "task-purpose",
+      "title": "Clarify Product Purpose",
+      "description": "Define and document the main purpose of the product.",
+      "priority": "medium",
+      "estimate": "4h",
+      "depends_on": null,
+      "feature_id": "purpose"
+    },
+    {
+      "id": "task-core-problems-pro",
+      "title": "Identify Core Problems",
+      "description": "Document the main problems the product aims to solve.",
+      "priority": "medium",
+      "estimate": "4h",
+      "depends_on": null,
+      "feature_id": "core-problems-(pro)"
+    },
+    {
+      "id": "task-pro-capabilities-conceptual",
+      "title": "Outline Pro Capabilities",
+      "description": "Define the conceptual capabilities of the pro version of the product.",
+      "priority": "medium",
+      "estimate": "4h",
+      "depends_on": null,
+      "feature_id": "pro-capabilities-(conceptual)"
+    },
+    {
+      "id": "task-constraints",
+      "title": "Identify System Constraints",
+      "description": "Document the constraints and limitations for the product development.",
+      "priority": "medium",
+      "estimate": "4h",
+      "depends_on": null,
+      "feature_id": "constraints"
+    },
+    {
+      "id": "task-ip-boundary",
+      "title": "Define IP Boundary",
+      "description": "Establish boundaries for intellectual property within the product.",
+      "priority": "medium",
+      "estimate": "4h",
+      "depends_on": null,
+      "feature_id": "ip-boundary"
+    },
+    {
+      "id": "task-guiding-principle",
+      "title": "Establish Guiding Principle",
+      "description": "Create a set of guiding principles for the product development.",
+      "priority": "medium",
+      "estimate": "4h",
+      "depends_on": null,
+      "feature_id": "guiding-principle"
+    },
+    {
+      "id": "task-horizon-1-core-viability-implemented",
+      "title": "Achieve Core Viability",
+      "description": "Ensure the core functionalities are viable and implemented.",
+      "priority": "medium",
+      "estimate": "4h",
+      "depends_on": null,
+      "feature_id": "horizon-1-–-core-viability-(implemented)"
+    },
+    {
+      "id": "task-horizon-2-core-depth-implemented-matured",
+      "title": "Develop Core Depth",
+      "description": "Mature and deepen the core functionalities of the product.",
+      "priority": "medium",
+      "estimate": "4h",
+      "depends_on": null,
+      "feature_id": "horizon-2-–-core-depth-(implemented/matured)"
+    },
+    {
+      "id": "task-horizon-3-pro-foundations-implemented-matured",
+      "title": "Strengthen Pro Foundations",
+      "description": "Establish and mature the foundational aspects of the pro version.",
+      "priority": "medium",
+      "estimate": "4h",
+      "depends_on": null,
+      "feature_id": "horizon-3-–-pro-foundations-(implemented/matured)"
+    },
+    {
+      "id": "task-horizon-4-organizational-intelligence-implemented-matured",
+      "title": "Enhance Organizational Intelligence",
+      "description": "Develop features to improve organizational intelligence and capabilities.",
+      "priority": "medium",
+      "estimate": "4h",
+      "depends_on": null,
+      "feature_id": "horizon-4-–-organizational-intelligence-(implemented/matured)"
+    },
+    {
+      "id": "task-horizon-5-adaptive-intelligence-discovery",
+      "title": "Explore Adaptive Intelligence",
+      "description": "Initiate discovery phase for adaptive intelligence features.",
+      "priority": "medium",
+      "estimate": "4h",
+      "depends_on": null,
+      "feature_id": "horizon-5-–-adaptive-intelligence-(discovery)"
+    },
+    {
+      "id": "task-ownership-boundaries",
+      "title": "Define Ownership Boundaries",
+      "description": "Establish clear ownership boundaries for product components.",
+      "priority": "medium",
+      "estimate": "4h",
+      "depends_on": null,
+      "feature_id": "ownership-boundaries"
+    },
+    {
+      "id": "task-core-philosophy",
+      "title": "Document Core Philosophy",
+      "description": "Outline the core philosophy guiding the product.",
+      "priority": "medium",
+      "estimate": "4h",
+      "depends_on": null,
+      "feature_id": "core-philosophy"
+    },
+    {
+      "id": "task-horizons",
+      "title": "Plan Product Horizons",
+      "description": "Define and plan the horizons for product development.",
+      "priority": "medium",
+      "estimate": "4h",
+      "depends_on": null,
+      "feature_id": "horizons"
+    },
+    {
+      "id": "task-north-star-experience",
+      "title": "Design North Star Experience",
+      "description": "Create a vision for the ideal North Star product experience.",
+      "priority": "medium",
+      "estimate": "4h",
+      "depends_on": null,
+      "feature_id": "north-star-experience"
+    },
+    {
+      "id": "task-req-core-spec-lifecycle",
+      "title": "Implement Spec Lifecycle Management",
+      "description": "Develop processes and systems to manage the lifecycle of specifications from creation to deprecation.",
+      "priority": "medium",
+      "estimate": "8h",
+      "depends_on": [
+        "core-lib:task-core-foundation"
+      ],
+      "feature_id": "core-functional-areas"
+    },
+    {
+      "id": "task-req-core-plan-lifecycle",
+      "title": "Design Plan Lifecycle Framework",
+      "description": "Design and implement a framework for planning lifecycle management, including creation, tracking, and completion.",
+      "priority": "medium",
+      "estimate": "8h",
+      "depends_on": ["core-lib:task-core-foundation"],
+      "feature_id": "core-functional-areas"
+    },
+    {
+      "id": "task-req-core-cli-mcp",
+      "title": "Add CLI \u0026 MCP Interface",
+      "description": "Integrate Command Line Interface (CLI) and Managed Control Plane (MCP) for user operations.",
+      "priority": "medium",
+      "estimate": "7h",
+      "depends_on": null,
+      "feature_id": "core-functional-areas"
+    },
+    {
+      "id": "task-req-success-metrics",
+      "title": "Define and Implement Success Metrics",
+      "description": "Set clear success metrics and integrate them into the system to track progress and performance.",
+      "priority": "medium",
+      "estimate": "6h",
+      "depends_on": null,
+      "feature_id": "success-metrics"
+    },
+    {
+      "id": "task-req-core-drift-detection",
+      "title": "Develop Drift Detection Mechanism",
+      "description": "Create a mechanism to detect and report configuration drifts in system specifications.",
+      "priority": "medium",
+      "estimate": "6h",
+      "depends_on": null,
+      "feature_id": "core-functional-areas"
+    },
+    {
+      "id": "task-req-core-status-querying",
+      "title": "Implement Status \u0026 Querying Operations",
+      "description": "Develop functionality to query the status of specifications and plans, providing real-time updates.",
+      "priority": "medium",
+      "estimate": "5h",
+      "depends_on": null,
+      "feature_id": "core-functional-areas"
+    },
+    {
+      "id": "task-req-git-based-async",
+      "title": "Implement Git-based Async Collaboration",
+      "description": "Develop a collaboration model based on Git to enable asynchronous collaboration among team members.",
+      "priority": "medium",
+      "estimate": "10h",
+      "depends_on": null,
+      "feature_id": "collaboration-model"
+    },
+    {
+      "id": "task-req-state-life-cycle",
+      "title": "Implement State Lifecycle Management",
+      "description": "Establish robust state management for the lifecycle documentation and processes.",
+      "priority": "medium",
+      "estimate": "8h",
+      "depends_on": null,
+      "feature_id": "state-management"
+    },
+    {
+      "id": "task-req-resilience-features",
+      "title": "Develop Resilience Features",
+      "description": "Implement features to enhance system resilience, ensuring high availability and error recovery.",
+      "priority": "medium",
+      "estimate": "8h",
+      "depends_on": null,
+      "feature_id": "resilience"
+    },
+    {
+      "id": "task-req-ai-provider-abstraction",
+      "title": "Create AI Provider Abstraction Layer",
+      "description": "Build an abstraction layer to integrate multiple AI providers for routing and decision making.",
+      "priority": "medium",
+      "estimate": "10h",
+      "depends_on": null,
+      "feature_id": "ai-routing"
+    }
+  ],
+  "approval_status": "approved",
+  "created_at": "2026-01-12T22:34:58.514433+01:00",
+  "updated_at": "2026-01-12T23:04:37.760309+01:00"
+}

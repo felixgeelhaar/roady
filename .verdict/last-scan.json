@@ -1,0 +1,32 @@
+{
+  "scan_time": "2026-01-11T21:21:12.792393Z",
+  "target": "/Users/felixgeelhaar/Developer/projects/open_source/roady",
+  "findings": [
+    {
+      "id": "finding-bac8277c67010a11",
+      "type": "sast",
+      "engine_id": "staticcheck",
+      "rule_id": "U1000",
+      "title": "var statusWIP is unused",
+      "normalized_severity": "INFO",
+      "effective_severity": "INFO",
+      "confidence": "HIGH",
+      "reachability": "UNKNOWN",
+      "location": {
+        "file": "/Users/felixgeelhaar/Developer/projects/open_source/roady/internal/infrastructure/cli/dashboard.go",
+        "line": 43,
+        "column": 5,
+        "end_line": 43,
+        "end_column": 25
+      },
+      "fingerprint": {
+        "value": "1211c9fe21c8fee9b05e48434076a573",
+        "version": "v1"
+      },
+      "metadata": {
+        "check_code": "U1000"
+      },
+      "detected_at": "2026-01-11T21:21:06.892291Z"
+    }
+  ]
+}

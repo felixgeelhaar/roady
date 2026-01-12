@@ -1,0 +1,272 @@
+package mcp
+
+import (
+	"context"
+	"fmt"
+
+	"github.com/felixgeelhaar/mcp-go"
+	"github.com/felixgeelhaar/roady/internal/application"
+	"github.com/felixgeelhaar/roady/internal/domain/planning"
+	"github.com/felixgeelhaar/roady/internal/infrastructure/ai"
+	"github.com/felixgeelhaar/roady/internal/infrastructure/storage"
+)
+
+type Server struct {
+	mcpServer *mcp.Server
+	initSvc   *application.InitService
+	specSvc   *application.SpecService
+	planSvc   *application.PlanService
+	driftSvc  *application.DriftService
+	policySvc *application.PolicyService
+	taskSvc   *application.TaskService
+	aiSvc     *application.AIPlanningService
+}
+
+func NewServer(root string) *Server {
+	repo := storage.NewFilesystemRepository(root)
+	audit := application.NewAuditService(repo)
+
+	cfg, _ := repo.LoadPolicy()
+	pName, mName := "ollama", "llama3"
+	if cfg != nil {
+		pName = cfg.AIProvider
+		mName = cfg.AIModel
+	}
+
+	baseProvider, _ := ai.GetDefaultProvider(pName, mName)
+	provider := ai.NewResilientProvider(baseProvider)
+	
+	info := mcp.ServerInfo{
+		Name:    "roady",
+		Version: "0.1.0",
+	}
+	
+	s := &Server{
+		mcpServer: mcp.NewServer(info),
+		initSvc:   application.NewInitService(repo, audit),
+		specSvc:   application.NewSpecService(repo),
+		planSvc:   application.NewPlanService(repo, audit),
+		driftSvc:  application.NewDriftService(repo),
+		policySvc: application.NewPolicyService(repo),
+		taskSvc:   application.NewTaskService(repo, audit),
+		aiSvc:     application.NewAIPlanningService(repo, provider, audit),
+	}
+
+	s.registerTools()
+	return s
+}
+
+type InitArgs struct {
+	Name string `json:"name" jsonschema:"description=The name of the project"`
+}
+
+type UpdatePlanArgs struct {
+	Tasks []planning.Task `json:"tasks" jsonschema:"description=The list of tasks to define the plan"`
+}
+
+func (s *Server) registerTools() {
+	// Tool: roady_init
+	s.mcpServer.Tool("roady_init").
+		Description("Initialize a new roady project in the current directory").
+		Handler(s.handleInit)
+
+	// Tool: roady_get_spec
+	s.mcpServer.Tool("roady_get_spec").
+		Description("Retrieve the current product specification").
+		Handler(s.handleGetSpec)
+
+	// Tool: roady_get_plan
+	s.mcpServer.Tool("roady_get_plan").
+		Description("Retrieve the current execution plan").
+		Handler(s.handleGetPlan)
+
+	// Tool: roady_get_state
+	s.mcpServer.Tool("roady_get_state").
+		Description("Retrieve the current execution state (task statuses)").
+		Handler(s.handleGetState)
+
+	// Tool: roady_generate_plan (Heuristic)
+	s.mcpServer.Tool("roady_generate_plan").
+		Description("Generate a basic plan from the spec using 1:1 heuristic (resets custom tasks unless they match features)").
+		Handler(s.handleGeneratePlan)
+
+	// Tool: roady_update_plan (Smart Injection)
+	s.mcpServer.Tool("roady_update_plan").
+		Description("Update the plan with a specific list of tasks (Smart Injection). Use this to propose complex architectures.").
+		Handler(s.handleUpdatePlan)
+	
+	// Tool: roady_detect_drift
+	s.mcpServer.Tool("roady_detect_drift").
+		Description("Detect discrepancies between the current Spec and Plan").
+		Handler(s.handleDetectDrift)
+
+	// Tool: roady_status
+	s.mcpServer.Tool("roady_status").
+		Description("Get a high-level summary of the project status").
+		Handler(s.handleStatus)
+
+	// Tool: roady_check_policy
+	s.mcpServer.Tool("roady_check_policy").
+		Description("Check if the current plan complies with execution policies (e.g., WIP limits)").
+		Handler(s.handleCheckPolicy)
+
+	// Tool: roady_transition_task
+	s.mcpServer.Tool("roady_transition_task").
+		Description("Transition a task to a new state (e.g., start, complete, block, stop)").
+		Handler(s.handleTransitionTask)
+
+	// Tool: roady_explain_spec
+	s.mcpServer.Tool("roady_explain_spec").
+		Description("Provide an AI-generated architectural walkthrough of the current specification").
+		Handler(s.handleExplainSpec)
+
+	// Tool: roady_approve_plan
+	s.mcpServer.Tool("roady_approve_plan").
+		Description("Approve the current plan for execution").
+		Handler(s.handleApprovePlan)
+
+	// Tool: roady_get_usage
+	s.mcpServer.Tool("roady_get_usage").
+		Description("Retrieve project usage and telemetry statistics").
+		Handler(s.handleGetUsage)
+
+	// Tool: roady_explain_drift
+	s.mcpServer.Tool("roady_explain_drift").
+		Description("Provide an AI-generated explanation and resolution steps for current project drift").
+		Handler(s.handleExplainDrift)
+}
+
+func (s *Server) handleExplainDrift(ctx context.Context, args struct{}) (string, error) {
+	report, err := s.driftSvc.DetectDrift()
+	if err != nil {
+		return "", err
+	}
+	return s.aiSvc.ExplainDrift(ctx, report)
+}
+
+func (s *Server) handleGetUsage(ctx context.Context, args struct{}) (any, error) {
+	return s.planSvc.GetUsage()
+}
+
+func (s *Server) handleApprovePlan(ctx context.Context, args struct{}) (string, error) {
+	err := s.planSvc.ApprovePlan()
+	if err != nil {
+		return "", err
+	}
+	return "Plan approved successfully", nil
+}
+
+func (s *Server) handleExplainSpec(ctx context.Context, args struct{}) (string, error) {
+	return s.aiSvc.ExplainSpec(ctx)
+}
+
+type TransitionTaskArgs struct {
+	TaskID   string `json:"task_id" jsonschema:"description=The ID of the task to transition"`
+	Event    string `json:"event" jsonschema:"description=The transition event (start, complete, block, stop, unblock, reopen)"`
+	Evidence string `json:"evidence,omitempty" jsonschema:"description=Optional evidence for the transition (e.g. commit hash)"`
+}
+
+func (s *Server) handleTransitionTask(ctx context.Context, args TransitionTaskArgs) (string, error) {
+	err := s.taskSvc.TransitionTask(args.TaskID, args.Event, "ai-agent", args.Evidence)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("Task %s transitioned with event %s successfully", args.TaskID, args.Event), nil
+}
+
+func (s *Server) handleInit(ctx context.Context, args InitArgs) (string, error) {
+	err := s.initSvc.InitializeProject(args.Name)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("Project %s initialized successfully", args.Name), nil
+}
+
+func (s *Server) handleGetSpec(ctx context.Context, args struct{}) (any, error) {
+	spec, err := s.specSvc.GetSpec()
+	if err != nil {
+		return nil, err
+	}
+	return spec, nil
+}
+
+func (s *Server) handleGetPlan(ctx context.Context, args struct{}) (any, error) {
+	plan, err := s.planSvc.GetPlan()
+	if err != nil {
+		return nil, err
+	}
+	return plan, nil
+}
+
+func (s *Server) handleGetState(ctx context.Context, args struct{}) (any, error) {
+	state, err := s.planSvc.GetState()
+	if err != nil {
+		return nil, err
+	}
+	return state, nil
+}
+
+func (s *Server) handleGeneratePlan(ctx context.Context, args struct{}) (string, error) {
+	plan, err := s.planSvc.GeneratePlan()
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("Plan generated with %d tasks. Plan ID: %s", len(plan.Tasks), plan.ID), nil
+}
+
+func (s *Server) handleUpdatePlan(ctx context.Context, args UpdatePlanArgs) (string, error) {
+	plan, err := s.planSvc.UpdatePlan(args.Tasks)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("Plan updated with %d tasks. Plan ID: %s", len(plan.Tasks), plan.ID), nil
+}
+
+func (s *Server) handleDetectDrift(ctx context.Context, args struct{}) (any, error) {
+	report, err := s.driftSvc.DetectDrift()
+	if err != nil {
+		return nil, err
+	}
+	return report, nil
+}
+
+func (s *Server) handleStatus(ctx context.Context, args struct{}) (string, error) {
+	plan, err := s.planSvc.GetPlan()
+	if err != nil {
+		return "", fmt.Errorf("failed to load plan: %w", err)
+	}
+
+	state, err := s.planSvc.GetState()
+	if err != nil {
+		return "", fmt.Errorf("failed to load state: %w", err)
+	}
+	
+	counts := make(map[string]int)
+	for _, t := range plan.Tasks {
+		status := "pending"
+		if res, ok := state.TaskStates[t.ID]; ok {
+			status = string(res.Status)
+		}
+		counts[status]++
+	}
+	
+	statusStr := fmt.Sprintf("Tasks: %d total\n- Done: %d\n- In Progress: %d\n- Pending: %d\n- Blocked: %d",
+		len(plan.Tasks), counts["done"], counts["in_progress"], counts["pending"], counts["blocked"])
+	return statusStr, nil
+}
+
+func (s *Server) handleCheckPolicy(ctx context.Context, args struct{}) (any, error) {
+	vioations, err := s.policySvc.CheckCompliance()
+	if err != nil {
+		return nil, err
+	}
+	if len(vioations) == 0 {
+		return "No policy violations found.", nil
+	}
+	return vioations, nil
+}
+
+func (s *Server) Start() error {
+	ctx := context.Background()
+	return mcp.ServeStdio(ctx, s.mcpServer)
+}
