@@ -9,8 +9,18 @@ import (
 
 // Syncer is the interface that plugins must implement.
 type Syncer interface {
-	// Sync pushes the Roady plan to the external system and returns any status updates.
-	Sync(plan *planning.Plan, state *planning.ExecutionState) (map[string]planning.TaskStatus, error)
+	// Init ensures the plugin can connect (auth check)
+	Init(config map[string]string) error
+
+	// Sync performs the bi-directional synchronization
+	Sync(plan *planning.Plan, state *planning.ExecutionState) (*SyncResult, error)
+}
+
+// SyncResult captures the outcome of a sync operation
+type SyncResult struct {
+	StatusUpdates map[string]planning.TaskStatus `json:"status_updates"`
+	LinkUpdates   map[string]planning.ExternalRef `json:"link_updates"`
+	Errors        []string                       `json:"errors"`
 }
 
 // SyncerPlugin is the implementation of plugin.Plugin so we can serve/consume this.
@@ -34,17 +44,28 @@ type SyncArgs struct {
 
 type SyncerRPCClient struct{ Client *rpc.Client }
 
-func (g *SyncerRPCClient) Sync(plan *planning.Plan, state *planning.ExecutionState) (map[string]planning.TaskStatus, error) {
-	var resp map[string]planning.TaskStatus
+func (g *SyncerRPCClient) Init(config map[string]string) error {
+	var resp interface{}
+	return g.Client.Call("Plugin.Init", config, &resp)
+}
+
+func (g *SyncerRPCClient) Sync(plan *planning.Plan, state *planning.ExecutionState) (*SyncResult, error) {
+	var resp SyncResult
 	args := &SyncArgs{Plan: plan, State: state}
 	err := g.Client.Call("Plugin.Sync", args, &resp)
-	return resp, err
+	return &resp, err
 }
 
 type SyncerRPCServer struct{ Impl Syncer }
 
-func (s *SyncerRPCServer) Sync(args *SyncArgs, resp *map[string]planning.TaskStatus) error {
-	var err error
-	*resp, err = s.Impl.Sync(args.Plan, args.State)
+func (s *SyncerRPCServer) Init(config map[string]string, resp *interface{}) error {
+	return s.Impl.Init(config)
+}
+
+func (s *SyncerRPCServer) Sync(args *SyncArgs, resp *SyncResult) error {
+	result, err := s.Impl.Sync(args.Plan, args.State)
+	if result != nil {
+		*resp = *result
+	}
 	return err
 }

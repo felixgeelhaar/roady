@@ -36,11 +36,16 @@ var syncCmd = &cobra.Command{
 			return fmt.Errorf("failed to load state: %w", err)
 		}
 
-		updates, err := syncer.Sync(plan, state)
+		if err := syncer.Init(map[string]string{}); err != nil {
+			return fmt.Errorf("failed to initialize plugin: %w", err)
+		}
+
+		result, err := syncer.Sync(plan, state)
 		if err != nil {
 			return fmt.Errorf("failed to sync: %w", err)
 		}
 
+		updates := result.StatusUpdates
 		if len(updates) > 0 {
 			audit := application.NewAuditService(repo)
 			taskService := application.NewTaskService(repo, audit)

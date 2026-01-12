@@ -11,10 +11,19 @@ type ExecutionState struct {
 
 // TaskResult captures the progress of a single task.
 type TaskResult struct {
-	Status   TaskStatus `json:"status"`
-	Path     string     `json:"path"`
-	Owner    string     `json:"owner,omitempty"`    // Who is currently working on this?
-	Evidence []string   `json:"evidence,omitempty"` // List of evidence (commit hashes, links, etc.)
+	Status       TaskStatus             `json:"status"`
+	Path         string                 `json:"path"`
+	Owner        string                 `json:"owner,omitempty"`    // Who is currently working on this?
+	Evidence     []string               `json:"evidence,omitempty"` // List of evidence (commit hashes, links, etc.)
+	ExternalRefs map[string]ExternalRef `json:"external_refs,omitempty"`
+}
+
+// ExternalRef links a Roady task to an external system (Linear, Jira, etc.)
+type ExternalRef struct {
+	ID           string    `json:"id"`             // Internal ID (e.g. "e84910...")
+	Identifier   string    `json:"identifier"`     // Human readable ID (e.g. "LIN-123")
+	URL          string    `json:"url"`
+	LastSyncedAt time.Time `json:"last_synced_at"`
 }
 
 func NewExecutionState(projectID string) *ExecutionState {

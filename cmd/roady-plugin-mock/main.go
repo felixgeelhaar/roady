@@ -11,9 +11,13 @@ import (
 
 type MockSyncer struct{}
 
-func (m *MockSyncer) Sync(plan *planning.Plan, state *planning.ExecutionState) (map[string]planning.TaskStatus, error) {
+func (m *MockSyncer) Init(config map[string]string) error {
+	return nil
+}
+
+func (m *MockSyncer) Sync(plan *planning.Plan, state *planning.ExecutionState) (*domainPlugin.SyncResult, error) {
 	log.Printf("Received plan with %d tasks", len(plan.Tasks))
-	
+
 	// Simulate updates: Mark all "in_progress" tasks as "done", and "pending" as "in_progress"
 	updates := make(map[string]planning.TaskStatus)
 	for _, t := range plan.Tasks {
@@ -30,10 +34,9 @@ func (m *MockSyncer) Sync(plan *planning.Plan, state *planning.ExecutionState) (
 			updates[t.ID] = planning.StatusInProgress
 		}
 	}
-	
-	return updates, nil
-}
 
+	return &domainPlugin.SyncResult{StatusUpdates: updates}, nil
+}
 func main() {
 	plugin.Serve(&plugin.ServeConfig{
 		HandshakeConfig: infraPlugin.HandshakeConfig,
