@@ -67,7 +67,7 @@ func TestPlanService_FailurePaths(t *testing.T) {
 	repo.LoadError = nil
 	repo.Spec = &spec.ProductSpec{ID: "s1"}
 	tasks := []planning.Task{
-		{ID: "t1", DependsOn: []string{"t1"}},
+		{ID: "t1", Title: "T1", DependsOn: []string{"t1"}},
 	}
 	_, err = service.UpdatePlan(tasks)
 	if err == nil {

@@ -166,13 +166,8 @@ func (r *FilesystemRepository) LoadUsage() (*domain.UsageStats, error) {
 		return nil, err
 	}
 
+	// #nosec G304 -- Path is resolved and validated via ResolvePath
 	data, err := os.ReadFile(path)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return &domain.UsageStats{ProviderStats: make(map[string]int)}, nil
-		}
-		return nil, fmt.Errorf("failed to read usage file: %w", err)
-	}
 
 	var stats domain.UsageStats
 	if err := json.Unmarshal(data, &stats); err != nil {

@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"regexp"
 	"strings"
 
 	"github.com/felixgeelhaar/roady/internal/domain/ai"
@@ -39,7 +40,17 @@ type ollamaResponse struct {
 	Done     bool   `json:"done"`
 }
 
+var safeModelName = regexp.MustCompile(`^[a-zA-Z0-9:._-]+$`)
+
 func (p *OllamaProvider) Complete(ctx context.Context, req ai.CompletionRequest) (*ai.CompletionResponse, error) {
+	if !safeModelName.MatchString(p.Model) {
+		return nil, fmt.Errorf("invalid model name: %s", p.Model)
+	}
+
+	if req.Temperature < 0 {
+		return nil, fmt.Errorf("invalid temperature")
+	}
+
 	url := "http://localhost:11434/api/generate"
 	
 	format := ""

@@ -166,5 +166,99 @@ func (s *SpecService) parseMarkdownFile(path string) (*spec.ProductSpec, error) 
 }
 
 func (s *SpecService) GetSpec() (*spec.ProductSpec, error) {
+
 	return s.repo.LoadSpec()
+
+}
+
+
+
+// AddFeature programmatically adds a new functional unit and syncs it back to documentation.
+
+func (s *SpecService) AddFeature(title, description string) (*spec.ProductSpec, error) {
+
+	current, err := s.repo.LoadSpec()
+
+	if err != nil {
+
+		return nil, fmt.Errorf("failed to load spec: %w", err)
+
+	}
+
+
+
+	id := strings.ToLower(strings.ReplaceAll(title, " ", "-"))
+
+	newFeat := spec.Feature{
+
+		ID:          id,
+
+		Title:       title,
+
+		Description: description,
+
+	}
+
+
+
+	current.Features = append(current.Features, newFeat)
+
+
+
+	if err := s.repo.SaveSpec(current); err != nil {
+
+		return nil, err
+
+	}
+
+	if err := s.repo.SaveSpecLock(current); err != nil {
+
+		return nil, err
+
+	}
+
+
+
+	// Step 4: Sync back to documentation
+
+	_ = s.syncToMarkdown(newFeat)
+
+
+
+	return current, nil
+
+}
+
+
+
+func (s *SpecService) syncToMarkdown(f spec.Feature) error {
+
+	path := "docs/backlog.md"
+
+	// Ensure directory exists
+
+	_ = os.MkdirAll("docs", 0700)
+
+
+
+	content := fmt.Sprintf("\n## %s\n\n%s\n\n---\n", f.Title, f.Description)
+
+	
+
+	fWriter, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
+
+	if err != nil {
+
+		return err
+
+	}
+
+	defer fWriter.Close()
+
+
+
+	_, err = fWriter.WriteString(content)
+
+	return err
+
 }

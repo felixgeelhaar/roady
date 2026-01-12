@@ -1,72 +1,75 @@
-# Roady
+<p align="center">
+  <img src="logo.svg" width="150" alt="Roady Logo">
+</p>
 
-**Roady** is a planning-first system of record for software work. It helps individuals and teams answer "What are we building?", "Why?", and "What's next?" without re-deriving context.
+# Roady 🚗
 
-It acts as a durable memory layer between **intent** (Specs), **plans** (Tasks), and **execution** (Code).
+**Roady** is a planning-first system of record for software work. It acts as a durable, high-integrity memory layer between **intent** (what you want to build), **plans** (how you'll build it), and **execution** (the actual work).
 
-## Features
+Designed for individuals, teams, and AI agents, Roady ensures that your development roadmap never drifts from your original intent.
 
-*   **Spec Management:** Import PRDs (`roady spec import`) or define them in `spec.yaml`.
-*   **Plan Generation:** Deterministically derive execution plans with "Smart Injection" for AI agents.
-*   **Drift Detection:**
-    *   **Spec Drift:** Detect when the Plan falls behind the Spec.
-    *   **Code Drift:** Detect when Code is missing or empty for completed tasks.
-*   **Policy Enforcement:** Configurable governance (e.g., Max WIP limits) via `policy.yaml`.
-*   **Interactive Dashboard:** A TUI (`roady dashboard`) for real-time status visibility.
-*   **Plugin Architecture:** Sync tasks with external tools (GitHub, Linear) via gRPC plugins.
-*   **AI Integration (MCP):** Expose all capabilities to AI agents via the Model Context Protocol.
+## 🌟 Key Features
 
-## Installation
+*   **Spec-Driven Inference:** Automatically derive functional specifications from multiple markdown documents (`roady spec analyze`).
+*   **Adaptive AI Planning:** Decompose high-level features into granular task graphs using OpenAI or local Ollama models (`roady plan generate --ai`).
+*   **Deterministic Drift Detection:** Instantly catch misalignments between docs, plans, and code reality (`roady drift detect`).
+*   **Organizational Intelligence:** Discover projects across your machine (`roady discover`) and get unified progress views (`roady org status`).
+*   **AI Governance:** Enforce policy-based token limits to control agentic spending.
+*   **Immutable Audit Trails:** Every action is cryptographically signed in a verifiable hash chain (`roady audit verify`).
+*   **Continuous Automation:** Watch documents for changes and sync task statuses via Git commit markers (`[roady:task-id]`).
+*   **Interactive TUI:** Real-time visibility into your project's health and velocity (`roady dashboard`).
+*   **MCP First:** Seamlessly expose planning capabilities to AI agents via the Model Context Protocol.
 
+## 🚀 Quick Start
+
+### 1. Installation
 ```bash
 go install github.com/felixgeelhaar/roady/cmd/roady@latest
 ```
 
-## Quick Start
-
-1.  **Initialize a Project**
-    ```bash
-    roady init my-project
-    ```
-    Creates `.roady/` with default spec and policy.
-
-2.  **Import Your Intent**
-    ```bash
-    roady spec import docs/prd.md
-    ```
-
-3.  **Generate a Plan**
-    ```bash
-    roady plan generate
-    ```
-
-4.  **Visualize**
-    ```bash
-    roady dashboard
-    ```
-
-5.  **Check Drift & Policy**
-    ```bash
-    roady drift detect
-    roady policy check
-    ```
-
-## Configuration (`.roady/policy.yaml`)
-
-Control your workflow constraints:
-
-```yaml
-max_wip: 3  # Limit concurrent "in_progress" tasks
+### 2. Initialize
+```bash
+roady init my-awesome-project
 ```
 
-## Plugins
+### 3. Plan your Intent
+Put your PRDs or feature docs in `docs/`, then:
+```bash
+roady spec analyze docs/ --reconcile
+roady plan generate --ai
+```
 
-Roady supports external syncers via `roady sync <plugin-path>`.
-Plugins implement the `Syncer` gRPC interface to map Roady tasks to external issues.
+### 4. Drive Execution
+```bash
+roady task start <task-id>
+# Or automate via Git:
+git commit -m "Implement core engine [roady:task-core-engine]"
+roady git sync
+```
 
-## AI Integration (MCP)
+### 5. Check Health & Forecast
+```bash
+roady status
+roady drift detect
+roady forecast
+```
 
-**Claude Desktop Configuration:**
+## 🛡️ Governance & Policy
+
+Configure project guardrails in `.roady/policy.yaml`:
+
+```yaml
+max_wip: 3            # Limit concurrent tasks
+allow_ai: true        # Enable AI planning
+ai_provider: openai   # Use OpenAI or Ollama
+ai_model: gpt-4o      # Your preferred model
+token_limit: 50000    # Hard budget for AI operations
+```
+
+## 🧩 AI Integration (MCP)
+
+Roady is a first-class MCP server. Add it to your `claude_desktop_config.json`:
+
 ```json
 {
   "mcpServers": {
@@ -78,21 +81,13 @@ Plugins implement the `Syncer` gRPC interface to map Roady tasks to external iss
 }
 ```
 
-**Tools Available to Agents:**
-*   `roady_update_plan`: The "Brain" of the operation. Agents read the spec and push a detailed DAG.
-*   `roady_detect_drift`: Agents can self-correct if they forgot to implement a file.
-*   `roady_check_policy`: Agents can check if they are allowed to start a new task.
+## 🏗️ Architecture
 
-## Architecture
+Roady is built on clean **Domain-Driven Design (DDD)** principles:
+*   **Domain:** Pure business logic for Specs, Plans, Drift, and Policy.
+*   **Infrastructure:** Modern Go stack using `cobra`, `bubbletea`, `mcp-go`, and `fortify`.
+*   **Storage:** Git-friendly YAML/JSON artifacts in `.roady/`.
 
-Roady follows Domain-Driven Design (DDD):
-*   **Domain:** Spec, Plan, Drift, Policy, Plugin.
-*   **Infrastructure:** CLI (Cobra), TUI (Bubbletea), Storage (YAML/JSON), MCP (mcp-go).
+## 📜 License
 
-Data is local-first in `.roady/`.
-
-## Contributing
-
-1.  Clone the repo.
-2.  Run `go mod tidy`.
-3.  Run `go test ./...` to verify changes.
+MIT License. See `LICENSE` for details.

@@ -23,6 +23,10 @@ func NewAIPlanningService(repo domain.WorkspaceRepository, provider ai.Provider,
 	return &AIPlanningService{repo: repo, provider: provider, audit: audit}
 }
 
+func (s *AIPlanningService) GetAuditService() *AuditService {
+	return s.audit
+}
+
 func (s *AIPlanningService) DecomposeSpec(ctx context.Context) (*planning.Plan, error) {
 	// 1. Check Policy & Budget
 	cfg, err := s.repo.LoadPolicy()
@@ -70,7 +74,7 @@ Format:
 ]
 
 Features to decompose:
-`, spec.Title)
+`)
 
 	for _, f := range spec.Features {
 		prompt += fmt.Sprintf("- Feature: %s (ID: %s)\n", f.Title, f.ID)

@@ -1,0 +1,20 @@
+# Binaries
+roady
+roady-plugin-*
+
+# OS files
+.DS_Store
+
+# Local Roady State (Optional: Commit spec.yaml but ignore execution state)
+# .roady/state.json
+# .roady/usage.json
+# .roady/events.jsonl
+
+# Coverage and Reports
+.cover/
+.verdict/
+coverage.out
+
+# IDEs
+.vscode/
+.idea/

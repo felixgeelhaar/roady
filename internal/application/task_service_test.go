@@ -20,10 +20,11 @@ func TestTaskService_Transition_Mock(t *testing.T) {
 			},
 		},
 	}
-	service := application.NewTaskService(repo)
+	audit := application.NewAuditService(repo)
+	service := application.NewTaskService(repo, audit)
 
 	// 1. Valid
-	err := service.TransitionTask("t1", "start")
+	err := service.TransitionTask("t1", "start", "test-user", "some evidence")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -32,14 +33,14 @@ func TestTaskService_Transition_Mock(t *testing.T) {
 	}
 
 	// 2. Task not found
-	err = service.TransitionTask("missing", "start")
+	err = service.TransitionTask("missing", "start", "test-user", "")
 		if err == nil {
 			t.Error("Expected error for missing task")
 		}
 	
 		// 3. Save error
 		repo.SaveError = errors.New("save fail")
-		err = service.TransitionTask("t1", "start")
+		err = service.TransitionTask("t1", "start", "test-user", "")
 		if err == nil {
 			t.Error("Expected error on save fail")
 		}

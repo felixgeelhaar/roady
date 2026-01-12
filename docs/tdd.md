@@ -6,6 +6,8 @@
 - Event-oriented
 - Deterministic artifacts
 - Plugin-first extensibility
+- **Domain Events**: Internal triggers for cross-context side effects.
+- **Value Object Ubiquity**: Strict typing for domain measurements (Estimates, Priorities).
 
 ---
 

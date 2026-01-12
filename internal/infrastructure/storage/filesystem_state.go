@@ -28,6 +28,7 @@ func (r *FilesystemRepository) LoadState() (*planning.ExecutionState, error) {
 		return nil, err
 	}
 
+	// #nosec G304 -- Path is resolved and validated via ResolvePath
 	data, err := os.ReadFile(path)
 	if err != nil {
 		if os.IsNotExist(err) {

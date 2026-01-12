@@ -1,217 +1,328 @@
 {
-  "id": "analyzed-spec",
+  "id": "roady-core",
   "title": "Roady Core – Product Requirements Document",
-  "description": "Roady is a **planning-first system of record for software work**.",
+  "description": "Roady Core enables developers and AI agents to plan once, execute many times, and detect drift continuously. It serves diverse target users, including individual developers, senior engineers using AI tools, open-source maintainers, tech leads, and consultants. Key jobs to be done focus on structured planning, maintaining continuity, drift awareness, and AI efficiency.",
   "features": [
     {
       "id": "product-mission",
       "title": "Product Mission",
-      "description": "Enable developers and AI agents to **plan once, execute many times, and detect drift continuously**.\n\n---",
-      "requirements": []
+      "description": "Enable developers and AI agents to plan once, execute many times, and detect drift continuously.",
+      "requirements": [
+        {
+          "id": "req-001",
+          "title": "Mission Clarity",
+          "description": "Clearly define the mission to ensure alignment among users and stakeholders.",
+          "priority": "high",
+          "estimate": "8h",
+          "depends_on": []
+        }
+      ]
     },
     {
       "id": "target-users",
       "title": "Target Users",
-      "description": "### Primary\n- Individual developers\n- Senior engineers using AI tools\n- Open-source maintainers\n\n### Secondary\n- Tech leads\n- Consultants hopping between repos\n\n---",
-      "requirements": []
+      "description": "Primary users are individual developers, senior engineers using AI tools, and open-source maintainers. Secondary users include tech leads and consultants hopping between repos.",
+      "requirements": [
+        {
+          "id": "req-002",
+          "title": "User Persona Identification",
+          "description": "Identify and document primary and secondary user personas.",
+          "priority": "medium",
+          "estimate": "4h",
+          "depends_on": []
+        }
+      ]
     },
     {
       "id": "key-jobs-to-be-done",
       "title": "Key Jobs To Be Done",
-      "description": "### JTBD 1 – Planning\n“When I start a project, I want a clear plan derived from intent, not a blank slate.”\n\n### JTBD 2 – Continuity\n“When I come back later (or someone else does), I want to know exactly where we are.”\n\n### JTBD 3 – Drift Awareness\n“When reality changes, I want to know *what* drifted and *why*.”\n\n### JTBD 4 – AI Efficiency\n“When using AI, I don’t want to keep re-explaining context.”\n\n---",
-      "requirements": []
+      "description": "JTBD 1 – Planning: Derive a clear plan from intent, not a blank slate. JTBD 2 – Continuity: Know exactly where we are upon return. JTBD 3 – Drift Awareness: Identify what drifted and why. JTBD 4 – AI Efficiency: Avoid re-explaining context when using AI.",
+      "requirements": [
+        {
+          "id": "req-003",
+          "title": "JTBD Implementation",
+          "description": "Implement structured processes for key jobs to be done.",
+          "priority": "high",
+          "estimate": "16h",
+          "depends_on": []
+        }
+      ]
     },
     {
       "id": "core-functional-areas",
       "title": "Core Functional Areas",
-      "description": "---\n\n### 1. Spec Lifecycle\n\n#### Inputs\n- Existing PRDs\n- Markdown docs\n- README files\n- Guided prompts\n- AI-assisted inference (optional)\n\n#### Capabilities\n- Generate initial ProductSpec\n- Normalize \u0026 validate\n- Version and hash features\n- Explain spec back to user\n\n#### Non-goals\n- No speculative requirements\n- No silent mutation\n\n---\n\n### 2. Plan Lifecycle\n\n#### Plan Definition\n- DAG of tasks\n- Each task:\n- references a feature\n- pins a feature hash\n- declares dependencies\n- declares skill + model hint\n\n#### Capabilities\n- Deterministic generation\n- AI-assisted suggestion\n- Human approval required\n- Diffable plans\n\n---\n\n### 3. Drift Detection\n\n#### Drift Types\n- Spec drift\n- Plan drift\n- Code drift\n- Policy drift\n\n#### Output\n- Structured findings\n- SARIF output\n- Human-readable summaries\n\n#### Philosophy\nDrift ≠ failure\nUndetected drift = failure\n\n---\n\n### 4. Status \u0026 Querying\n\nRoady must answer instantly:\n- What phase are we in?\n- What tasks are active?\n- What’s blocked?\n- What drift exists?\n- What changed recently?\n\n---\n\n### 5. CLI \u0026 MCP\n\n#### CLI\n- Scriptable\n- Explicit verbs\n- No magic defaults\n\n#### MCP\n- Enables AI tools to:\n- read spec\n- read plan\n- ask status\n- propose changes\n\n---",
-      "requirements": []
+      "description": "Spec Lifecycle, Plan Lifecycle, Drift Detection, Status \u0026 Querying, CLI \u0026 MCP. These areas cover the generation of initial ProductSpecs, deterministic planning, drift detection, and providing answers to status queries.",
+      "requirements": [
+        {
+          "id": "req-004",
+          "title": "Lifecycle Automation",
+          "description": "Automate the spec and plan lifecycle with support for AI-assisted features and drift detection.",
+          "priority": "high",
+          "estimate": "24h",
+          "depends_on": []
+        }
+      ]
     },
     {
-      "id": "collaboration-model-(core)",
-      "title": "Collaboration Model (Core)",
-      "description": "- Git-based async\n- `.roady/` committed optionally\n- No real-time locking\n- Conflicts resolved like code\n\n---",
-      "requirements": []
-    },
-    {
-      "id": "out-of-scope-(core)",
-      "title": "Out of Scope (Core)",
-      "description": "- Ownership tracking\n- Real-time presence\n- Team dashboards\n- Forecasting\n- Billing\n- Compliance\n\n---",
-      "requirements": []
+      "id": "collaboration-model",
+      "title": "Collaboration Model",
+      "description": "Git-based asynchronous collaboration, optional .roady/ commits, no real-time locking, and conflict resolution like code.",
+      "requirements": [
+        {
+          "id": "req-005",
+          "title": "Asynchronous Collaboration",
+          "description": "Facilitate Git-based asynchronous collaboration without real-time locking.",
+          "priority": "medium",
+          "estimate": "12h",
+          "depends_on": []
+        }
+      ]
     },
     {
       "id": "success-metrics",
       "title": "Success Metrics",
-      "description": "- Reduced AI token usage\n- Reduced replanning frequency\n- Faster onboarding\n- Earlier drift detection# Roady – Technical Design Document",
-      "requirements": []
+      "description": "Success is measured by reduced AI token usage, reduced replanning frequency, faster onboarding, and earlier drift detection.",
+      "requirements": [
+        {
+          "id": "req-006",
+          "title": "Metric Tracking",
+          "description": "Implement tracking for key success metrics.",
+          "priority": "medium",
+          "estimate": "8h",
+          "depends_on": []
+        }
+      ]
     },
     {
       "id": "architectural-style",
       "title": "Architectural Style",
-      "description": "- Domain Driven Design (DDD)\n- Event-oriented\n- Deterministic artifacts\n- Plugin-first extensibility\n\n---",
-      "requirements": []
-    },
-    {
-      "id": "core-domains",
-      "title": "Core Domains",
-      "description": "### Spec Domain\nEntities:\n- **ProductSpec**: The root of intent.\n- **Feature**: Functional blocks.\n- **Requirement**: Atomic conditions (structured).\n\nInvariants:\n- Feature hashes must be stable.\n- Full validation before persistence.\n\n---\n\n### Plan Domain\nEntities:\n- **Plan**: The logical execution graph.\n- **Task**: Units of work derived from Requirements.\n\nInvariants:\n- Strictly Directed Acyclic Graph (DAG).\n- Each task pins a feature/requirement hash.\n- No forward-looking dependencies.\n\n---\n\n### Drift Domain\nEntities:\n- **Finding**: A single discrepancy.\n- **Report**: Aggregated state of alignment.\n\nRules:\n- Drift detection is additive.\n- No \"auto-fix\" without explicit user approval.\n\n---\n\n### Policy Domain\nPurpose:\n- Constrain behavior (e.g., WIP limits).\n- Govern AI usage (routing, costs).\n- Prevent prohibited transitions.\n\nPolicy never:\n- Mutates user intent silently.\n- Hides violations from the audit trail.\n\n---",
-      "requirements": []
+      "description": "Domain Driven Design (DDD), event-oriented architecture, deterministic artifacts, and plugin-first extensibility with domain events and value object ubiquity.",
+      "requirements": [
+        {
+          "id": "req-007",
+          "title": "Architecture Adoption",
+          "description": "Adopt Domain Driven Design and event-oriented principles.",
+          "priority": "medium",
+          "estimate": "20h",
+          "depends_on": []
+        }
+      ]
     },
     {
       "id": "state-management",
       "title": "State Management",
-      "description": "Uses **statekit** to model:\n- **Spec**: `draft` → `approved` → `locked`\n- **Plan**: `proposed` → `approved`\n- **Task**: `pending` → `in_progress` → `done` (with `blocked` and `stopped` states)\n- **Drift**: `detected` → `acknowledged` → `accepted`\n\n---",
-      "requirements": []
+      "description": "Uses statekit to model various states for specs, plans, tasks, and drift management.",
+      "requirements": [
+        {
+          "id": "req-008",
+          "title": "Modeling States",
+          "description": "Implement statekit for handling states in specs, plans, tasks, and drift.",
+          "priority": "medium",
+          "estimate": "10h",
+          "depends_on": []
+        }
+      ]
     },
     {
       "id": "resilience",
       "title": "Resilience",
-      "description": "Uses **fortify** to handle:\n- AI provider transient failures.\n- Execution timeouts (30s default).\n- Fallback to guided/manual flows.\n- Deterministic exponential backoff retries.\n\n---",
-      "requirements": []
+      "description": "Uses fortify to handle AI provider transient failures, execution timeouts, guided/manual flows fallback, and exponential backoff retries.",
+      "requirements": [
+        {
+          "id": "req-009",
+          "title": "Resilience Management",
+          "description": "Implement resilience strategies using fortify to handle failures and timeouts.",
+          "priority": "high",
+          "estimate": "14h",
+          "depends_on": []
+        }
+      ]
     },
     {
       "id": "ai-routing",
       "title": "AI Routing",
-      "description": "- **Provider Abstraction**: Decoupled via `ai.Provider` interface.\n- **Factory Pattern**: Centralized instantiation of Ollama, OpenAI, Anthropic, Gemini, or Mock.\n- **Policy Control**: `policy.yaml` defines the allowed models and providers.\n- **Telemetry**: Usage and token stats emitted to `usage.json`.\n\n---",
-      "requirements": []
+      "description": "Provider abstraction through ai.Provider interface, centralized instantiation, policy control in policy.yaml, and telemetry emission to usage.json.",
+      "requirements": [
+        {
+          "id": "req-010",
+          "title": "AI Provider Management",
+          "description": "Manage AI providers using a decoupled provider interface with policy control.",
+          "priority": "medium",
+          "estimate": "10h",
+          "depends_on": []
+        }
+      ]
     },
     {
       "id": "cli-design",
       "title": "CLI Design",
-      "description": "Command groups:\n- `roady init`: Workspace setup.\n- `roady spec *`: `import`, `validate/lint`, `explain`.\n- `roady plan *`: `generate`, `approve`, `reject`, `prune`.\n- `roady drift *`: `detect`, `explain`.\n- `roady status`: High-level summary.\n- `roady usage`: Telemetry overview.\n\nFlags:\n- `--validate`: Strict check.\n- `--explain`: AI analysis.\n- `--diff`: Structural comparison.\n- `--json`: Machine-readable output.\n\n---",
-      "requirements": []
+      "description": "Command groups for various functionalities with specific flags for validation, explanation, and structured output.",
+      "requirements": [
+        {
+          "id": "req-011",
+          "title": "CLI Command Implementation",
+          "description": "Develop a comprehensive CLI with command groups and flags for functionality.",
+          "priority": "medium",
+          "estimate": "10h",
+          "depends_on": []
+        }
+      ]
     },
     {
       "id": "plugin-system",
       "title": "Plugin System",
-      "description": "- **gRPC + MCP**: Primary extension protocols.\n- **Optional**: Core works without any plugins.\n- **Sandboxed**: Plugins cannot access data outside `.roady/` without permission.\n- **Explicit Permissions**: Defined in the workspace configuration.\n\n---",
-      "requirements": []
+      "description": "Integration of gRPC + MCP protocols for optional extensibility with defined permissions.",
+      "requirements": [
+        {
+          "id": "req-012",
+          "title": "Plugin Integration",
+          "description": "Develop a plugin system using gRPC + MCP with explicit permissions.",
+          "priority": "medium",
+          "estimate": "14h",
+          "depends_on": []
+        }
+      ]
     },
     {
-      "id": "audit-\u0026-telemetry",
+      "id": "audit-telemetry",
       "title": "Audit \u0026 Telemetry",
-      "description": "### Event Log (`events.jsonl`)\n- **Format**: JSON-Lines for high performance and grep-ability.\n- **Content**: Every state transition, plan change, and AI operation is recorded.\n- **Actor**: Tracks whether an action was performed by a `human` or an `ai`.\n\n### Usage Tracking (`usage.json`)\n- **Counters**: Total command counts and model-specific token usage.\n- **Aggregation**: The `AuditService` automatically accumulates usage data from event metadata.\n- **Purpose**: Provides visibility into AI costs and project velocity.\n\n---",
-      "requirements": []
+      "description": "Tracks all project changes, usage stats, and AI operations for visibility into costs and velocity.",
+      "requirements": [
+        {
+          "id": "req-013",
+          "title": "Audit Implementation",
+          "description": "Implement comprehensive audit and telemetry tracking.",
+          "priority": "medium",
+          "estimate": "12h",
+          "depends_on": []
+        }
+      ]
     },
     {
       "id": "guard-based-enforcement",
       "title": "Guard-based Enforcement",
-      "description": "Roady utilizes **statekit guards** to bridge the gap between \"State Integrity\" and \"Business Policy.\"\n\n1. **State Integrity**: Handled by the FSM (e.g., \"Cannot complete a task that hasn't started\").\n2. **Policy Enforcement**: Injected as a runtime guard function into the FSM.\n- **WIP Limit**: Count `in_progress` tasks in `state.json` before allowing `start`.\n- **Dependencies**: Check that all `depends_on` tasks are marked as `done` before allowing `start`.\n- **Approval**: Verify `plan.json` is in `approved` status before allowing any execution events.\n\n---",
-      "requirements": []
+      "description": "Statekit guards manage state integrity and business policy, including WIP limits and dependencies.",
+      "requirements": [
+        {
+          "id": "req-014",
+          "title": "Guard Implementation",
+          "description": "Develop guard-based enforcement for state integrity and compliance.",
+          "priority": "high",
+          "estimate": "16h",
+          "depends_on": []
+        }
+      ]
     },
     {
       "id": "drift-classification-details",
       "title": "Drift Classification Details",
-      "description": "Roady classifies discrepancies into four logical categories:\n\n1. **Structural Drift (Plan vs. Spec)**:\n- Missing tasks for defined requirements.\n- Tasks existing without a corresponding requirement (Orphans).\n2. **Implementation Drift (Code vs. State)**:\n- A task is marked `done` but its implementation file is missing or empty.\n3. **Policy Drift (State vs. Policy)**:\n- Current execution violates global rules (e.g., WIP limit exceeded by direct manual edit of state).\n4. **Intent Drift (Spec vs. Reality)**:\n- The specification no longer reflects the current project North Star (usually detected via AI analysis of recent conversations/docs).\n\n---",
-      "requirements": []
+      "description": "Classifies drift into structural, implementation, policy, and intent categories for precise management.",
+      "requirements": [
+        {
+          "id": "req-015",
+          "title": "Drift Classifications",
+          "description": "Implement drift classification processes for enhanced detection and management.",
+          "priority": "medium",
+          "estimate": "14h",
+          "depends_on": []
+        }
+      ]
     },
     {
       "id": "mcp-interface",
       "title": "MCP Interface",
-      "description": "The Model Context Protocol (MCP) server exposes Roady's deterministic state to AI agents:\n\n- **`roady_init`**: Allow agents to scaffold new projects.\n- **`roady_get_spec` / `roady_explain_spec`**: Provide structural and architectural context.\n- **`roady_generate_plan` / `roady_approve_plan`**: Orchestrate the planning lifecycle.\n- **`roady_transition_task`**: Enable agents to \"check out\" and \"check in\" work.\n- **`roady_detect_drift` / `roady_explain_drift`**: Empower agents to self-correct and identify misalignments.\n- **`roady_get_usage`**: Permit agents to monitor their own resource consumption.\n\n---",
-      "requirements": []
+      "description": "Exposes Roady's state to AI agents, providing functionalities like scaffolding, specification explanation, and drift detection.",
+      "requirements": [
+        {
+          "id": "req-016",
+          "title": "MCP Integration",
+          "description": "Develop the MCP server for interfacing with AI agents.",
+          "priority": "high",
+          "estimate": "18h",
+          "depends_on": []
+        }
+      ]
     },
     {
-      "id": "storage:-`.roady/`",
-      "title": "Storage: `.roady/`",
-      "description": "Roady uses a local-first, git-friendly storage strategy.\n\n\n\n- **`spec.yaml`**: The source of truth for features and requirements.\n\n- **`spec.lock.json`**: The pinned state of the specification (hash-verified).\n\n- **`plan.json`**: The logical task DAG and approval status.\n\n- **`state.json`**: The current execution status and paths for each task.\n\n- **`policy.yaml`**: Project-wide constraints and AI provider settings.\n\n- **`events.jsonl`**: The immutable audit trail of all project changes.\n\n- **`usage.json`**: Accumulated telemetry and AI token consumption.\n\n- **`drift/`**: (Optional) Stored machine-readable drift reports for historical analysis.\n\n\n\n---",
-      "requirements": []
+      "id": "storage-strategy",
+      "title": "Storage: .roady/",
+      "description": "Local-first, git-friendly storage strategy for managing specs, plans, state, policies, events, usage, and drift reports.",
+      "requirements": [
+        {
+          "id": "req-017",
+          "title": "Storage Implementation",
+          "description": "Implement a local-first storage strategy compatible with Git.",
+          "priority": "medium",
+          "estimate": "12h",
+          "depends_on": []
+        }
+      ]
     },
     {
       "id": "observability",
       "title": "Observability",
-      "description": "Roady provides high-resolution visibility into the planning lifecycle:\n\n\n\n- **Structured Logs**: All operations emit events to the local audit trail.\n\n- **Drift Events**: Discrepancies are identified as first-class signals with severity levels.\n\n- **AI Usage Metrics**: Detailed tracking of token counts and provider performance.\n\n- **TUI Dashboard**: Real-time visualization of plan health and project velocity.",
-      "requirements": []
+      "description": "Provides visibility into lifecycle with structured logs, drift events, AI usage metrics, and a TUI dashboard.",
+      "requirements": [
+        {
+          "id": "req-018",
+          "title": "Observability Features",
+          "description": "Develop observability features for enhanced project insight.",
+          "priority": "medium",
+          "estimate": "15h",
+          "depends_on": []
+        }
+      ]
     },
     {
       "id": "purpose",
       "title": "Purpose",
-      "description": "Provide **organizational situational awareness** on top of Roady Core artifacts.\n\n---",
-      "requirements": []
-    },
-    {
-      "id": "core-problems-(pro)",
-      "title": "Core Problems (Pro)",
-      "description": "- No shared real-time view\n- PMs lack confidence\n- Ownership unclear\n- Drift acceptance undocumented\n- AI usage ungoverned\n\n---",
-      "requirements": []
-    },
-    {
-      "id": "pro-capabilities-(conceptual)",
-      "title": "Pro Capabilities (Conceptual)",
-      "description": "- Team dashboards (read-only)\n- Who-is-working-on-what signals\n- Plan progress inference\n- Tracker sync (via plugins)\n- Policy enforcement\n- Audit trails\n- Cost aggregation\n\n---",
-      "requirements": []
-    },
-    {
-      "id": "constraints",
-      "title": "Constraints",
-      "description": "- Never override Core artifacts silently\n- Always explain derived insights\n- Respect local-first workflows\n\n---",
-      "requirements": []
-    },
-    {
-      "id": "ip-boundary",
-      "title": "IP Boundary",
-      "description": "No schemas, algorithms, or implementations disclosed here.",
-      "requirements": []
-    },
-    {
-      "id": "guiding-principle",
-      "title": "Guiding Principle",
-      "description": "Roady evolves by **solving planning problems**, not by copying PM tools.\n\n---",
-      "requirements": []
-    },
-    {
-      "id": "horizon-1-–-core-viability-(implemented)",
-      "title": "Horizon 1 – Core Viability (Implemented)",
-      "description": "Focus:\n- Spec → Plan → Drift loop\n- CLI stability\n- MCP support\n- Plugin framework\n\nOutcome:\nRoady usable solo and with AI tools.\n\n---",
-      "requirements": []
-    },
-    {
-      "id": "horizon-2-–-core-depth-(implemented/matured)",
-      "title": "Horizon 2 – Core Depth (Implemented/Matured)",
-      "description": "Focus:\n- Better spec inference (Multi-file analyze)\n- Drift classification (Categories \u0026 Hints)\n- Performance\n- Ecosystem plugins (GitHub Syncer Alpha)\n\nOutcome:\nRoady becomes trusted memory layer.\n\n---",
-      "requirements": []
-    },
-    {
-      "id": "horizon-3-–-pro-foundations-(implemented/matured)",
-      "title": "Horizon 3 – Pro Foundations (Implemented/Matured)",
-      "description": "Focus:\n- Multi-user visibility (`roady timeline`)\n- Ownership inference (Actor tracking)\n- Status confidence (`verified` state + `evidence`)\n- Governance foundations (Transition guards)\n\nOutcome:\nClear separation of Core vs Pro.\n\n---",
-      "requirements": []
-    },
-    {
-      "id": "horizon-4-–-organizational-intelligence-(implemented/matured)",
-      "title": "Horizon 4 – Organizational Intelligence (Implemented/Matured)",
-      "description": "Focus:\n\n- Cross-repo planning (Multi-workspace discovery - Implemented)\n\n- AI governance (Policy-based token limits - Implemented)\n\n- Compliance \u0026 auditability (Immutable event verification - Implemented)\n\n\n\nOutcome:\n\n\n\nEnterprise-ready planning standard.\n\n\n\n\n\n\n\n---",
-      "requirements": []
-    },
-    {
-      "id": "horizon-5-–-adaptive-intelligence-(discovery)",
-      "title": "Horizon 5 – Adaptive Intelligence (Discovery)",
-      "description": "Focus:\n\n\n\n- Predictive Velocity (Using timeline/usage to forecast completion)\n\n\n\n- Cross-repo Dependency Graph (Mapping intent across service boundaries)\n\n\n\n- Planning Debt Analysis (Quantifying recurring drift patterns)\n\n\n\n\n\n\n\nOutcome:\n\n\n\nProactive, data-driven planning assistant.",
-      "requirements": []
-    },
-    {
-      "id": "ownership-boundaries",
-      "title": "Ownership Boundaries",
-      "description": "| Roady Owns | Roady Does NOT Own |\n|------------|-------------------|\n| **Spec** (The \"What\" and \"Why\") | **Execution** (The act of doing) |\n| **Plan** (The \"How\" and \"When\") | **Code** (The implementation) |\n| **Drift Awareness** (The Reality Check) | **Tickets** (The task tracking) |\n| | **Deployment** (The shipping) |\n\n---",
-      "requirements": []
-    },
-    {
-      "id": "core-philosophy",
-      "title": "Core Philosophy",
-      "description": "| Principle | Meaning |\n|-----------|---------|\n| **Determinism** | Same input → same plan |\n| **Explicitness** | Nothing inferred without record |\n| **Drift-first** | Drift is a signal, not an error |\n| **Local-first** | Works offline, AI optional |\n| **Policy-bound** | Never acts beyond constraints |\n| **Extensible** | Integrates, never replaces |\n\n---\n\n---\n\n| Principle | Meaning |\n|-----------|---------|\n| **Determinism** | Same input → same plan. No randomness in orchestration. |\n| **Explicitness** | Nothing inferred without record. Every intent is documented. |\n| **Drift-first** | Drift is a signal, not an error. Embrace reality shifts. |\n| **Local-first** | Works offline, AI optional. You own your planning data. |\n| **Policy-bound** | Never acts beyond constraints. Guards enforce integrity. |\n| **Extensible** | Integrates, never replaces. Build hooks for your ecosystem. |\n\n---",
-      "requirements": []
+      "description": "Provide organizational situational awareness on top of Roady Core artifacts.",
+      "requirements": [
+        {
+          "id": "req-019",
+          "title": "Purpose Clarity",
+          "description": "Clarify and document the purpose of organizational situational awareness.",
+          "priority": "low",
+          "estimate": "6h",
+          "depends_on": []
+        }
+      ]
     },
     {
       "id": "horizons",
       "title": "Horizons",
-      "description": "### Core (Open Source)\n- **Repo-scoped:** Planning happens where the code lives.\n- **Single logical plan:** One source of truth for the workspace.\n- **Async collaboration:** Shared via Git, just like code.\n- **CLI + MCP:** Interfaces for both humans and AI agents.\n- **Plugin system:** Extendable through gRPC/RPC integrations.\n\n### Pro (Commercial)\n- **Multi-user visibility:** Shared dashboards and progress views.\n- **Team coordination:** Orchestrating across multiple contributors.\n- **Governance \u0026 compliance:** Automated audit ledgers and policy guardrails.\n- **Cross-repo intelligence:** Planning that spans multiple repositories and services.\n\n**Core is complete by itself.** Pro builds **on top**, never underneath.\n\n---",
-      "requirements": []
+      "description": "Core is open source and repo-scoped, while Pro is commercial with multi-user visibility, governance, and cross-repo intelligence.",
+      "requirements": [
+        {
+          "id": "req-020",
+          "title": "Horizon Framework",
+          "description": "Develop a comprehensive framework for Core and Pro horizons.",
+          "priority": "medium",
+          "estimate": "20h",
+          "depends_on": []
+        }
+      ]
     },
     {
       "id": "north-star-experience",
       "title": "North Star Experience",
-      "description": "At any time, a user (or AI agent) can ask:\n\n\u003e “Where are we, why, and what should happen next?”\n\nRoady answers clearly and confidently, without re-deriving history.",
-      "requirements": []
+      "description": "Users and AI agents can ask at any time where they are, why, and what should happen next, with clear and confident answers.",
+      "requirements": [
+        {
+          "id": "req-021",
+          "title": "Experience Clarity",
+          "description": "Ensure that Roady provides clear and confident answers to user queries.",
+          "priority": "high",
+          "estimate": "12h",
+          "depends_on": []
+        }
+      ]
+    },
+    {
+      "id": "fast-add-capability",
+      "title": "Fast-Add Capability",
+      "description": "Allows adding intent via CLI or MCP with auto-doc sync.",
+      "requirements": null
     }
   ],
   "constraints": [],

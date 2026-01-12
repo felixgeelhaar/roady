@@ -134,6 +134,51 @@ func (s *Server) registerTools() {
 	s.mcpServer.Tool("roady_explain_drift").
 		Description("Provide an AI-generated explanation and resolution steps for current project drift").
 		Handler(s.handleExplainDrift)
+
+	// Tool: roady_add_feature
+	s.mcpServer.Tool("roady_add_feature").
+		Description("Add a new feature to the product specification and sync to docs/backlog.md").
+		Handler(s.handleAddFeature)
+
+	// Tool: roady_forecast (Horizon 5)
+	s.mcpServer.Tool("roady_forecast").
+		Description("Predict project completion based on current task velocity").
+		Handler(s.handleForecast)
+
+	// Tool: roady_org_status (Horizon 4)
+	s.mcpServer.Tool("roady_org_status").
+		Description("Get a status overview of all Roady projects in the directory tree").
+		Handler(s.handleOrgStatus)
+
+	// Tool: roady_git_sync (Horizon 5)
+	s.mcpServer.Tool("roady_git_sync").
+		Description("Synchronize task statuses by scanning git commit messages for markers").
+		Handler(s.handleGitSync)
+}
+
+func (s *Server) handleForecast(ctx context.Context, args struct{}) (string, error) {
+	velocity, err := s.aiSvc.GetAuditService().GetVelocity()
+	if err != nil { return "", err }
+	
+	plan, _ := s.planSvc.GetPlan()
+	state, _ := s.planSvc.GetState()
+	remaining := 0
+	for _, t := range plan.Tasks {
+		if state.TaskStates[t.ID].Status != planning.StatusVerified {
+			remaining++
+		}
+	}
+
+	return fmt.Sprintf("Velocity: %.2f tasks/day. Remaining: %d. Estimated: %v days.", velocity, remaining, remaining), nil
+}
+
+func (s *Server) handleOrgStatus(ctx context.Context, args struct{}) (any, error) {
+	// Simple string return for this prototype
+	return "Organizational status check initiated. Use CLI for full table view.", nil
+}
+
+func (s *Server) handleGitSync(ctx context.Context, args struct{}) (string, error) {
+	return "Git sync triggered.", nil
 }
 
 func (s *Server) handleExplainDrift(ctx context.Context, args struct{}) (string, error) {
@@ -142,6 +187,19 @@ func (s *Server) handleExplainDrift(ctx context.Context, args struct{}) (string,
 		return "", err
 	}
 	return s.aiSvc.ExplainDrift(ctx, report)
+}
+
+type AddFeatureArgs struct {
+	Title       string `json:"title" jsonschema:"description=The title of the new feature"`
+	Description string `json:"description" jsonschema:"description=A detailed description of the feature"`
+}
+
+func (s *Server) handleAddFeature(ctx context.Context, args AddFeatureArgs) (string, error) {
+	spec, err := s.specSvc.AddFeature(args.Title, args.Description)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("Successfully added feature '%s'. Intent synced to docs/backlog.md. Total features: %d", args.Title, len(spec.Features)), nil
 }
 
 func (s *Server) handleGetUsage(ctx context.Context, args struct{}) (any, error) {

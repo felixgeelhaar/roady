@@ -142,7 +142,29 @@ var specAnalyzeCmd = &cobra.Command{
 	},
 }
 
+var specAddCmd = &cobra.Command{
+	Use:   "add [title] [description]",
+	Short: "Quickly add a new feature to the specification",
+	Args:  cobra.ExactArgs(2),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		cwd, _ := os.Getwd()
+		repo := storage.NewFilesystemRepository(cwd)
+		service := application.NewSpecService(repo)
+
+		title, desc := args[0], args[1]
+		spec, err := service.AddFeature(title, desc)
+		if err != nil {
+			return fmt.Errorf("failed to add feature: %w", err)
+		}
+
+		fmt.Printf("Successfully added feature '%s'. (Total features: %d)\n", title, len(spec.Features))
+		fmt.Println("Intent synced to docs/backlog.md")
+		return nil
+	},
+}
+
 func init() {
+	specCmd.AddCommand(specAddCmd)
 	specAnalyzeCmd.Flags().BoolVar(&reconcileSpec, "reconcile", false, "Use AI to semanticly deduplicate and reconcile the spec")
 	specCmd.AddCommand(specImportCmd)
 	specCmd.AddCommand(specValidateCmd)

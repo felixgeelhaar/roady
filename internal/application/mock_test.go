@@ -29,5 +29,6 @@ func (m *MockRepo) LoadState() (*planning.ExecutionState, error) { return m.Stat
 func (m *MockRepo) SavePolicy(c *domain.PolicyConfig) error { m.Policy = c; return m.SaveError }
 func (m *MockRepo) LoadPolicy() (*domain.PolicyConfig, error) { return m.Policy, m.LoadError }
 func (m *MockRepo) RecordEvent(e domain.Event) error { return m.SaveError }
+func (m *MockRepo) LoadEvents() ([]domain.Event, error) { return []domain.Event{}, m.LoadError }
 func (m *MockRepo) UpdateUsage(u domain.UsageStats) error { return m.SaveError }
 func (m *MockRepo) LoadUsage() (*domain.UsageStats, error) { return &domain.UsageStats{}, m.LoadError }
