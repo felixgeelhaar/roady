@@ -52,7 +52,7 @@ brews:
     repository:
       owner: felixgeelhaar
       name: homebrew-tap
-      token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
+      token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
     directory: Formula
     homepage: "https://felixgeelhaar.github.io/roady/"
     description: "A planning-first system of record for software work."
