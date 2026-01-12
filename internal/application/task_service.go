@@ -205,31 +205,255 @@ func (s *TaskService) TransitionTask(taskID string, event string, actor string, 
 
 
 
-		return s.audit.Log("task.transition", actor, map[string]interface{}{
+				return s.audit.Log("task.transition", actor, map[string]interface{}{
 
 
 
-			"task_id":  taskID,
+	
 
 
 
-			"event":    event,
+					"task_id":  taskID,
 
 
 
-			"status":   newState,
+	
 
 
 
-			"evidence": evidence,
+					"event":    event,
 
 
 
-		})
+	
 
 
 
-	}
+					"status":   newState,
+
+
+
+	
+
+
+
+					"evidence": evidence,
+
+
+
+	
+
+
+
+				})
+
+
+
+	
+
+
+
+		}
+
+
+
+	
+
+
+
+		
+
+
+
+	
+
+
+
+		func (s *TaskService) LinkTask(taskID string, provider string, ref planning.ExternalRef) error {
+
+
+
+	
+
+
+
+			state, err := s.repo.LoadState()
+
+
+
+	
+
+
+
+			if err != nil {
+
+
+
+	
+
+
+
+				return err
+
+
+
+	
+
+
+
+			}
+
+
+
+	
+
+
+
+		
+
+
+
+	
+
+
+
+			result := state.TaskStates[taskID]
+
+
+
+	
+
+
+
+			if result.ExternalRefs == nil {
+
+
+
+	
+
+
+
+				result.ExternalRefs = make(map[string]planning.ExternalRef)
+
+
+
+	
+
+
+
+			}
+
+
+
+	
+
+
+
+			result.ExternalRefs[provider] = ref
+
+
+
+	
+
+
+
+			state.TaskStates[taskID] = result
+
+
+
+	
+
+
+
+			state.UpdatedAt = time.Now()
+
+
+
+	
+
+
+
+		
+
+
+
+	
+
+
+
+			if err := s.repo.SaveState(state); err != nil {
+
+
+
+	
+
+
+
+				return err
+
+
+
+	
+
+
+
+			}
+
+
+
+	
+
+
+
+		
+
+
+
+	
+
+
+
+			return s.audit.Log("task.link", "plugin", map[string]interface{}{
+
+
+
+	
+
+
+
+				"task_id":  taskID,
+
+
+
+	
+
+
+
+				"provider": provider,
+
+
+
+	
+
+
+
+				"ref":      ref.Identifier,
+
+
+
+	
+
+
+
+			})
+
+
+
+	
+
+
+
+		}
 
 
 

@@ -3,6 +3,7 @@ package cli
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/felixgeelhaar/roady/internal/application"
 	"github.com/felixgeelhaar/roady/internal/infrastructure/plugin"
@@ -45,11 +46,29 @@ var syncCmd = &cobra.Command{
 			return fmt.Errorf("failed to sync: %w", err)
 		}
 
+		audit := application.NewAuditService(repo)
+		taskService := application.NewTaskService(repo, audit)
+
+		// 1. Handle Link Updates (New Tickets Created)
+		if len(result.LinkUpdates) > 0 {
+			fmt.Printf("Received %d link updates from plugin:\n", len(result.LinkUpdates))
+			provider := "external" // Default, could be refined
+			if strings.Contains(pluginPath, "linear") { provider = "linear" }
+			if strings.Contains(pluginPath, "jira") { provider = "jira" }
+
+			for id, ref := range result.LinkUpdates {
+				if err := taskService.LinkTask(id, provider, ref); err != nil {
+					fmt.Printf("  Failed to link task %s: %v\n", id, err)
+				} else {
+					fmt.Printf("  Linked task %s to %s (%s)\n", id, provider, ref.Identifier)
+				}
+			}
+		}
+
+		// 2. Handle Status Updates
 		updates := result.StatusUpdates
 		if len(updates) > 0 {
-			audit := application.NewAuditService(repo)
-			taskService := application.NewTaskService(repo, audit)
-			fmt.Printf("Received %d updates from plugin:\n", len(updates))
+			fmt.Printf("Received %d status updates from plugin:\n", len(updates))
 			for id, status := range updates {
 				fmt.Printf("- %s -> %s\n", id, status)
 				var event string
@@ -66,7 +85,16 @@ var syncCmd = &cobra.Command{
 					}
 				}
 			}
-		} else {
+		}
+
+		if len(result.Errors) > 0 {
+			fmt.Printf("\nWarnings/Errors during sync:\n")
+			for _, e := range result.Errors {
+				fmt.Printf("  - %s\n", e)
+			}
+		}
+
+		if len(result.LinkUpdates) == 0 && len(result.StatusUpdates) == 0 {
 			fmt.Println("No updates from plugin.")
 		}
 		return nil
@@ -76,3 +104,4 @@ var syncCmd = &cobra.Command{
 func init() {
 	RootCmd.AddCommand(syncCmd)
 }
+
