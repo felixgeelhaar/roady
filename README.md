@@ -28,7 +28,7 @@ Designed for individuals, teams, and AI agents, Roady ensures that your developm
 brew install felixgeelhaar/tap/roady
 ```
 
-**Go Install:**
+**Alternative (Go):**
 ```bash
 go install github.com/felixgeelhaar/roady/cmd/roady@latest
 ```
