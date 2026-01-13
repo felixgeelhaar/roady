@@ -1,6 +1,6 @@
 # Binaries
-roady
-roady-plugin-*
+/roady
+/roady-plugin-*
 dist/
 
 # OS files
