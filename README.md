@@ -92,6 +92,13 @@ Roady is a first-class MCP server. Add it to your `claude_desktop_config.json`:
 }
 ```
 
+Run over HTTP or WebSocket when needed:
+
+```bash
+roady mcp --transport http --addr :8080
+roady mcp --transport ws --addr :8080
+```
+
 ## Architecture
 
 Roady is built on clean **Domain-Driven Design (DDD)** principles:

@@ -22,6 +22,12 @@ type Server struct {
 	aiSvc     *application.AIPlanningService
 }
 
+var (
+	Version     = "dev"
+	BuildCommit = "unknown"
+	BuildDate   = "unknown"
+)
+
 func NewServer(root string) *Server {
 	workspace := wiring.NewWorkspace(root)
 	repo := workspace.Repo
@@ -35,11 +41,17 @@ func NewServer(root string) *Server {
 
 	info := mcp.ServerInfo{
 		Name:    "roady",
-		Version: "0.1.0",
+		Version: Version,
 	}
 
 	s := &Server{
-		mcpServer: mcp.NewServer(info),
+		mcpServer: mcp.NewServer(info,
+			mcp.WithTitle("Roady MCP Server"),
+			mcp.WithDescription("Roady exposes deterministic project state, plans, and drift analysis to MCP clients."),
+			mcp.WithWebsiteURL("https://github.com/felixgeelhaar/roady"),
+			mcp.WithBuildInfo(BuildCommit, BuildDate),
+			mcp.WithInstructions("Use tools to read spec/plan, generate plans, detect drift, and transition tasks."),
+		),
 		initSvc:   application.NewInitService(repo, audit),
 		specSvc:   application.NewSpecService(repo),
 		planSvc:   application.NewPlanService(repo, audit),
@@ -324,6 +336,20 @@ func (s *Server) handleCheckPolicy(ctx context.Context, args struct{}) (any, err
 }
 
 func (s *Server) Start() error {
+	return s.StartStdio()
+}
+
+func (s *Server) StartStdio() error {
 	ctx := context.Background()
 	return mcp.ServeStdio(ctx, s.mcpServer)
+}
+
+func (s *Server) StartHTTP(addr string) error {
+	ctx := context.Background()
+	return mcp.ServeHTTP(ctx, s.mcpServer, addr, mcp.WithDefaultCORS())
+}
+
+func (s *Server) StartWebSocket(addr string) error {
+	ctx := context.Background()
+	return mcp.ServeWebSocket(ctx, s.mcpServer, addr)
 }

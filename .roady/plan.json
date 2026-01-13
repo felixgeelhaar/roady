@@ -1,36 +1,36 @@
 {
-  "id": "plan-imported-spec-1768339911",
+  "id": "plan-imported-spec-1768341028",
   "spec_id": "imported-spec",
   "tasks": [
     {
-      "id": "task-audit-docs-\u0026-examples",
-      "title": "Implement Audit Docs \u0026 Examples",
-      "description": "Implement the feature: Audit Docs \u0026 Examples. Update any remaining references to `policy.yaml` for provider/model settings.\n- Find and fix docs or examples that still describe provider/model in `policy.yaml`.\n- Ensure `.roady/ai.yaml` is documented as the provider/model source.\n- Keep guidance for env var overrides intact.",
+      "id": "task-1",
+      "title": "Implement audit documentation and examples for all core modules to ensure transp…",
+      "description": "Implement audit documentation and examples for all core modules to ensure transparency and reproducibility.",
       "priority": "",
       "estimate": "",
-      "depends_on": [],
+      "depends_on": null,
       "feature_id": "audit-docs-\u0026-examples"
     },
     {
-      "id": "task-ai-config-\u0026-wiring-tests",
-      "title": "Implement AI Config \u0026 Wiring Tests",
-      "description": "Implement the feature: AI Config \u0026 Wiring Tests. Add coverage for AI config and wiring fallbacks.\n- LoadAIConfig handles missing or invalid files.\n- LoadAIProvider uses defaults when `ai.yaml` is missing.\n- CLI AI configure writes `ai.yaml` alongside `policy.yaml`.",
+      "id": "task-2",
+      "title": "Develop AI configuration framework and integration tests to validate model wirin…",
+      "description": "Develop AI configuration framework and integration tests to validate model wiring and parameter settings.",
       "priority": "",
       "estimate": "",
-      "depends_on": [],
+      "depends_on": null,
       "feature_id": "ai-config-\u0026-wiring-tests"
     },
     {
-      "id": "task-mcp-shim-\u0026-compatibility",
-      "title": "Implement MCP Shim \u0026 Compatibility",
-      "description": "Implement the feature: MCP Shim \u0026 Compatibility. Validate and document the `pkg/mcp` shim.\n- Confirm downstream imports still work with the shim.\n- Decide whether to keep or deprecate the shim.\n- Add a short note in docs if the shim is temporary.",
+      "id": "task-3",
+      "title": "Create MCP shim layer and compatibility layer to enable seamless integration wit…",
+      "description": "Create MCP shim layer and compatibility layer to enable seamless integration with legacy systems and new protocols.",
       "priority": "",
       "estimate": "",
-      "depends_on": [],
+      "depends_on": null,
       "feature_id": "mcp-shim-\u0026-compatibility"
     }
   ],
   "approval_status": "approved",
-  "created_at": "2026-01-13T22:31:51.541774+01:00",
-  "updated_at": "2026-01-13T22:31:57.721216+01:00"
+  "created_at": "2026-01-13T22:50:28.130893+01:00",
+  "updated_at": "2026-01-13T22:51:01.755516+01:00"
 }
