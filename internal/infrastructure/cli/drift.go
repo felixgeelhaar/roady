@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/felixgeelhaar/roady/pkg/application"
 	"github.com/felixgeelhaar/roady/pkg/ai"
+	"github.com/felixgeelhaar/roady/pkg/application"
 	"github.com/felixgeelhaar/roady/pkg/storage"
 	"github.com/spf13/cobra"
 )
@@ -61,7 +61,7 @@ var driftDetectCmd = &cobra.Command{
 	Short: "Check for discrepancies between the current Spec and Plan",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		outputFormat, _ := cmd.Flags().GetString("output")
-		
+
 		cwd, _ := os.Getwd()
 		repo := storage.NewFilesystemRepository(cwd)
 		service := application.NewDriftService(repo)
@@ -92,8 +92,39 @@ var driftDetectCmd = &cobra.Command{
 				fmt.Printf("  Hint: %s\n", issue.Hint)
 			}
 		}
-		
+
 		return fmt.Errorf("drift detected")
+	},
+}
+
+var driftAcceptCmd = &cobra.Command{
+	Use:   "accept",
+	Short: "Accept current drift by locking the spec snapshot",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		cwd, _ := os.Getwd()
+		repo := storage.NewFilesystemRepository(cwd)
+		spec, err := repo.LoadSpec()
+		if err != nil {
+			return fmt.Errorf("failed to load spec: %w", err)
+		}
+		if spec == nil {
+			return fmt.Errorf("no spec found to lock")
+		}
+
+		if err := repo.SaveSpecLock(spec); err != nil {
+			return fmt.Errorf("failed to update spec lock: %w", err)
+		}
+
+		audit := application.NewAuditService(repo)
+		if err := audit.Log("drift.accepted", "cli", map[string]interface{}{
+			"spec_id":   spec.ID,
+			"spec_hash": spec.Hash(),
+		}); err != nil {
+			return fmt.Errorf("failed to write audit log: %w", err)
+		}
+
+		fmt.Println("Drift accepted. Spec snapshot locked.")
+		return nil
 	},
 }
 
@@ -101,5 +132,6 @@ func init() {
 	driftDetectCmd.Flags().StringP("output", "o", "text", "Output format (text, json)")
 	driftCmd.AddCommand(driftDetectCmd)
 	driftCmd.AddCommand(driftExplainCmd)
+	driftCmd.AddCommand(driftAcceptCmd)
 	RootCmd.AddCommand(driftCmd)
 }

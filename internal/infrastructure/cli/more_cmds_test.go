@@ -243,8 +243,12 @@ func TestSyncCmd_UpdatesStatuses(t *testing.T) {
 	pluginBin := filepath.Join(repoRoot, "roady-plugin-mock")
 	if _, err := os.Stat(pluginBin); err != nil {
 		pluginBin = filepath.Join(root, "roady-plugin-mock")
-		if err := exec.Command("go", "build", "-o", pluginBin, "../../../cmd/roady-plugin-mock/main.go").Run(); err != nil {
-			t.Fatalf("build plugin: %v", err)
+		source := filepath.Join(repoRoot, "cmd", "roady-plugin-mock", "main.go")
+		cmd := exec.Command("go", "build", "-o", pluginBin, source)
+		cmd.Dir = repoRoot
+		out, err := cmd.CombinedOutput()
+		if err != nil {
+			t.Fatalf("build plugin: %v (%s)", err, strings.TrimSpace(string(out)))
 		}
 	}
 
@@ -448,6 +452,47 @@ func TestDriftDetectCmd_NoIssues(t *testing.T) {
 	})
 	if !strings.Contains(output, "No drift detected") {
 		t.Fatalf("expected no drift output, got:\n%s", output)
+	}
+}
+
+func TestDriftAcceptCmd(t *testing.T) {
+	_, cleanup := withTempDir(t)
+	defer cleanup()
+
+	repo := storage.NewFilesystemRepository(".")
+	_ = repo.Initialize()
+	_ = repo.SaveSpec(&spec.ProductSpec{
+		ID:      "spec-1",
+		Title:   "Project",
+		Version: "0.1.0",
+		Features: []spec.Feature{
+			{ID: "f1", Title: "Feature"},
+		},
+	})
+
+	output := captureStdout(t, func() {
+		if err := driftAcceptCmd.RunE(driftAcceptCmd, []string{}); err != nil {
+			t.Fatalf("drift accept failed: %v", err)
+		}
+	})
+	if !strings.Contains(output, "Drift accepted") {
+		t.Fatalf("expected accept output, got:\n%s", output)
+	}
+
+	lock, err := repo.LoadSpecLock()
+	if err != nil {
+		t.Fatalf("load spec lock failed: %v", err)
+	}
+	if lock == nil {
+		t.Fatal("expected spec lock to exist")
+	}
+
+	events, err := repo.LoadEvents()
+	if err != nil {
+		t.Fatalf("load events failed: %v", err)
+	}
+	if len(events) == 0 || events[len(events)-1].Action != "drift.accepted" {
+		t.Fatal("expected drift.accepted event")
 	}
 }
 
