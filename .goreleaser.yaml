@@ -19,6 +19,32 @@ builds:
       - amd64
       - arm64
 
+  - id: roady-plugin-linear
+    main: ./cmd/roady-plugin-linear/main.go
+    binary: roady-plugin-linear
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+
+  - id: roady-plugin-jira
+    main: ./cmd/roady-plugin-jira/main.go
+    binary: roady-plugin-jira
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+
 archives:
   - format: tar.gz
     # this name template makes the OS and Arch compatible with what people expect.
@@ -59,3 +85,5 @@ brews:
     license: "MIT"
     install: |
       bin.install "roady"
+      bin.install "roady-plugin-linear"
+      bin.install "roady-plugin-jira"
