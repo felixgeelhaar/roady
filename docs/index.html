@@ -50,10 +50,7 @@
                 Your Project's <br><span class="gradient-text">Memory Layer.</span>
             </h1>
             <p class="text-xl md:text-2xl text-gray-400 max-w-2xl mx-auto mb-10">
-                Roady is a planning-first system of record that bridges the gap between 
-                <span class="text-white font-semibold">Intent</span>, 
-                <span class="text-white font-semibold">Plan</span>, and 
-                <span class="text-white font-semibold">Execution</span>.
+                Roady is a deterministic planning system that turns intent into specs, plans, and drift-aware roadmaps for humans and AI agents.
             </p>
             <div class="flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-6">
                 <div class="bg-[#161B22] p-1 rounded-2xl border border-white/10 flex items-center shadow-2xl">
@@ -70,13 +67,55 @@
         </div>
     </section>
 
+    <!-- Definition Section -->
+    <section class="py-16 border-t border-white/5 bg-[#0D1117]">
+        <div class="max-w-5xl mx-auto px-6">
+            <div class="grid md:grid-cols-2 gap-12">
+                <div>
+                    <h3 class="text-xl font-bold text-white mb-4 flex items-center"><i data-lucide="check-circle" class="w-5 h-5 text-emerald-400 mr-2"></i> What Roady Is</h3>
+                    <ul class="space-y-3 text-gray-400">
+                        <li class="flex items-start"><span class="text-violet-400 mr-2">•</span> A planning memory and source of truth</li>
+                        <li class="flex items-start"><span class="text-violet-400 mr-2">•</span> A spec & plan generator</li>
+                        <li class="flex items-start"><span class="text-violet-400 mr-2">•</span> A drift detection engine</li>
+                        <li class="flex items-start"><span class="text-violet-400 mr-2">•</span> A CLI and MCP-first tool</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold text-white mb-4 flex items-center"><i data-lucide="x-circle" class="w-5 h-5 text-red-400 mr-2"></i> What Roady Is Not</h3>
+                    <ul class="space-y-3 text-gray-400">
+                        <li class="flex items-start"><span class="text-red-400/50 mr-2">•</span> A task runner or build tool</li>
+                        <li class="flex items-start"><span class="text-red-400/50 mr-2">•</span> A replacement for Jira / GitHub Issues</li>
+                        <li class="flex items-start"><span class="text-red-400/50 mr-2">•</span> An AI agent that executes code</li>
+                        <li class="flex items-start"><span class="text-red-400/50 mr-2">•</span> A project management UI</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- Core Loop Section -->
-    <section id="features" class="py-24 border-t border-white/5 bg-[#0D1117]">
+    <section id="features" class="py-24 border-t border-white/5">
         <div class="max-w-7xl mx-auto px-6">
             <div class="text-center mb-16">
                 <h2 class="text-3xl font-bold text-white mb-4">The Continuous Planning Loop</h2>
-                <p class="text-gray-400">Roady keeps reality aligned with your goals automatically.</p>
+                <p class="text-gray-400">Roady works without AI. AI simply accelerates the loop.</p>
             </div>
+            
+            <!-- ASCII Flow / Visualization -->
+            <div class="max-w-3xl mx-auto mb-20 p-8 glass rounded-2xl flex flex-col items-center justify-center font-mono text-sm md:text-base text-violet-300 bg-black/40">
+                <div class="flex flex-col items-center space-y-2">
+                    <span class="px-4 py-2 border border-violet-500/30 rounded bg-violet-500/10 text-white">Docs / Intent</span>
+                    <i data-lucide="arrow-down" class="w-4 h-4 text-gray-500"></i>
+                    <span class="px-4 py-2 border border-emerald-500/30 rounded bg-emerald-500/10 text-white font-bold">roady spec</span>
+                    <i data-lucide="arrow-down" class="w-4 h-4 text-gray-500"></i>
+                    <span class="px-4 py-2 border border-emerald-500/30 rounded bg-emerald-500/10 text-white font-bold">roady plan</span>
+                    <i data-lucide="arrow-down" class="w-4 h-4 text-gray-500"></i>
+                    <span class="px-4 py-2 text-gray-500 italic">[ Execution happens elsewhere ]</span>
+                    <i data-lucide="arrow-down" class="w-4 h-4 text-gray-500"></i>
+                    <span class="px-4 py-2 border border-orange-500/30 rounded bg-orange-500/10 text-white font-bold">roady drift</span>
+                </div>
+            </div>
+
             <div class="grid md:grid-cols-3 gap-8">
                 <!-- Step 1 -->
                 <div class="glass p-8 rounded-3xl relative group hover:border-violet-500/50 transition-all">
@@ -98,10 +137,10 @@
                     </div>
                     <h3 class="text-xl font-bold text-white mb-3">2. Derive Action</h3>
                     <p class="text-sm leading-relaxed text-gray-400">
-                        Decompose features into atomic engineering tasks using local or cloud LLMs. Mapped, estimated, and approved.
+                        Decompose features into atomic engineering tasks. Use AI to accelerate this, or write plans manually.
                     </p>
                     <div class="mt-6 mono text-xs text-emerald-300 bg-black/40 p-3 rounded-lg">
-                        $ roady plan generate --ai
+                        $ roady plan generate
                     </div>
                 </div>
                 <!-- Step 3 -->
@@ -116,6 +155,48 @@
                     <div class="mt-6 mono text-xs text-orange-300 bg-black/40 p-3 rounded-lg">
                         $ roady drift detect
                     </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Why Roady Section -->
+    <section class="py-24 bg-[#0B0E14]">
+        <div class="max-w-4xl mx-auto px-6 text-center">
+            <h2 class="text-3xl font-bold text-white mb-12">Why Roady?</h2>
+            <div class="grid md:grid-cols-3 gap-8 text-left">
+                <div class="p-6 border border-white/5 rounded-2xl">
+                    <h4 class="text-white font-bold mb-2">AI Tools Forget</h4>
+                    <p class="text-sm text-gray-400">Context windows are finite. Roady provides a persistent, structured memory that doesn't expire.</p>
+                </div>
+                <div class="p-6 border border-white/5 rounded-2xl">
+                    <h4 class="text-white font-bold mb-2">Humans Re-plan</h4>
+                    <p class="text-sm text-gray-400">Stop answering "what's next?". Roady answers it deterministically based on the approved spec.</p>
+                </div>
+                <div class="p-6 border border-white/5 rounded-2xl">
+                    <h4 class="text-white font-bold mb-2">Drift is Silent</h4>
+                    <p class="text-sm text-gray-400">Without Roady, specs and code drift apart unnoticed. Roady makes drift noisy and actionable.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Why Roady Section -->
+    <section class="py-24 bg-[#0B0E14]">
+        <div class="max-w-4xl mx-auto px-6 text-center">
+            <h2 class="text-3xl font-bold text-white mb-12">Why Roady?</h2>
+            <div class="grid md:grid-cols-3 gap-8 text-left">
+                <div class="p-6 border border-white/5 rounded-2xl">
+                    <h4 class="text-white font-bold mb-2">AI Tools Forget</h4>
+                    <p class="text-sm text-gray-400">Context windows are finite. Roady provides a persistent, structured memory that doesn't expire.</p>
+                </div>
+                <div class="p-6 border border-white/5 rounded-2xl">
+                    <h4 class="text-white font-bold mb-2">Humans Re-plan</h4>
+                    <p class="text-sm text-gray-400">Stop answering "what's next?". Roady answers it deterministically based on the approved spec.</p>
+                </div>
+                <div class="p-6 border border-white/5 rounded-2xl">
+                    <h4 class="text-white font-bold mb-2">Drift is Silent</h4>
+                    <p class="text-sm text-gray-400">Without Roady, specs and code drift apart unnoticed. Roady makes drift noisy and actionable.</p>
                 </div>
             </div>
         </div>
@@ -273,6 +354,9 @@
                 <img src="logo.svg" class="w-6 h-6 grayscale opacity-50" alt="Logo">
                 <span class="text-gray-500 font-bold uppercase tracking-widest text-sm">Roady</span>
             </div>
+            <p class="text-gray-500 text-sm mb-4">
+                Roady is designed to scale from solo developers to teams. Team-level capabilities will build on top of the same core artifacts.
+            </p>
             <p class="text-gray-600 text-sm">
                 Built for high-integrity software teams. MIT Licensed.<br>
                 &copy; 2026 Felix Geelhaar
