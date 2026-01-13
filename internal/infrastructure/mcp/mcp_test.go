@@ -74,7 +74,7 @@ func TestServer_Handlers(t *testing.T) {
 	repo.SaveSpec(&spec.ProductSpec{ID: "s1", Title: "S1", Features: []spec.Feature{{ID: "f1"}}})
 	// Provide plan to avoid drift or show it
 	repo.SavePlan(&planning.Plan{Tasks: []planning.Task{{ID: "task-f1", FeatureID: "f1"}}})
-	
+
 	_, err = s.handleDetectDrift(context.Background(), struct{}{})
 	if err != nil {
 		t.Errorf("handleDetectDrift failed: %v", err)
@@ -114,7 +114,7 @@ func TestServer_Handlers(t *testing.T) {
 	// 8. Error cases (restricted dir)
 	os.Chmod(tempDir+"/.roady", 0000)
 	defer os.Chmod(tempDir+"/.roady", 0700)
-	
+
 	_, err = s.handleGetPlan(context.Background(), struct{}{})
 	if err == nil {
 		t.Error("expected error for handleGetPlan on restricted dir")
@@ -141,40 +141,31 @@ func TestServer_Handlers(t *testing.T) {
 		t.Error("expected error for handleGetSpec on restricted dir")
 	}
 
+	// 8.3 HandleUpdatePlan error (cycle)
 
-			// 8.3 HandleUpdatePlan error (cycle)
+	_, err = s.handleUpdatePlan(context.Background(), UpdatePlanArgs{
 
-			_, err = s.handleUpdatePlan(context.Background(), UpdatePlanArgs{
+		Tasks: []planning.Task{{ID: "t1", DependsOn: []string{"t1"}}},
+	})
 
-				Tasks: []planning.Task{{ID: "t1", DependsOn: []string{"t1"}}},
+	if err == nil {
 
-			})
+		t.Error("expected error for handleUpdatePlan with cycle")
 
-			if err == nil {
+	}
 
-				t.Error("expected error for handleUpdatePlan with cycle")
+	// 8.3.1 HandleUpdatePlan error (restricted dir)
 
-			}
+	_, err = s.handleUpdatePlan(context.Background(), UpdatePlanArgs{
 
-		
+		Tasks: []planning.Task{{ID: "t1"}},
+	})
 
-			// 8.3.1 HandleUpdatePlan error (restricted dir)
+	if err == nil {
 
-			_, err = s.handleUpdatePlan(context.Background(), UpdatePlanArgs{
+		t.Error("expected error for handleUpdatePlan on restricted dir")
 
-				Tasks: []planning.Task{{ID: "t1"}},
-
-			})
-
-			if err == nil {
-
-				t.Error("expected error for handleUpdatePlan on restricted dir")
-
-			}
-
-		
-
-	
+	}
 
 	// 8.4 HandleStatus error
 	_, err = s.handleStatus(context.Background(), struct{}{})

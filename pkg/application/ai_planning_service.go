@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
+	"regexp"
 	"strings"
 
 	"github.com/felixgeelhaar/roady/pkg/domain"
@@ -62,16 +64,16 @@ func (s *AIPlanningService) DecomposeSpec(ctx context.Context) (*planning.Plan, 
 	// 3. Prompt AI
 	prompt := fmt.Sprintf(`Task: Decompose the following features into atomic engineering tasks.
 Requirement: Every Feature and every Requirement listed below MUST be implemented.
+If a Feature has no Requirements, create at least one task for that Feature based on its description.
 
 MAPPING RULES:
 1. For each Requirement, create a task with ID: "task-[requirement-id]".
 2. For each Feature, ensure at least one task references its Feature ID.
-3. Return ONLY a JSON list of tasks.
+3. Return ONLY a JSON array of tasks with no surrounding text, no markdown, and no code fences.
 
 Format:
-[
-  {"id": "task-slug", "title": "...", "description": "...", "priority": "medium", "estimate": "4h", "feature_id": "matching-feature-id"}
-]
+Return ONLY a JSON array of task objects with no surrounding text, no markdown, and no code fences.
+Do NOT return placeholder values or the schema itself.
 
 Features to decompose:
 `)
@@ -102,14 +104,15 @@ Features to decompose:
 
 	// 5. Parse and Reconcile
 	var tasks []planning.Task
-	cleanJSON := strings.TrimSpace(resp.Text)
-	cleanJSON = strings.TrimPrefix(cleanJSON, "```json")
-	cleanJSON = strings.TrimSuffix(cleanJSON, "```")
-	cleanJSON = strings.TrimSpace(cleanJSON)
+	cleanJSON := extractJSONPayload(resp.Text)
+	if os.Getenv("ROADY_AI_DEBUG") != "" {
+		fmt.Fprintf(os.Stderr, "AI raw response: %s\n", resp.Text)
+		fmt.Fprintf(os.Stderr, "AI extracted JSON: %s\n", cleanJSON)
+	}
 
 	// Helper to validate a task has minimal required fields
 	isValid := func(t planning.Task) bool {
-		return t.ID != "" && t.Title != ""
+		return t.ID != "" && (t.Title != "" || t.Description != "")
 	}
 
 	// Try direct list unmarshal
@@ -120,14 +123,50 @@ Features to decompose:
 		tasks = nil
 		var generic map[string]interface{}
 		if err := json.Unmarshal([]byte(cleanJSON), &generic); err == nil {
+			if errValue, ok := generic["error"]; ok {
+				if msg, ok := errValue.(string); ok && msg != "" {
+					return nil, fmt.Errorf("AI response error: %s", msg)
+				}
+				return nil, fmt.Errorf("AI response error: %v", errValue)
+			}
+
+			// 0. If the object already matches the task shape, parse it directly.
+			if _, hasID := generic["id"]; hasID {
+				if _, hasTitle := generic["title"]; hasTitle {
+					var single planning.Task
+					if err := json.Unmarshal([]byte(cleanJSON), &single); err == nil && isValid(single) {
+						tasks = []planning.Task{single}
+					}
+				}
+			}
+			if len(tasks) == 0 && (hasAnyKey(generic, "task-id", "task_id", "taskId") || hasAnyKey(generic, "feature-id", "feature_id", "featureId")) {
+				tasks = append(tasks, normalizeTaskMap(generic, 0))
+			}
+
 			// 1. Check for common wrapper keys (tasks, task, data)
 			for _, key := range []string{"tasks", "task", "data"} {
 				if sub, ok := generic[key]; ok {
-					subData, _ := json.Marshal(sub)
-					var subTasks []planning.Task
-					if err := json.Unmarshal(subData, &subTasks); err == nil && len(subTasks) > 0 && isValid(subTasks[0]) {
-						tasks = subTasks
-						break
+					if list, ok := sub.([]interface{}); ok {
+						for i, item := range list {
+							itemMap, ok := item.(map[string]interface{})
+							if !ok {
+								continue
+							}
+							t := normalizeTaskMap(itemMap, i)
+							if isValid(t) {
+								tasks = append(tasks, t)
+							}
+						}
+						if len(tasks) > 0 {
+							break
+						}
+					} else {
+						subData, _ := json.Marshal(sub)
+						var subTasks []planning.Task
+						if err := json.Unmarshal(subData, &subTasks); err == nil && len(subTasks) > 0 && isValid(subTasks[0]) {
+							tasks = subTasks
+							break
+						}
 					}
 				}
 			}
@@ -135,6 +174,18 @@ Features to decompose:
 			// 2. If still empty, try parsing as a map of tasks
 			if len(tasks) == 0 {
 				for k, v := range generic {
+					itemMap, ok := v.(map[string]interface{})
+					if ok {
+						t := normalizeTaskMap(itemMap, 0)
+						if t.ID == "" {
+							t.ID = k
+						}
+						if isValid(t) {
+							tasks = append(tasks, t)
+						}
+						continue
+					}
+
 					itemData, _ := json.Marshal(v)
 					var t planning.Task
 					if err := json.Unmarshal(itemData, &t); err == nil {
@@ -212,6 +263,139 @@ Features to decompose:
 
 	planSvc := NewPlanService(s.repo, s.audit)
 	return planSvc.UpdatePlan(cleanTasks)
+}
+
+var slugCleaner = regexp.MustCompile(`[^a-z0-9-]+`)
+
+func normalizeTaskMap(raw map[string]interface{}, index int) planning.Task {
+	id := getString(raw, "id", "task-id", "task_id", "taskId")
+	title := getString(raw, "title", "name")
+	description := getString(raw, "description", "details")
+	featureID := getString(raw, "feature_id", "feature-id", "featureId", "feature")
+	priority := getString(raw, "priority")
+	estimate := getString(raw, "estimate")
+
+	if title == "" && description != "" {
+		title = summarizeText(description)
+	}
+	if title == "" && id != "" {
+		title = humanizeID(id)
+	}
+	if id == "" && title != "" {
+		id = "task-" + slugify(title)
+	}
+	if id == "" {
+		id = fmt.Sprintf("task-%d", index+1)
+	}
+
+	return planning.Task{
+		ID:          id,
+		Title:       title,
+		Description: description,
+		Priority:    planning.TaskPriority(priority),
+		Estimate:    estimate,
+		FeatureID:   featureID,
+	}
+}
+
+func getString(raw map[string]interface{}, keys ...string) string {
+	for _, key := range keys {
+		if value, ok := raw[key]; ok {
+			if str, ok := value.(string); ok {
+				return strings.TrimSpace(str)
+			}
+		}
+	}
+	return ""
+}
+
+func summarizeText(text string) string {
+	trimmed := strings.TrimSpace(text)
+	if trimmed == "" {
+		return ""
+	}
+	if idx := strings.Index(trimmed, "."); idx > 0 && idx < 80 {
+		return strings.TrimSpace(trimmed[:idx])
+	}
+	if len(trimmed) > 80 {
+		return strings.TrimSpace(trimmed[:80]) + "…"
+	}
+	return trimmed
+}
+
+func humanizeID(value string) string {
+	trimmed := strings.TrimSpace(value)
+	trimmed = strings.TrimPrefix(trimmed, "task-")
+	trimmed = strings.ReplaceAll(trimmed, "_", " ")
+	trimmed = strings.ReplaceAll(trimmed, "-", " ")
+	words := strings.Fields(trimmed)
+	for i, word := range words {
+		if len(word) == 0 {
+			continue
+		}
+		words[i] = strings.ToUpper(word[:1]) + word[1:]
+	}
+	return strings.Join(words, " ")
+}
+
+func slugify(value string) string {
+	normalized := strings.ToLower(strings.TrimSpace(value))
+	normalized = strings.ReplaceAll(normalized, " ", "-")
+	normalized = slugCleaner.ReplaceAllString(normalized, "-")
+	normalized = strings.Trim(normalized, "-")
+	return normalized
+}
+
+func hasAnyKey(raw map[string]interface{}, keys ...string) bool {
+	for _, key := range keys {
+		if _, ok := raw[key]; ok {
+			return true
+		}
+	}
+	return false
+}
+
+func extractJSONPayload(text string) string {
+	clean := strings.TrimSpace(text)
+	clean = strings.TrimPrefix(clean, "```json")
+	clean = strings.TrimPrefix(clean, "```")
+	clean = strings.TrimSuffix(clean, "```")
+	clean = strings.TrimSpace(clean)
+
+	if clean == "" {
+		return clean
+	}
+
+	// If the response includes extra text, attempt to extract the first JSON array/object.
+	startArray := strings.Index(clean, "[")
+	startObject := strings.Index(clean, "{")
+	start := -1
+	if startArray == -1 {
+		start = startObject
+	} else if startObject == -1 || startArray < startObject {
+		start = startArray
+	} else {
+		start = startObject
+	}
+	if start == -1 {
+		return clean
+	}
+
+	endArray := strings.LastIndex(clean, "]")
+	endObject := strings.LastIndex(clean, "}")
+	end := -1
+	if endArray == -1 {
+		end = endObject
+	} else if endObject == -1 || endArray > endObject {
+		end = endArray
+	} else {
+		end = endObject
+	}
+	if end == -1 || end <= start {
+		return clean
+	}
+
+	return strings.TrimSpace(clean[start : end+1])
 }
 
 func (s *AIPlanningService) ReconcileSpec(ctx context.Context, rawSpec *spec.ProductSpec) (*spec.ProductSpec, error) {
@@ -331,7 +515,7 @@ func (s *AIPlanningService) ExplainSpec(ctx context.Context) (string, error) {
 	}
 
 	// 3. Prompt AI
-	prompt := fmt.Sprintf("Provide a high-level architectural walkthrough and explanation of this software specification. " +
+	prompt := fmt.Sprintf("Provide a high-level architectural walkthrough and explanation of this software specification. "+
 		"Explain 'What' we are building and 'Why' based on the features and requirements.\n\nSpec: %s\n\nFeatures:\n", spec.Title)
 
 	for _, f := range spec.Features {
@@ -377,8 +561,8 @@ func (s *AIPlanningService) ExplainDrift(ctx context.Context, report *drift.Repo
 	spec, _ := s.repo.LoadSpec()
 
 	// 3. Prompt AI
-	prompt := fmt.Sprintf("Analyze these detected drift issues in a software project. " +
-		"Explain the potential impact of each issue and suggest specific resolution steps.\n\n" +
+	prompt := fmt.Sprintf("Analyze these detected drift issues in a software project. "+
+		"Explain the potential impact of each issue and suggest specific resolution steps.\n\n"+
 		"Project: %s\nIssues:\n", spec.Title)
 
 	for _, issue := range report.Issues {

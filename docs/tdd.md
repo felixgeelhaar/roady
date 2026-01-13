@@ -84,7 +84,7 @@ Uses **fortify** to handle:
 
 - **Provider Abstraction**: Decoupled via `ai.Provider` interface.
 - **Factory Pattern**: Centralized instantiation of Ollama, OpenAI, Anthropic, Gemini, or Mock.
-- **Policy Control**: `policy.yaml` defines the allowed models and providers.
+- **Policy Control**: `policy.yaml` controls AI usage and limits; `.roady/ai.yaml` sets provider/model defaults.
 - **Telemetry**: Usage and token stats emitted to `usage.json`.
 
 ---
@@ -189,7 +189,8 @@ Roady uses a local-first, git-friendly storage strategy.
 
 - **`state.json`**: The current execution status and paths for each task.
 
-- **`policy.yaml`**: Project-wide constraints and AI provider settings.
+- **`policy.yaml`**: Project-wide constraints and AI usage limits.
+- **`ai.yaml`**: Provider/model defaults for AI requests.
 
 - **`events.jsonl`**: The immutable audit trail of all project changes.
 

@@ -27,9 +27,7 @@ type WorkspaceRepository interface {
 
 // PolicyConfig is the serialized representation of policy.yaml
 type PolicyConfig struct {
-	MaxWIP     int    `yaml:"max_wip"`
-	AllowAI    bool   `yaml:"allow_ai"`
-	AIProvider string `yaml:"ai_provider"` // e.g. "ollama", "openai"
-	AIModel    string `yaml:"ai_model"`    // e.g. "llama3", "gpt-4"
-	TokenLimit int    `yaml:"token_limit"` // Horizon 4: Max tokens allowed for this project
+	MaxWIP     int  `yaml:"max_wip"`
+	AllowAI    bool `yaml:"allow_ai"`
+	TokenLimit int  `yaml:"token_limit"` // Horizon 4: Max tokens allowed for this project
 }

@@ -5,8 +5,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/felixgeelhaar/roady/internal/infrastructure/wiring"
 	"github.com/felixgeelhaar/roady/pkg/application"
-	"github.com/felixgeelhaar/roady/pkg/storage"
 	"github.com/spf13/cobra"
 )
 
@@ -15,8 +15,8 @@ var timelineCmd = &cobra.Command{
 	Short: "Show a chronological view of project activity",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cwd, _ := os.Getwd()
-		repo := storage.NewFilesystemRepository(cwd)
-		service := application.NewAuditService(repo)
+		workspace := wiring.NewWorkspace(cwd)
+		service := application.NewAuditService(workspace.Repo)
 
 		events, err := service.GetTimeline()
 		if err != nil {

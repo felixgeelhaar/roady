@@ -4,10 +4,9 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/felixgeelhaar/roady/internal/infrastructure/wiring"
 	"github.com/felixgeelhaar/roady/pkg/application"
 	"github.com/felixgeelhaar/roady/pkg/domain/planning"
-	"github.com/felixgeelhaar/roady/pkg/ai"
-	"github.com/felixgeelhaar/roady/pkg/storage"
 	"github.com/spf13/cobra"
 )
 
@@ -23,25 +22,18 @@ var planGenerateCmd = &cobra.Command{
 	Short: "Generate a plan from the current spec",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cwd, _ := os.Getwd()
-		repo := storage.NewFilesystemRepository(cwd)
-		audit := application.NewAuditService(repo)
+		workspace := wiring.NewWorkspace(cwd)
+		repo := workspace.Repo
+		audit := workspace.Audit
 
 		var plan *planning.Plan
 		var err error
 
 		if useAI {
-			cfg, _ := repo.LoadPolicy()
-			pName, mName := "ollama", "llama3"
-			if cfg != nil {
-				pName = cfg.AIProvider
-				mName = cfg.AIModel
-			}
-
-			baseProvider, err := ai.GetDefaultProvider(pName, mName)
+			provider, err := wiring.LoadAIProvider(cwd)
 			if err != nil {
 				return err
 			}
-			provider := ai.NewResilientProvider(baseProvider)
 			service := application.NewAIPlanningService(repo, provider, audit)
 			plan, err = service.DecomposeSpec(cmd.Context())
 		} else {
@@ -76,7 +68,7 @@ var planGenerateCmd = &cobra.Command{
 
 var planApproveCmd = &cobra.Command{
 
-	Use:   "approve",
+	Use: "approve",
 
 	Short: "Approve the current plan for execution",
 
@@ -84,13 +76,11 @@ var planApproveCmd = &cobra.Command{
 
 		cwd, _ := os.Getwd()
 
-		repo := storage.NewFilesystemRepository(cwd)
-
-		audit := application.NewAuditService(repo)
+		workspace := wiring.NewWorkspace(cwd)
+		repo := workspace.Repo
+		audit := workspace.Audit
 
 		service := application.NewPlanService(repo, audit)
-
-
 
 		if err := service.ApprovePlan(); err != nil {
 
@@ -103,14 +93,11 @@ var planApproveCmd = &cobra.Command{
 		return nil
 
 	},
-
 }
-
-
 
 var planRejectCmd = &cobra.Command{
 
-	Use:   "reject",
+	Use: "reject",
 
 	Short: "Reject the current plan",
 
@@ -118,13 +105,11 @@ var planRejectCmd = &cobra.Command{
 
 		cwd, _ := os.Getwd()
 
-		repo := storage.NewFilesystemRepository(cwd)
-
-		audit := application.NewAuditService(repo)
+		workspace := wiring.NewWorkspace(cwd)
+		repo := workspace.Repo
+		audit := workspace.Audit
 
 		service := application.NewPlanService(repo, audit)
-
-
 
 		if err := service.RejectPlan(); err != nil {
 
@@ -137,109 +122,49 @@ var planRejectCmd = &cobra.Command{
 		return nil
 
 	},
-
 }
-
-
 
 var planPruneCmd = &cobra.Command{
 
-
-
-	Use:   "prune",
-
-
+	Use: "prune",
 
 	Short: "Remove tasks from the plan that are no longer in the spec",
 
-
-
 	RunE: func(cmd *cobra.Command, args []string) error {
-
-
 
 		cwd, _ := os.Getwd()
 
-
-
-		repo := storage.NewFilesystemRepository(cwd)
-
-
-
-		audit := application.NewAuditService(repo)
-
-
+		workspace := wiring.NewWorkspace(cwd)
+		repo := workspace.Repo
+		audit := workspace.Audit
 
 		service := application.NewPlanService(repo, audit)
 
-
-
-
-
-
-
 		if err := service.PrunePlan(); err != nil {
-
-
 
 			return fmt.Errorf("failed to prune plan: %w", err)
 
-
-
 		}
-
-
 
 		fmt.Println("Plan pruned. Orphan tasks removed.")
 
-
-
 		return nil
 
-
-
 	},
-
-
-
 }
-
-
-
-
-
-
 
 func init() {
 
-
-
 	planGenerateCmd.Flags().BoolVar(&useAI, "ai", false, "Use AI to decompose the spec into tasks")
-
-
 
 	planCmd.AddCommand(planGenerateCmd)
 
-
-
 	planCmd.AddCommand(planApproveCmd)
-
-
 
 	planCmd.AddCommand(planRejectCmd)
 
-
-
 	planCmd.AddCommand(planPruneCmd)
-
-
 
 	RootCmd.AddCommand(planCmd)
 
-
-
 }
-
-
-
-

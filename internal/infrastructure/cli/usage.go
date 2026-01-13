@@ -5,8 +5,8 @@ import (
 	"os"
 	"sort"
 
+	"github.com/felixgeelhaar/roady/internal/infrastructure/wiring"
 	"github.com/felixgeelhaar/roady/pkg/application"
-	"github.com/felixgeelhaar/roady/pkg/storage"
 	"github.com/spf13/cobra"
 )
 
@@ -15,8 +15,8 @@ var usageCmd = &cobra.Command{
 	Short: "Show project usage and AI token statistics",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cwd, _ := os.Getwd()
-		repo := storage.NewFilesystemRepository(cwd)
-		service := application.NewPlanService(repo, application.NewAuditService(repo))
+		workspace := wiring.NewWorkspace(cwd)
+		service := application.NewPlanService(workspace.Repo, workspace.Audit)
 
 		stats, err := service.GetUsage()
 		if err != nil {
@@ -32,7 +32,7 @@ var usageCmd = &cobra.Command{
 
 		if len(stats.ProviderStats) > 0 {
 			fmt.Println("\nAI Token Consumption")
-			
+
 			// Sort keys for stable output
 			keys := make([]string, 0, len(stats.ProviderStats))
 			for k := range stats.ProviderStats {

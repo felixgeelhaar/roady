@@ -4,9 +4,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/felixgeelhaar/roady/internal/infrastructure/wiring"
 	"github.com/felixgeelhaar/roady/pkg/application"
-	"github.com/felixgeelhaar/roady/pkg/ai"
-	"github.com/felixgeelhaar/roady/pkg/storage"
 	"github.com/spf13/cobra"
 )
 
@@ -20,21 +19,14 @@ var specExplainCmd = &cobra.Command{
 	Short: "Provide an AI-generated explanation of the current spec",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cwd, _ := os.Getwd()
-		repo := storage.NewFilesystemRepository(cwd)
-		audit := application.NewAuditService(repo)
+		workspace := wiring.NewWorkspace(cwd)
+		repo := workspace.Repo
+		audit := workspace.Audit
 
-		cfg, _ := repo.LoadPolicy()
-		pName, mName := "ollama", "llama3"
-		if cfg != nil {
-			pName = cfg.AIProvider
-			mName = cfg.AIModel
-		}
-
-		baseProvider, err := ai.GetDefaultProvider(pName, mName)
+		provider, err := wiring.LoadAIProvider(cwd)
 		if err != nil {
 			return err
 		}
-		provider := ai.NewResilientProvider(baseProvider)
 		service := application.NewAIPlanningService(repo, provider, audit)
 
 		explanation, err := service.ExplainSpec(cmd.Context())
@@ -55,7 +47,7 @@ var specImportCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cwd, _ := os.Getwd()
-		repo := storage.NewFilesystemRepository(cwd)
+		repo := wiring.NewWorkspace(cwd).Repo
 		service := application.NewSpecService(repo)
 		filePath := args[0]
 
@@ -75,7 +67,7 @@ var specValidateCmd = &cobra.Command{
 	Short:   "Validate the current specification (alias: lint)",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cwd, _ := os.Getwd()
-		repo := storage.NewFilesystemRepository(cwd)
+		repo := wiring.NewWorkspace(cwd).Repo
 		spec, err := repo.LoadSpec()
 		if err != nil {
 			return fmt.Errorf("failed to load/parse spec: %w", err)
@@ -107,7 +99,8 @@ var specAnalyzeCmd = &cobra.Command{
 		}
 
 		cwd, _ := os.Getwd()
-		repo := storage.NewFilesystemRepository(cwd)
+		workspace := wiring.NewWorkspace(cwd)
+		repo := workspace.Repo
 		service := application.NewSpecService(repo)
 
 		spec, err := service.AnalyzeDirectory(dir)
@@ -116,18 +109,11 @@ var specAnalyzeCmd = &cobra.Command{
 		}
 
 		if reconcileSpec {
-			audit := application.NewAuditService(repo)
-			cfg, _ := repo.LoadPolicy()
-			pName, mName := "ollama", "llama3"
-			if cfg != nil {
-				pName = cfg.AIProvider
-				mName = cfg.AIModel
-			}
-			baseProvider, err := ai.GetDefaultProvider(pName, mName)
+			audit := workspace.Audit
+			provider, err := wiring.LoadAIProvider(cwd)
 			if err != nil {
 				return err
 			}
-			provider := ai.NewResilientProvider(baseProvider)
 			aiSvc := application.NewAIPlanningService(repo, provider, audit)
 
 			fmt.Println("Reconciling specification using AI...")
@@ -148,7 +134,7 @@ var specAddCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(2),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cwd, _ := os.Getwd()
-		repo := storage.NewFilesystemRepository(cwd)
+		repo := wiring.NewWorkspace(cwd).Repo
 		service := application.NewSpecService(repo)
 
 		title, desc := args[0], args[1]

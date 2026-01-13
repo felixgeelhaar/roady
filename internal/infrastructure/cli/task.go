@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/felixgeelhaar/roady/internal/infrastructure/wiring"
 	"github.com/felixgeelhaar/roady/pkg/application"
-	"github.com/felixgeelhaar/roady/pkg/storage"
 	"github.com/spf13/cobra"
 )
 
@@ -22,8 +22,9 @@ func createTaskCommand(use, short, event string) *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cwd, _ := os.Getwd()
-			repo := storage.NewFilesystemRepository(cwd)
-			audit := application.NewAuditService(repo)
+			workspace := wiring.NewWorkspace(cwd)
+			repo := workspace.Repo
+			audit := workspace.Audit
 			service := application.NewTaskService(repo, audit)
 			taskID := args[0]
 

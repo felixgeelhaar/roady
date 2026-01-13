@@ -6,8 +6,8 @@ import (
 	"os/exec"
 	"strings"
 
+	"github.com/felixgeelhaar/roady/internal/infrastructure/wiring"
 	"github.com/felixgeelhaar/roady/pkg/application"
-	"github.com/felixgeelhaar/roady/pkg/storage"
 	"github.com/spf13/cobra"
 )
 
@@ -21,8 +21,9 @@ var gitSyncCmd = &cobra.Command{
 	Short: "Scan recent git commits for task completion markers [roady:task-id]",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cwd, _ := os.Getwd()
-		repo := storage.NewFilesystemRepository(cwd)
-		audit := application.NewAuditService(repo)
+		workspace := wiring.NewWorkspace(cwd)
+		repo := workspace.Repo
+		audit := workspace.Audit
 		taskSvc := application.NewTaskService(repo, audit)
 
 		// 1. Get recent commits (last 10)
@@ -36,7 +37,9 @@ var gitSyncCmd = &cobra.Command{
 
 		for _, line := range lines {
 			parts := strings.Split(line, "|")
-			if len(parts) < 2 { continue }
+			if len(parts) < 2 {
+				continue
+			}
 			hash, message := parts[0], parts[1]
 
 			// Look for [roady:task-id]
@@ -46,10 +49,10 @@ var gitSyncCmd = &cobra.Command{
 				if end != -1 {
 					taskID := message[start : start+end]
 					fmt.Printf("Found marker for task '%s' in commit %s\n", taskID, hash[:8])
-					
+
 					// Transition to complete
-				err := taskSvc.TransitionTask(taskID, "complete", "git-automation", "Commit: "+hash)
-				if err != nil {
+					err := taskSvc.TransitionTask(taskID, "complete", "git-automation", "Commit: "+hash)
+					if err != nil {
 						// It might already be complete, or blocked
 						fmt.Printf("  Could not transition: %v\n", err)
 					} else {

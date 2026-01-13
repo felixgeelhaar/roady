@@ -3,7 +3,7 @@ package cli
 import (
 	"os"
 
-	"github.com/felixgeelhaar/roady/pkg/mcp"
+	inframcp "github.com/felixgeelhaar/roady/internal/infrastructure/mcp"
 	"github.com/spf13/cobra"
 )
 
@@ -15,7 +15,7 @@ var mcpCmd = &cobra.Command{
 			return
 		}
 		cwd, _ := os.Getwd()
-		server := mcp.NewServer(cwd)
+		server := inframcp.NewServer(cwd)
 		if err := server.Start(); err != nil {
 			os.Exit(1)
 		}

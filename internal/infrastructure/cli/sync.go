@@ -5,9 +5,9 @@ import (
 	"os"
 	"strings"
 
+	"github.com/felixgeelhaar/roady/internal/infrastructure/wiring"
 	"github.com/felixgeelhaar/roady/pkg/application"
 	"github.com/felixgeelhaar/roady/pkg/plugin"
-	"github.com/felixgeelhaar/roady/pkg/storage"
 	"github.com/spf13/cobra"
 )
 
@@ -18,7 +18,8 @@ var syncCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		pluginPath := args[0]
 		cwd, _ := os.Getwd()
-		repo := storage.NewFilesystemRepository(cwd)
+		workspace := wiring.NewWorkspace(cwd)
+		repo := workspace.Repo
 		loader := plugin.NewLoader()
 		defer loader.Cleanup()
 
@@ -46,15 +47,18 @@ var syncCmd = &cobra.Command{
 			return fmt.Errorf("failed to sync: %w", err)
 		}
 
-		audit := application.NewAuditService(repo)
-		taskService := application.NewTaskService(repo, audit)
+		taskService := application.NewTaskService(repo, workspace.Audit)
 
 		// 1. Handle Link Updates (New Tickets Created)
 		if len(result.LinkUpdates) > 0 {
 			fmt.Printf("Received %d link updates from plugin:\n", len(result.LinkUpdates))
 			provider := "external" // Default, could be refined
-			if strings.Contains(pluginPath, "linear") { provider = "linear" }
-			if strings.Contains(pluginPath, "jira") { provider = "jira" }
+			if strings.Contains(pluginPath, "linear") {
+				provider = "linear"
+			}
+			if strings.Contains(pluginPath, "jira") {
+				provider = "jira"
+			}
 
 			for id, ref := range result.LinkUpdates {
 				if err := taskService.LinkTask(id, provider, ref); err != nil {
@@ -73,10 +77,12 @@ var syncCmd = &cobra.Command{
 				fmt.Printf("- %s -> %s\n", id, status)
 				var event string
 				switch status {
-				case "done": event = "complete"
-				case "in_progress": event = "start"
+				case "done":
+					event = "complete"
+				case "in_progress":
+					event = "start"
 				}
-				
+
 				if event != "" {
 					if err := taskService.TransitionTask(id, event, "sync-plugin", ""); err != nil {
 						fmt.Printf("  Failed to apply transition: %v\n", err)
@@ -104,4 +110,3 @@ var syncCmd = &cobra.Command{
 func init() {
 	RootCmd.AddCommand(syncCmd)
 }
-

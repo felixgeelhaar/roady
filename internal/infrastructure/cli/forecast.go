@@ -5,9 +5,8 @@ import (
 	"math"
 	"os"
 
-	"github.com/felixgeelhaar/roady/pkg/application"
+	"github.com/felixgeelhaar/roady/internal/infrastructure/wiring"
 	"github.com/felixgeelhaar/roady/pkg/domain/planning"
-	"github.com/felixgeelhaar/roady/pkg/storage"
 	"github.com/spf13/cobra"
 )
 
@@ -16,9 +15,10 @@ var forecastCmd = &cobra.Command{
 	Short: "Predict project completion based on current velocity",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cwd, _ := os.Getwd()
-		repo := storage.NewFilesystemRepository(cwd)
-		auditSvc := application.NewAuditService(repo)
-		
+		workspace := wiring.NewWorkspace(cwd)
+		repo := workspace.Repo
+		auditSvc := workspace.Audit
+
 		velocity, err := auditSvc.GetVelocity()
 		if err != nil {
 			return err
@@ -60,7 +60,7 @@ var forecastCmd = &cobra.Command{
 
 		daysRemaining := math.Ceil(float64(remaining) / velocity)
 		fmt.Printf("\nEstimated time to completion: %.0f days\n", daysRemaining)
-		
+
 		return nil
 	},
 }

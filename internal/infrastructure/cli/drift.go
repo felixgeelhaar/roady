@@ -5,9 +5,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/felixgeelhaar/roady/pkg/ai"
+	"github.com/felixgeelhaar/roady/internal/infrastructure/wiring"
 	"github.com/felixgeelhaar/roady/pkg/application"
-	"github.com/felixgeelhaar/roady/pkg/storage"
 	"github.com/spf13/cobra"
 )
 
@@ -21,22 +20,15 @@ var driftExplainCmd = &cobra.Command{
 	Short: "Provide an AI-generated explanation and resolution steps for current drift",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cwd, _ := os.Getwd()
-		repo := storage.NewFilesystemRepository(cwd)
+		workspace := wiring.NewWorkspace(cwd)
+		repo := workspace.Repo
 		driftSvc := application.NewDriftService(repo)
-		audit := application.NewAuditService(repo)
+		audit := workspace.Audit
 
-		cfg, _ := repo.LoadPolicy()
-		pName, mName := "ollama", "llama3"
-		if cfg != nil {
-			pName = cfg.AIProvider
-			mName = cfg.AIModel
-		}
-
-		baseProvider, err := ai.GetDefaultProvider(pName, mName)
+		provider, err := wiring.LoadAIProvider(cwd)
 		if err != nil {
 			return err
 		}
-		provider := ai.NewResilientProvider(baseProvider)
 		aiSvc := application.NewAIPlanningService(repo, provider, audit)
 
 		report, err := driftSvc.DetectDrift()
@@ -63,7 +55,8 @@ var driftDetectCmd = &cobra.Command{
 		outputFormat, _ := cmd.Flags().GetString("output")
 
 		cwd, _ := os.Getwd()
-		repo := storage.NewFilesystemRepository(cwd)
+		workspace := wiring.NewWorkspace(cwd)
+		repo := workspace.Repo
 		service := application.NewDriftService(repo)
 
 		report, err := service.DetectDrift()
@@ -102,7 +95,8 @@ var driftAcceptCmd = &cobra.Command{
 	Short: "Accept current drift by locking the spec snapshot",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cwd, _ := os.Getwd()
-		repo := storage.NewFilesystemRepository(cwd)
+		workspace := wiring.NewWorkspace(cwd)
+		repo := workspace.Repo
 		spec, err := repo.LoadSpec()
 		if err != nil {
 			return fmt.Errorf("failed to load spec: %w", err)
@@ -115,8 +109,7 @@ var driftAcceptCmd = &cobra.Command{
 			return fmt.Errorf("failed to update spec lock: %w", err)
 		}
 
-		audit := application.NewAuditService(repo)
-		if err := audit.Log("drift.accepted", "cli", map[string]interface{}{
+		if err := workspace.Audit.Log("drift.accepted", "cli", map[string]interface{}{
 			"spec_id":   spec.ID,
 			"spec_hash": spec.Hash(),
 		}); err != nil {

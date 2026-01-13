@@ -7,8 +7,8 @@ import (
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/felixgeelhaar/roady/internal/infrastructure/wiring"
 	"github.com/felixgeelhaar/roady/pkg/application"
-	"github.com/felixgeelhaar/roady/pkg/storage"
 	"github.com/spf13/cobra"
 )
 
@@ -59,7 +59,7 @@ type model struct {
 
 func initialModel() model {
 	cwd, _ := os.Getwd()
-	repo := storage.NewFilesystemRepository(cwd)
+	repo := wiring.NewWorkspace(cwd).Repo
 
 	// Load Data
 	spec, err := repo.LoadSpec()
@@ -80,7 +80,9 @@ func initialModel() model {
 	stats, _ := repo.LoadUsage()
 	usageCount := 0
 	if stats != nil {
-		for _, c := range stats.ProviderStats { usageCount += c }
+		for _, c := range stats.ProviderStats {
+			usageCount += c
+		}
 	}
 
 	cfg, _ := repo.LoadPolicy()
@@ -105,7 +107,9 @@ func initialModel() model {
 			owner := "-"
 			if res, ok := state.TaskStates[t.ID]; ok {
 				status = string(res.Status)
-				if res.Owner != "" { owner = res.Owner }
+				if res.Owner != "" {
+					owner = res.Owner
+				}
 			}
 			rows = append(rows, table.Row{status, owner, string(t.Priority), t.Title, t.ID})
 		}
@@ -185,26 +189,22 @@ func (m model) View() string {
 		driftView = statusDone.Render("\nSystem Sync: OK")
 	}
 
-		return baseStyle.Render(
+	return baseStyle.Render(
 
-			lipgloss.JoinVertical(lipgloss.Left,
+		lipgloss.JoinVertical(lipgloss.Left,
 
-				header,
+			header,
 
-				budgetText,
+			budgetText,
 
-				"\nTask Plan:",
+			"\nTask Plan:",
 
-				m.table.View(),
+			m.table.View(),
 
-				                             driftView,
+			driftView,
 
-				                             "\n[q] Quit  [Up/Down] Navigate",
+			"\n[q] Quit  [Up/Down] Navigate",
+		),
+	) + "\n"
 
-				                     ),
-
-				             ) + "\n"
-
-				     }
-
-	
+}

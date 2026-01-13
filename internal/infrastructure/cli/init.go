@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/felixgeelhaar/roady/internal/infrastructure/wiring"
 	"github.com/felixgeelhaar/roady/pkg/application"
-	"github.com/felixgeelhaar/roady/pkg/storage"
 	"github.com/spf13/cobra"
 )
 
@@ -14,8 +14,9 @@ var initCmd = &cobra.Command{
 	Short: "Initialize a new roady project",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cwd, _ := os.Getwd()
-		repo := storage.NewFilesystemRepository(cwd)
-		audit := application.NewAuditService(repo)
+		workspace := wiring.NewWorkspace(cwd)
+		repo := workspace.Repo
+		audit := workspace.Audit
 		service := application.NewInitService(repo, audit)
 
 		projectName := "new-project"
@@ -28,11 +29,20 @@ var initCmd = &cobra.Command{
 			return fmt.Errorf("failed to initialize project: %w", err)
 		}
 
+		if initInteractive {
+			if err := runAIConfigureInteractive(repo); err != nil {
+				return fmt.Errorf("failed to configure AI: %w", err)
+			}
+		}
+
 		fmt.Printf("Successfully initialized roady project: %s\n", projectName)
 		return nil
 	},
 }
 
+var initInteractive bool
+
 func init() {
+	initCmd.Flags().BoolVar(&initInteractive, "interactive", false, "Prompt for AI configuration after initialization")
 	RootCmd.AddCommand(initCmd)
 }

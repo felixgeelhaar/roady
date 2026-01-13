@@ -5,9 +5,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/felixgeelhaar/roady/pkg/ai"
+	"github.com/felixgeelhaar/roady/internal/infrastructure/wiring"
 	"github.com/felixgeelhaar/roady/pkg/application"
-	"github.com/felixgeelhaar/roady/pkg/storage"
 	"github.com/spf13/cobra"
 )
 
@@ -30,10 +29,11 @@ var watchCmd = &cobra.Command{
 		}
 
 		cwd, _ := os.Getwd()
-		repo := storage.NewFilesystemRepository(cwd)
+		workspace := wiring.NewWorkspace(cwd)
+		repo := workspace.Repo
 		specSvc := application.NewSpecService(repo)
 		driftSvc := application.NewDriftService(repo)
-		audit := application.NewAuditService(repo)
+		audit := workspace.Audit
 
 		fmt.Printf("Watching %s for changes... (Auto-sync: %v)\n", dir, autoSync)
 
@@ -56,23 +56,19 @@ var watchCmd = &cobra.Command{
 						if autoSync {
 							fmt.Println("Autonomous Reconciliation: Synchronizing plan with new intent...")
 
-							cfg, _ := repo.LoadPolicy()
-							pName, mName := "ollama", "llama3"
-							if cfg != nil {
-								pName = cfg.AIProvider
-								mName = cfg.AIModel
-							}
-							baseProvider, _ := ai.GetDefaultProvider(pName, mName)
-							provider := ai.NewResilientProvider(baseProvider)
-							aiSvc := application.NewAIPlanningService(repo, provider, audit)
-
-							_, err := aiSvc.DecomposeSpec(cmd.Context())
+							provider, err := wiring.LoadAIProvider(cwd)
 							if err != nil {
 								fmt.Printf("Auto-sync failed: %v\n", err)
 							} else {
-								fmt.Println("Plan successfully synchronized.")
-							}
+								aiSvc := application.NewAIPlanningService(repo, provider, audit)
 
+								_, err := aiSvc.DecomposeSpec(cmd.Context())
+								if err != nil {
+									fmt.Printf("Auto-sync failed: %v\n", err)
+								} else {
+									fmt.Println("Plan successfully synchronized.")
+								}
+							}
 						}
 
 						// 2. Detect Drift Automatically

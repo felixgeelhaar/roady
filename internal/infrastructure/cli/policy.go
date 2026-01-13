@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/felixgeelhaar/roady/internal/infrastructure/wiring"
 	"github.com/felixgeelhaar/roady/pkg/application"
 	"github.com/felixgeelhaar/roady/pkg/domain/policy"
-	"github.com/felixgeelhaar/roady/pkg/storage"
 	"github.com/spf13/cobra"
 )
 
@@ -20,7 +20,7 @@ var policyCheckCmd = &cobra.Command{
 	Short: "Check if the current plan complies with policies",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cwd, _ := os.Getwd()
-		repo := storage.NewFilesystemRepository(cwd)
+		repo := wiring.NewWorkspace(cwd).Repo
 		service := application.NewPolicyService(repo)
 
 		violations, err := service.CheckCompliance()
@@ -43,7 +43,7 @@ var policyCheckCmd = &cobra.Command{
 			}
 			fmt.Printf("%s %s: %s\n", color, v.RuleID, v.Message)
 		}
-		
+
 		return fmt.Errorf("policy violations found")
 	},
 }

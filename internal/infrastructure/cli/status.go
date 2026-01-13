@@ -3,12 +3,12 @@ package cli
 import (
 	"fmt"
 	"os"
+	"sort"
 
+	"github.com/felixgeelhaar/roady/internal/infrastructure/wiring"
 	"github.com/felixgeelhaar/roady/pkg/application"
 	"github.com/felixgeelhaar/roady/pkg/domain/planning"
-	"github.com/felixgeelhaar/roady/pkg/storage"
 	"github.com/spf13/cobra"
-	"sort"
 )
 
 var statusCmd = &cobra.Command{
@@ -16,7 +16,7 @@ var statusCmd = &cobra.Command{
 	Short: "Show a high-level summary of the project state",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cwd, _ := os.Getwd()
-		repo := storage.NewFilesystemRepository(cwd)
+		repo := wiring.NewWorkspace(cwd).Repo
 
 		spec, err := repo.LoadSpec()
 		if err != nil {
@@ -35,13 +35,13 @@ var statusCmd = &cobra.Command{
 
 		fmt.Printf("Project: %s (v%s)\n", spec.Title, spec.Version)
 		fmt.Printf("Spec features: %d\n", len(spec.Features))
-		
+
 		if plan == nil {
 			fmt.Println("Plan status: No plan generated yet. Run 'roady plan generate'.")
 			return nil
 		}
 		fmt.Printf("Plan status: %s\n", plan.ApprovalStatus)
-		
+
 		counts := make(map[planning.TaskStatus]int)
 		for _, t := range plan.Tasks {
 			status := planning.StatusPending
@@ -69,7 +69,7 @@ var statusCmd = &cobra.Command{
 		// List tasks sorted by status
 		fmt.Println("\nTask Overview")
 		fmt.Println("----------------")
-		
+
 		statusRank := map[planning.TaskStatus]int{
 			planning.StatusPending:    0,
 			planning.StatusBlocked:    1,
@@ -85,8 +85,12 @@ var statusCmd = &cobra.Command{
 			sI := planning.StatusPending
 			sJ := planning.StatusPending
 			if state != nil {
-				if res, ok := state.TaskStates[sortedTasks[i].ID]; ok { sI = res.Status }
-				if res, ok := state.TaskStates[sortedTasks[j].ID]; ok { sJ = res.Status }
+				if res, ok := state.TaskStates[sortedTasks[i].ID]; ok {
+					sI = res.Status
+				}
+				if res, ok := state.TaskStates[sortedTasks[j].ID]; ok {
+					sJ = res.Status
+				}
 			}
 			if sI != sJ {
 				return statusRank[sI] < statusRank[sJ]
@@ -101,10 +105,14 @@ var statusCmd = &cobra.Command{
 				if res, ok := state.TaskStates[t.ID]; ok {
 					status = res.Status
 					switch status {
-					case planning.StatusVerified: prefix = "[V]"
-					case planning.StatusDone: prefix = "[D]"
-					case planning.StatusInProgress: prefix = "[W]"
-					case planning.StatusBlocked: prefix = "[B]"
+					case planning.StatusVerified:
+						prefix = "[V]"
+					case planning.StatusDone:
+						prefix = "[D]"
+					case planning.StatusInProgress:
+						prefix = "[W]"
+					case planning.StatusBlocked:
+						prefix = "[B]"
 					}
 				}
 			}
