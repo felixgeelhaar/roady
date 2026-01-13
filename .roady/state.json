@@ -60,9 +60,25 @@
         "updated CLI/MCP imports, tests, and docs; go test ./..."
       ]
     },
+    "task-ai-config-\u0026-wiring-tests": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar",
+      "evidence": [
+        "added config/wiring/cli tests"
+      ]
+    },
     "task-ai-planning": {
       "status": "done",
       "path": ""
+    },
+    "task-audit-docs-\u0026-examples": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar",
+      "evidence": [
+        "updated README and core docs for ai.yaml"
+      ]
     },
     "task-core-foundation": {
       "status": "done",
@@ -83,6 +99,14 @@
     "task-fsm-engine": {
       "status": "done",
       "path": ""
+    },
+    "task-mcp-shim-\u0026-compatibility": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar",
+      "evidence": [
+        "pkg/mcp shim retained and documented"
+      ]
     },
     "task-ollama-integration": {
       "status": "done",
@@ -195,5 +219,5 @@
       "path": ""
     }
   },
-  "updated_at": "2026-01-13T22:24:18.999238+01:00"
+  "updated_at": "2026-01-13T22:35:41.368081+01:00"
 }

@@ -1,38 +1,30 @@
 id: imported-spec
-title: DDD Refactor Plan
-description: Refactor Roady's tool wiring and configuration to align with DDD boundaries while preserving behavior.
+title: 'DDD Refactor Phase 2: Hardening & Cleanup'
+description: Harden the refactor by covering configuration paths, updating remaining documentation, and verifying external compatibility.
 features:
-    - id: move-mcp-composition-root
-      title: Move MCP Composition Root
+    - id: audit-docs-&-examples
+      title: Audit Docs & Examples
       description: |-
-        Consolidate MCP server wiring at the infrastructure edge.
-        - Move MCP server construction out of pkg/mcp into internal/infrastructure/mcp.
-        - Keep pkg/mcp minimal (interfaces/types only) or remove if unused.
-        - Ensure command wiring uses the new infrastructure entry point.
+        Update any remaining references to `policy.yaml` for provider/model settings.
+        - Find and fix docs or examples that still describe provider/model in `policy.yaml`.
+        - Ensure `.roady/ai.yaml` is documented as the provider/model source.
+        - Keep guidance for env var overrides intact.
       requirements: []
-    - id: decouple-domain-policy-from-provider-selection
-      title: Decouple Domain Policy from Provider Selection
+    - id: ai-config-&-wiring-tests
+      title: AI Config & Wiring Tests
       description: |-
-        Keep domain policy focused on business rules, not adapter choices.
-        - Remove AI provider/model fields from domain policy config.
-        - Introduce infra/app config for provider/model defaults.
-        - Update provider selection to read infra config only.
+        Add coverage for AI config and wiring fallbacks.
+        - LoadAIConfig handles missing or invalid files.
+        - LoadAIProvider uses defaults when `ai.yaml` is missing.
+        - CLI AI configure writes `ai.yaml` alongside `policy.yaml`.
       requirements: []
-    - id: centralize-adapter-construction
-      title: Centralize Adapter Construction
+    - id: mcp-shim-&-compatibility
+      title: MCP Shim & Compatibility
       description: |-
-        Create a single wiring location for repo, audit, AI provider, and services.
-        - Add internal/infrastructure/wiring (or cmd/roady) constructor.
-        - Make CLI and MCP use the shared wiring helper.
-        - Keep application services unchanged.
-      requirements: []
-    - id: update-imports-and-tests
-      title: Update Imports and Tests
-      description: |-
-        Align references and maintain test coverage.
-        - Fix imports that reference pkg/mcp after relocation.
-        - Add temporary shim if external consumers still import pkg/mcp.
-        - Update tests to use new wiring location.
+        Validate and document the `pkg/mcp` shim.
+        - Confirm downstream imports still work with the shim.
+        - Decide whether to keep or deprecate the shim.
+        - Add a short note in docs if the shim is temporary.
       requirements: []
 constraints: []
 version: 0.1.0
