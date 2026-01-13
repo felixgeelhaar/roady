@@ -340,16 +340,25 @@ func (s *Server) Start() error {
 }
 
 func (s *Server) StartStdio() error {
-	ctx := context.Background()
-	return mcp.ServeStdio(ctx, s.mcpServer)
+	return s.ServeStdio(context.Background())
 }
 
 func (s *Server) StartHTTP(addr string) error {
-	ctx := context.Background()
-	return mcp.ServeHTTP(ctx, s.mcpServer, addr, mcp.WithDefaultCORS())
+	return s.ServeHTTP(context.Background(), addr)
 }
 
 func (s *Server) StartWebSocket(addr string) error {
-	ctx := context.Background()
+	return s.ServeWebSocket(context.Background(), addr)
+}
+
+func (s *Server) ServeStdio(ctx context.Context) error {
+	return mcp.ServeStdio(ctx, s.mcpServer)
+}
+
+func (s *Server) ServeHTTP(ctx context.Context, addr string) error {
+	return mcp.ServeHTTP(ctx, s.mcpServer, addr, mcp.WithDefaultCORS())
+}
+
+func (s *Server) ServeWebSocket(ctx context.Context, addr string) error {
 	return mcp.ServeWebSocket(ctx, s.mcpServer, addr)
 }
