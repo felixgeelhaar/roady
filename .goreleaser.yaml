@@ -9,6 +9,11 @@ builds:
   - id: roady
     main: ./cmd/roady/main.go
     binary: roady
+    ldflags:
+      - -s -w
+      - -X github.com/felixgeelhaar/roady/internal/infrastructure/cli.Version={{.Version}}
+      - -X github.com/felixgeelhaar/roady/internal/infrastructure/cli.Commit={{.Commit}}
+      - -X github.com/felixgeelhaar/roady/internal/infrastructure/cli.Date={{.Date}}
     env:
       - CGO_ENABLED=0
     goos:
