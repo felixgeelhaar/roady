@@ -23,6 +23,12 @@ Designed for individuals, teams, and AI agents, Roady ensures that your developm
 ## Quick Start
 
 ### 1. Installation
+**Homebrew (macOS/Linux):**
+```bash
+brew install felixgeelhaar/tap/roady
+```
+
+**Go Install:**
 ```bash
 go install github.com/felixgeelhaar/roady/cmd/roady@latest
 ```
