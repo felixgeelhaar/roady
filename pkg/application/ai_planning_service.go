@@ -53,11 +53,11 @@ func (s *AIPlanningService) DecomposeSpec(ctx context.Context) (*planning.Plan, 
 	}
 
 	// 2. Load Spec
-	spec, err := s.repo.LoadSpec()
+	productSpec, err := s.repo.LoadSpec()
 	if err != nil {
 		return nil, fmt.Errorf("failed to load spec: %w", err)
 	}
-	if spec == nil {
+	if productSpec == nil {
 		return nil, fmt.Errorf("spec is nil")
 	}
 
@@ -78,35 +78,122 @@ Do NOT return placeholder values or the schema itself.
 Features to decompose:
 `)
 
-	for _, f := range spec.Features {
+	for _, f := range productSpec.Features {
 		prompt += fmt.Sprintf("- Feature: %s (ID: %s)\n", f.Title, f.ID)
 		for _, r := range f.Requirements {
 			prompt += fmt.Sprintf("  * Requirement: %s (ID: %s)\n", r.Title, r.ID)
 		}
 	}
 
-	resp, err := s.provider.Complete(ctx, ai.CompletionRequest{
-		Prompt: prompt,
-		System: "You are an expert technical lead. You return a JSON array of technical tasks. You ensure that every feature ID provided is represented in the result.",
-	})
+	resp, err := s.completeDecomposition(ctx, prompt, 1)
 	if err != nil {
 		return nil, fmt.Errorf("AI planning failed: %w", err)
 	}
 
-	// 4. Log Usage
+	cleanTasks, err := s.parseTasksFromResponse(resp.Text)
+	if err != nil {
+		retryPrompt := prompt + "\n\nIMPORTANT: Your previous response was invalid. Return ONLY a JSON array of tasks with valid fields. Do not include any extra text."
+		respRetry, retryErr := s.completeDecomposition(ctx, retryPrompt, 2)
+		if retryErr != nil {
+			return nil, fmt.Errorf("AI planning failed after retry: %w", retryErr)
+		}
+		cleanTasks, err = s.parseTasksFromResponse(respRetry.Text)
+		if err != nil {
+			return nil, fmt.Errorf("AI returned invalid JSON after retry: %w", err)
+		}
+	}
+
+	// Coverage Check: Ensure every feature ID has at least one task
+	// (Check both task.FeatureID matching feature.ID OR task.ID matching a requirement ID)
+	featureCoverage := make(map[string]bool)
+	requirementCoverage := make(map[string]bool)
+	for _, t := range cleanTasks {
+		featureCoverage[t.FeatureID] = true
+		requirementCoverage[t.ID] = true
+	}
+
+	var missingFeatures []string
+	missingFeatureIDs := make(map[string]spec.Feature)
+	for _, f := range productSpec.Features {
+		// Feature is covered if:
+		// 1. A task explicitly references its FeatureID
+		// 2. OR at least one of its Requirements has a task matching its ID
+		covered := featureCoverage[f.ID]
+		if !covered {
+			for _, r := range f.Requirements {
+				if requirementCoverage[r.ID] || requirementCoverage["task-"+r.ID] {
+					covered = true
+					break
+				}
+			}
+		}
+
+		if !covered {
+			missingFeatures = append(missingFeatures, f.Title)
+			missingFeatureIDs[f.ID] = f
+		}
+	}
+
+	if len(missingFeatures) > 0 {
+		fmt.Printf("WARNING: AI missed coverage for features: %s. Proceeding anyway, use 'roady drift detect' to see gaps.\n", strings.Join(missingFeatures, ", "))
+		existingIDs := make(map[string]bool)
+		for _, t := range cleanTasks {
+			existingIDs[t.ID] = true
+		}
+		for _, f := range productSpec.Features {
+			if _, ok := missingFeatureIDs[f.ID]; !ok {
+				continue
+			}
+			fallbackID := "task-" + f.ID
+			if existingIDs[fallbackID] {
+				continue
+			}
+			cleanTasks = append(cleanTasks, planning.Task{
+				ID:          fallbackID,
+				Title:       fmt.Sprintf("Implement %s", f.Title),
+				Description: "Fallback task generated because AI response missed feature coverage.",
+				FeatureID:   f.ID,
+			})
+		}
+	}
+
+	// Lock the spec content to this new plan to resolve Intent Drift
+	if err := s.repo.SaveSpecLock(productSpec); err != nil {
+		return nil, fmt.Errorf("failed to save spec lock: %w", err)
+	}
+
+	planSvc := NewPlanService(s.repo, s.audit)
+	return planSvc.UpdatePlan(cleanTasks)
+}
+
+func (s *AIPlanningService) completeDecomposition(ctx context.Context, prompt string, attempt int) (*ai.CompletionResponse, error) {
+	resp, err := s.provider.Complete(ctx, ai.CompletionRequest{
+		Prompt:      prompt,
+		System:      "You are an expert technical lead. You return a JSON array of technical tasks. You ensure that every feature ID provided is represented in the result.",
+		Temperature: 0.2,
+		MaxTokens:   2000,
+	})
+	if err != nil {
+		return nil, err
+	}
+
 	if err := s.audit.Log("plan.ai_decomposition", "ai", map[string]interface{}{
 		"model":         resp.Model,
 		"input_tokens":  resp.Usage.InputTokens,
 		"output_tokens": resp.Usage.OutputTokens,
+		"attempt":       attempt,
 	}); err != nil {
 		return nil, fmt.Errorf("failed to write audit log: %w", err)
 	}
 
-	// 5. Parse and Reconcile
+	return resp, nil
+}
+
+func (s *AIPlanningService) parseTasksFromResponse(text string) ([]planning.Task, error) {
 	var tasks []planning.Task
-	cleanJSON := extractJSONPayload(resp.Text)
+	cleanJSON := extractJSONPayload(text)
 	if os.Getenv("ROADY_AI_DEBUG") != "" {
-		fmt.Fprintf(os.Stderr, "AI raw response: %s\n", resp.Text)
+		fmt.Fprintf(os.Stderr, "AI raw response: %s\n", text)
 		fmt.Fprintf(os.Stderr, "AI extracted JSON: %s\n", cleanJSON)
 	}
 
@@ -208,7 +295,7 @@ Features to decompose:
 	}
 
 	if len(tasks) == 0 {
-		return nil, fmt.Errorf("AI returned no valid tasks in JSON (Response: %s)", resp.Text)
+		return nil, fmt.Errorf("AI returned no valid tasks in JSON (Response: %s)", text)
 	}
 
 	// Final Sanity Check: Filter out hallucinations (empty or malformed tasks)
@@ -223,46 +310,7 @@ Features to decompose:
 		return nil, fmt.Errorf("AI returned tasks, but none passed the structural sanity check")
 	}
 
-	// Coverage Check: Ensure every feature ID has at least one task
-	// (Check both task.FeatureID matching feature.ID OR task.ID matching a requirement ID)
-	featureCoverage := make(map[string]bool)
-	requirementCoverage := make(map[string]bool)
-	for _, t := range cleanTasks {
-		featureCoverage[t.FeatureID] = true
-		requirementCoverage[t.ID] = true
-	}
-
-	var missingFeatures []string
-	for _, f := range spec.Features {
-		// Feature is covered if:
-		// 1. A task explicitly references its FeatureID
-		// 2. OR at least one of its Requirements has a task matching its ID
-		covered := featureCoverage[f.ID]
-		if !covered {
-			for _, r := range f.Requirements {
-				if requirementCoverage[r.ID] || requirementCoverage["task-"+r.ID] {
-					covered = true
-					break
-				}
-			}
-		}
-
-		if !covered {
-			missingFeatures = append(missingFeatures, f.Title)
-		}
-	}
-
-	if len(missingFeatures) > 0 {
-		fmt.Printf("WARNING: AI missed coverage for features: %s. Proceeding anyway, use 'roady drift detect' to see gaps.\n", strings.Join(missingFeatures, ", "))
-	}
-
-	// Lock the spec content to this new plan to resolve Intent Drift
-	if err := s.repo.SaveSpecLock(spec); err != nil {
-		return nil, fmt.Errorf("failed to save spec lock: %w", err)
-	}
-
-	planSvc := NewPlanService(s.repo, s.audit)
-	return planSvc.UpdatePlan(cleanTasks)
+	return cleanTasks, nil
 }
 
 var slugCleaner = regexp.MustCompile(`[^a-z0-9-]+`)
