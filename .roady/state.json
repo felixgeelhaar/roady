@@ -28,6 +28,38 @@
       "path": "",
       "owner": "felixgeelhaar"
     },
+    "task-1": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar",
+      "evidence": [
+        "moved MCP wiring to internal/infrastructure/mcp"
+      ]
+    },
+    "task-2": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar",
+      "evidence": [
+        "moved provider/model to .roady/ai.yaml and wiring"
+      ]
+    },
+    "task-3": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar",
+      "evidence": [
+        "centralized repo/audit/provider wiring in internal/infrastructure/wiring"
+      ]
+    },
+    "task-4": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar",
+      "evidence": [
+        "updated CLI/MCP imports, tests, and docs; go test ./..."
+      ]
+    },
     "task-ai-planning": {
       "status": "done",
       "path": ""
@@ -163,5 +195,5 @@
       "path": ""
     }
   },
-  "updated_at": "2026-01-12T23:06:44.023084+01:00"
+  "updated_at": "2026-01-13T22:24:18.999238+01:00"
 }

@@ -1,220 +1,38 @@
-id: roady-core
-title: Roady Core – Product Requirements Document
-description: Roady Core enables developers and AI agents to plan once, execute many times, and detect drift continuously. It serves diverse target users, including individual developers, senior engineers using AI tools, open-source maintainers, tech leads, and consultants. Key jobs to be done focus on structured planning, maintaining continuity, drift awareness, and AI efficiency.
+id: imported-spec
+title: DDD Refactor Plan
+description: Refactor Roady's tool wiring and configuration to align with DDD boundaries while preserving behavior.
 features:
-    - id: product-mission
-      title: Product Mission
-      description: Enable developers and AI agents to plan once, execute many times, and detect drift continuously.
-      requirements:
-        - id: req-001
-          title: Mission Clarity
-          description: Clearly define the mission to ensure alignment among users and stakeholders.
-          priority: high
-          estimate: 8h
-          depends_on: []
-    - id: target-users
-      title: Target Users
-      description: Primary users are individual developers, senior engineers using AI tools, and open-source maintainers. Secondary users include tech leads and consultants hopping between repos.
-      requirements:
-        - id: req-002
-          title: User Persona Identification
-          description: Identify and document primary and secondary user personas.
-          priority: medium
-          estimate: 4h
-          depends_on: []
-    - id: key-jobs-to-be-done
-      title: Key Jobs To Be Done
-      description: 'JTBD 1 – Planning: Derive a clear plan from intent, not a blank slate. JTBD 2 – Continuity: Know exactly where we are upon return. JTBD 3 – Drift Awareness: Identify what drifted and why. JTBD 4 – AI Efficiency: Avoid re-explaining context when using AI.'
-      requirements:
-        - id: req-003
-          title: JTBD Implementation
-          description: Implement structured processes for key jobs to be done.
-          priority: high
-          estimate: 16h
-          depends_on: []
-    - id: core-functional-areas
-      title: Core Functional Areas
-      description: Spec Lifecycle, Plan Lifecycle, Drift Detection, Status & Querying, CLI & MCP. These areas cover the generation of initial ProductSpecs, deterministic planning, drift detection, and providing answers to status queries.
-      requirements:
-        - id: req-004
-          title: Lifecycle Automation
-          description: Automate the spec and plan lifecycle with support for AI-assisted features and drift detection.
-          priority: high
-          estimate: 24h
-          depends_on: []
-    - id: collaboration-model
-      title: Collaboration Model
-      description: Git-based asynchronous collaboration, optional .roady/ commits, no real-time locking, and conflict resolution like code.
-      requirements:
-        - id: req-005
-          title: Asynchronous Collaboration
-          description: Facilitate Git-based asynchronous collaboration without real-time locking.
-          priority: medium
-          estimate: 12h
-          depends_on: []
-    - id: success-metrics
-      title: Success Metrics
-      description: Success is measured by reduced AI token usage, reduced replanning frequency, faster onboarding, and earlier drift detection.
-      requirements:
-        - id: req-006
-          title: Metric Tracking
-          description: Implement tracking for key success metrics.
-          priority: medium
-          estimate: 8h
-          depends_on: []
-    - id: architectural-style
-      title: Architectural Style
-      description: Domain Driven Design (DDD), event-oriented architecture, deterministic artifacts, and plugin-first extensibility with domain events and value object ubiquity.
-      requirements:
-        - id: req-007
-          title: Architecture Adoption
-          description: Adopt Domain Driven Design and event-oriented principles.
-          priority: medium
-          estimate: 20h
-          depends_on: []
-    - id: state-management
-      title: State Management
-      description: Uses statekit to model various states for specs, plans, tasks, and drift management.
-      requirements:
-        - id: req-008
-          title: Modeling States
-          description: Implement statekit for handling states in specs, plans, tasks, and drift.
-          priority: medium
-          estimate: 10h
-          depends_on: []
-    - id: resilience
-      title: Resilience
-      description: Uses fortify to handle AI provider transient failures, execution timeouts, guided/manual flows fallback, and exponential backoff retries.
-      requirements:
-        - id: req-009
-          title: Resilience Management
-          description: Implement resilience strategies using fortify to handle failures and timeouts.
-          priority: high
-          estimate: 14h
-          depends_on: []
-    - id: ai-routing
-      title: AI Routing
-      description: Provider abstraction through ai.Provider interface, centralized instantiation, policy control in policy.yaml, and telemetry emission to usage.json.
-      requirements:
-        - id: req-010
-          title: AI Provider Management
-          description: Manage AI providers using a decoupled provider interface with policy control.
-          priority: medium
-          estimate: 10h
-          depends_on: []
-    - id: cli-design
-      title: CLI Design
-      description: Command groups for various functionalities with specific flags for validation, explanation, and structured output.
-      requirements:
-        - id: req-011
-          title: CLI Command Implementation
-          description: Develop a comprehensive CLI with command groups and flags for functionality.
-          priority: medium
-          estimate: 10h
-          depends_on: []
-    - id: plugin-system
-      title: Plugin System
-      description: Integration of gRPC + MCP protocols for optional extensibility with defined permissions.
-      requirements:
-        - id: req-012
-          title: Plugin Integration
-          description: Develop a plugin system using gRPC + MCP with explicit permissions.
-          priority: medium
-          estimate: 14h
-          depends_on: []
-    - id: audit-telemetry
-      title: Audit & Telemetry
-      description: Tracks all project changes, usage stats, and AI operations for visibility into costs and velocity.
-      requirements:
-        - id: req-013
-          title: Audit Implementation
-          description: Implement comprehensive audit and telemetry tracking.
-          priority: medium
-          estimate: 12h
-          depends_on: []
-    - id: guard-based-enforcement
-      title: Guard-based Enforcement
-      description: Statekit guards manage state integrity and business policy, including WIP limits and dependencies.
-      requirements:
-        - id: req-014
-          title: Guard Implementation
-          description: Develop guard-based enforcement for state integrity and compliance.
-          priority: high
-          estimate: 16h
-          depends_on: []
-    - id: drift-classification-details
-      title: Drift Classification Details
-      description: Classifies drift into structural, implementation, policy, and intent categories for precise management.
-      requirements:
-        - id: req-015
-          title: Drift Classifications
-          description: Implement drift classification processes for enhanced detection and management.
-          priority: medium
-          estimate: 14h
-          depends_on: []
-    - id: mcp-interface
-      title: MCP Interface
-      description: Exposes Roady's state to AI agents, providing functionalities like scaffolding, specification explanation, and drift detection.
-      requirements:
-        - id: req-016
-          title: MCP Integration
-          description: Develop the MCP server for interfacing with AI agents.
-          priority: high
-          estimate: 18h
-          depends_on: []
-    - id: storage-strategy
-      title: 'Storage: .roady/'
-      description: Local-first, git-friendly storage strategy for managing specs, plans, state, policies, events, usage, and drift reports.
-      requirements:
-        - id: req-017
-          title: Storage Implementation
-          description: Implement a local-first storage strategy compatible with Git.
-          priority: medium
-          estimate: 12h
-          depends_on: []
-    - id: observability
-      title: Observability
-      description: Provides visibility into lifecycle with structured logs, drift events, AI usage metrics, and a TUI dashboard.
-      requirements:
-        - id: req-018
-          title: Observability Features
-          description: Develop observability features for enhanced project insight.
-          priority: medium
-          estimate: 15h
-          depends_on: []
-    - id: purpose
-      title: Purpose
-      description: Provide organizational situational awareness on top of Roady Core artifacts.
-      requirements:
-        - id: req-019
-          title: Purpose Clarity
-          description: Clarify and document the purpose of organizational situational awareness.
-          priority: low
-          estimate: 6h
-          depends_on: []
-    - id: horizons
-      title: Horizons
-      description: Core is open source and repo-scoped, while Pro is commercial with multi-user visibility, governance, and cross-repo intelligence.
-      requirements:
-        - id: req-020
-          title: Horizon Framework
-          description: Develop a comprehensive framework for Core and Pro horizons.
-          priority: medium
-          estimate: 20h
-          depends_on: []
-    - id: north-star-experience
-      title: North Star Experience
-      description: Users and AI agents can ask at any time where they are, why, and what should happen next, with clear and confident answers.
-      requirements:
-        - id: req-021
-          title: Experience Clarity
-          description: Ensure that Roady provides clear and confident answers to user queries.
-          priority: high
-          estimate: 12h
-          depends_on: []
-    - id: fast-add-capability
-      title: Fast-Add Capability
-      description: Allows adding intent via CLI or MCP with auto-doc sync.
+    - id: move-mcp-composition-root
+      title: Move MCP Composition Root
+      description: |-
+        Consolidate MCP server wiring at the infrastructure edge.
+        - Move MCP server construction out of pkg/mcp into internal/infrastructure/mcp.
+        - Keep pkg/mcp minimal (interfaces/types only) or remove if unused.
+        - Ensure command wiring uses the new infrastructure entry point.
+      requirements: []
+    - id: decouple-domain-policy-from-provider-selection
+      title: Decouple Domain Policy from Provider Selection
+      description: |-
+        Keep domain policy focused on business rules, not adapter choices.
+        - Remove AI provider/model fields from domain policy config.
+        - Introduce infra/app config for provider/model defaults.
+        - Update provider selection to read infra config only.
+      requirements: []
+    - id: centralize-adapter-construction
+      title: Centralize Adapter Construction
+      description: |-
+        Create a single wiring location for repo, audit, AI provider, and services.
+        - Add internal/infrastructure/wiring (or cmd/roady) constructor.
+        - Make CLI and MCP use the shared wiring helper.
+        - Keep application services unchanged.
+      requirements: []
+    - id: update-imports-and-tests
+      title: Update Imports and Tests
+      description: |-
+        Align references and maintain test coverage.
+        - Fix imports that reference pkg/mcp after relocation.
+        - Add temporary shim if external consumers still import pkg/mcp.
+        - Update tests to use new wiring location.
       requirements: []
 constraints: []
 version: 0.1.0

@@ -1,12 +1,16 @@
 {
-  "total_commands": 134,
-  "last_command_at": "2026-01-12T23:13:51.575016+01:00",
+  "total_commands": 161,
+  "last_command_at": "2026-01-13T22:24:18.999884+01:00",
   "provider_stats": {
     "gpt-4o:input": 5911,
     "gpt-4o:output": 14687,
-    "llama3.2:latest:input": 5351,
-    "llama3.2:latest:output": 6744,
+    "llama3.2:latest:input": 5777,
+    "llama3.2:latest:output": 6865,
     "llama3:input": 666,
-    "llama3:output": 1641
+    "llama3:output": 1641,
+    "mistral:latest:input": 514,
+    "mistral:latest:output": 348,
+    "qwen3:8b:input": 2212,
+    "qwen3:8b:output": 1229
   }
 }
