@@ -3,9 +3,9 @@ package main
 import (
 	"log"
 
-	"github.com/felixgeelhaar/roady/internal/domain/planning"
-	domainPlugin "github.com/felixgeelhaar/roady/internal/domain/plugin"
-	infraPlugin "github.com/felixgeelhaar/roady/internal/infrastructure/plugin"
+	"github.com/felixgeelhaar/roady/pkg/domain/planning"
+	domainPlugin "github.com/felixgeelhaar/roady/pkg/domain/plugin"
+	infraPlugin "github.com/felixgeelhaar/roady/pkg/plugin"
 	"github.com/hashicorp/go-plugin"
 )
 

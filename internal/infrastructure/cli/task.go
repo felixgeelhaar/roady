@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/felixgeelhaar/roady/internal/application"
-	"github.com/felixgeelhaar/roady/internal/infrastructure/storage"
+	"github.com/felixgeelhaar/roady/pkg/application"
+	"github.com/felixgeelhaar/roady/pkg/storage"
 	"github.com/spf13/cobra"
 )
 

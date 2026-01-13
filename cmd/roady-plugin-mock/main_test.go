@@ -3,7 +3,7 @@ package main
 import (
 	"testing"
 
-	"github.com/felixgeelhaar/roady/internal/domain/planning"
+	"github.com/felixgeelhaar/roady/pkg/domain/planning"
 )
 
 func TestMockSyncer_Sync(t *testing.T) {

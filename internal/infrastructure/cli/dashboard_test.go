@@ -6,9 +6,9 @@ import (
 	"testing"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/felixgeelhaar/roady/internal/domain/planning"
-	"github.com/felixgeelhaar/roady/internal/domain/spec"
-	"github.com/felixgeelhaar/roady/internal/infrastructure/storage"
+	"github.com/felixgeelhaar/roady/pkg/domain/planning"
+	"github.com/felixgeelhaar/roady/pkg/domain/spec"
+	"github.com/felixgeelhaar/roady/pkg/storage"
 )
 
 func TestInitialModel(t *testing.T) {

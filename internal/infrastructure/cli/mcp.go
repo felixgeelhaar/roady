@@ -3,7 +3,7 @@ package cli
 import (
 	"os"
 
-	"github.com/felixgeelhaar/roady/internal/infrastructure/mcp"
+	"github.com/felixgeelhaar/roady/pkg/mcp"
 	"github.com/spf13/cobra"
 )
 

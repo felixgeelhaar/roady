@@ -7,8 +7,8 @@ import (
 
 	"github.com/charmbracelet/bubbles/table"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/felixgeelhaar/roady/internal/domain/planning"
-	"github.com/felixgeelhaar/roady/internal/infrastructure/storage"
+	"github.com/felixgeelhaar/roady/pkg/domain/planning"
+	"github.com/felixgeelhaar/roady/pkg/storage"
 	"github.com/spf13/cobra"
 )
 
