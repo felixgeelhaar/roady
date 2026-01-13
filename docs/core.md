@@ -311,6 +311,8 @@ Roady classifies discrepancies into four logical categories:
 
 The Model Context Protocol (MCP) server exposes Roady's deterministic state to AI agents:
 
+Note: `pkg/mcp` currently forwards to `internal/infrastructure/mcp` for compatibility. New code should import the infrastructure package directly.
+
 - **`roady_init`**: Allow agents to scaffold new projects.
 - **`roady_get_spec` / `roady_explain_spec`**: Provide structural and architectural context.
 - **`roady_generate_plan` / `roady_approve_plan`**: Orchestrate the planning lifecycle.

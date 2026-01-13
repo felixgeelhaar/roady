@@ -67,9 +67,14 @@ Configure project guardrails in `.roady/policy.yaml`:
 ```yaml
 max_wip: 3            # Limit concurrent tasks
 allow_ai: true        # Enable AI planning
-ai_provider: openai   # Use OpenAI or Ollama
-ai_model: gpt-4o      # Your preferred model
 token_limit: 50000    # Hard budget for AI operations
+```
+
+Configure AI provider defaults in `.roady/ai.yaml`:
+
+```yaml
+provider: openai   # Use OpenAI or Ollama
+model: gpt-4o      # Your preferred model
 ```
 
 ## AI Integration (MCP)
