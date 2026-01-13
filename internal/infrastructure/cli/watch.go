@@ -5,8 +5,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/felixgeelhaar/roady/pkg/application"
 	"github.com/felixgeelhaar/roady/pkg/ai"
+	"github.com/felixgeelhaar/roady/pkg/application"
 	"github.com/felixgeelhaar/roady/pkg/storage"
 	"github.com/spf13/cobra"
 )
@@ -15,7 +15,7 @@ var autoSync bool
 
 var watchCmd = &cobra.Command{
 
-	Use:   "watch [dir]",
+	Use: "watch [dir]",
 
 	Short: "Watch a directory for documentation changes and automatically detect drift",
 
@@ -29,18 +29,19 @@ var watchCmd = &cobra.Command{
 
 		}
 
-
 		cwd, _ := os.Getwd()
 		repo := storage.NewFilesystemRepository(cwd)
 		specSvc := application.NewSpecService(repo)
 		driftSvc := application.NewDriftService(repo)
 		audit := application.NewAuditService(repo)
 
-
 		fmt.Printf("Watching %s for changes... (Auto-sync: %v)\n", dir, autoSync)
 
-
 		lastHash := ""
+		if seed := os.Getenv("ROADY_WATCH_SEED_HASH"); seed != "" {
+			lastHash = seed
+		}
+		once := os.Getenv("ROADY_WATCH_ONCE") == "true"
 		for {
 
 			currentSpec, err := specSvc.AnalyzeDirectory(dir)
@@ -51,10 +52,10 @@ var watchCmd = &cobra.Command{
 
 					if lastHash != "" {
 						fmt.Printf("\nDocumentation change detected at %s\n", time.Now().Format("15:04:05"))
-						
+
 						if autoSync {
 							fmt.Println("Autonomous Reconciliation: Synchronizing plan with new intent...")
-						
+
 							cfg, _ := repo.LoadPolicy()
 							pName, mName := "ollama", "llama3"
 							if cfg != nil {
@@ -74,7 +75,6 @@ var watchCmd = &cobra.Command{
 
 						}
 
-			
 						// 2. Detect Drift Automatically
 						report, err := driftSvc.DetectDrift()
 						if err == nil && len(report.Issues) > 0 {
@@ -92,15 +92,15 @@ var watchCmd = &cobra.Command{
 
 			}
 
-
 			time.Sleep(2 * time.Second)
+			if once {
+				return nil
+			}
 
 		}
 
 	},
 }
-
-
 
 func init() {
 	watchCmd.Flags().BoolVar(&autoSync, "auto-sync", false, "Automatically regenerate plan on documentation changes")

@@ -6,8 +6,10 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/felixgeelhaar/roady/pkg/application"
+	"github.com/felixgeelhaar/roady/pkg/domain"
 	"github.com/felixgeelhaar/roady/pkg/storage"
 )
 
@@ -49,5 +51,146 @@ func TestAuditService_Error(t *testing.T) {
 
 	if err := service.Log("act", "actor", nil); err == nil {
 		t.Error("expected error on save fail")
+	}
+}
+
+type eventRepo struct {
+	*MockRepo
+	Events []domain.Event
+}
+
+func (r *eventRepo) LoadEvents() ([]domain.Event, error) {
+	return r.Events, r.LoadError
+}
+
+func TestAuditService_VerifyIntegrity(t *testing.T) {
+	now := time.Now()
+	first := domain.Event{
+		ID:        "e1",
+		Timestamp: now.Add(-2 * time.Hour),
+		Action:    "spec.update",
+		Actor:     "tester",
+	}
+	first.Hash = first.CalculateHash()
+
+	second := domain.Event{
+		ID:        "e2",
+		Timestamp: now.Add(-1 * time.Hour),
+		Action:    "plan.generate",
+		Actor:     "tester",
+		PrevHash:  first.Hash,
+	}
+	second.Hash = second.CalculateHash()
+
+	repo := &eventRepo{
+		MockRepo: &MockRepo{},
+		Events:   []domain.Event{first, second},
+	}
+	service := application.NewAuditService(repo)
+
+	violations, err := service.VerifyIntegrity()
+	if err != nil {
+		t.Fatalf("VerifyIntegrity failed: %v", err)
+	}
+	if len(violations) != 0 {
+		t.Fatalf("expected no violations, got %d", len(violations))
+	}
+}
+
+func TestAuditService_VerifyIntegrityMismatch(t *testing.T) {
+	now := time.Now()
+	first := domain.Event{
+		ID:        "e1",
+		Timestamp: now.Add(-2 * time.Hour),
+		Action:    "spec.update",
+		Actor:     "tester",
+	}
+	first.Hash = first.CalculateHash()
+
+	second := domain.Event{
+		ID:        "e2",
+		Timestamp: now.Add(-1 * time.Hour),
+		Action:    "plan.generate",
+		Actor:     "tester",
+		PrevHash:  "bad-hash",
+	}
+	second.Hash = second.CalculateHash()
+
+	repo := &eventRepo{
+		MockRepo: &MockRepo{},
+		Events:   []domain.Event{first, second},
+	}
+	service := application.NewAuditService(repo)
+
+	violations, err := service.VerifyIntegrity()
+	if err != nil {
+		t.Fatalf("VerifyIntegrity failed: %v", err)
+	}
+	if len(violations) == 0 {
+		t.Fatal("expected violations for broken hash chain")
+	}
+}
+
+func TestAuditService_GetVelocity(t *testing.T) {
+	now := time.Now()
+	events := []domain.Event{
+		{
+			ID:        "e1",
+			Timestamp: now.Add(-48 * time.Hour),
+			Action:    "task.transition",
+			Actor:     "tester",
+			Metadata:  map[string]interface{}{"status": "verified"},
+		},
+		{
+			ID:        "e2",
+			Timestamp: now.Add(-24 * time.Hour),
+			Action:    "task.transition",
+			Actor:     "tester",
+			Metadata:  map[string]interface{}{"status": "verified"},
+		},
+	}
+
+	repo := &eventRepo{
+		MockRepo: &MockRepo{},
+		Events:   events,
+	}
+	service := application.NewAuditService(repo)
+
+	got, err := service.GetVelocity()
+	if err != nil {
+		t.Fatalf("GetVelocity failed: %v", err)
+	}
+
+	days := time.Since(events[0].Timestamp).Hours() / 24.0
+	if days < 1 {
+		days = 1
+	}
+	want := float64(2) / days
+	if got < want-0.05 || got > want+0.05 {
+		t.Fatalf("expected velocity ~%.2f, got %.2f", want, got)
+	}
+}
+
+func TestAuditService_GetVelocity_NoVerified(t *testing.T) {
+	repo := &eventRepo{
+		MockRepo: &MockRepo{},
+		Events: []domain.Event{
+			{
+				ID:        "e1",
+				Timestamp: time.Now().Add(-2 * time.Hour),
+				Action:    "task.transition",
+				Actor:     "tester",
+				Metadata:  map[string]interface{}{"status": "pending"},
+			},
+		},
+	}
+	service := application.NewAuditService(repo)
+
+	got, err := service.GetVelocity()
+	if err != nil {
+		t.Fatalf("GetVelocity failed: %v", err)
+	}
+	if got != 0 {
+		t.Fatalf("expected velocity 0, got %.2f", got)
 	}
 }

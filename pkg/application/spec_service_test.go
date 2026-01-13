@@ -3,6 +3,7 @@ package application_test
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/felixgeelhaar/roady/pkg/application"
@@ -90,19 +91,83 @@ func TestSpecService_Import_Mock(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-		if repo.Spec.Title != "Hello" {
-			t.Errorf("Expected Title Hello, got %s", repo.Spec.Title)
-		}
+	if repo.Spec.Title != "Hello" {
+		t.Errorf("Expected Title Hello, got %s", repo.Spec.Title)
 	}
-	
-	func TestSpecService_ImportError(t *testing.T) {
-		repo := &MockRepo{}
-		service := application.NewSpecService(repo)
-	
-		// File not found
-		_, err := service.ImportFromMarkdown("/tmp/nonexistent-file-12345")
-		if err == nil {
-			t.Error("expected error for missing file")
-		}
+}
+
+func TestSpecService_ImportError(t *testing.T) {
+	repo := &MockRepo{}
+	service := application.NewSpecService(repo)
+
+	// File not found
+	_, err := service.ImportFromMarkdown("/tmp/nonexistent-file-12345")
+	if err == nil {
+		t.Error("expected error for missing file")
 	}
-	
+}
+
+func TestSpecService_AnalyzeDirectory(t *testing.T) {
+	tempDir, _ := os.MkdirTemp("", "roady-spec-analyze-*")
+	defer os.RemoveAll(tempDir)
+	repo := storage.NewFilesystemRepository(tempDir)
+	repo.Initialize()
+	service := application.NewSpecService(repo)
+
+	first := filepath.Join(tempDir, "a.md")
+	second := filepath.Join(tempDir, "b.md")
+	os.WriteFile(first, []byte("# Project\n\n## Feature One\nDesc A"), 0600)
+	os.WriteFile(second, []byte("# Project\n\n## Feature One\nDesc B"), 0600)
+
+	spec, err := service.AnalyzeDirectory(tempDir)
+	if err != nil {
+		t.Fatalf("AnalyzeDirectory failed: %v", err)
+	}
+	if len(spec.Features) != 1 {
+		t.Fatalf("expected 1 feature, got %d", len(spec.Features))
+	}
+	if spec.Title != "Project" {
+		t.Fatalf("expected project title, got %q", spec.Title)
+	}
+	if !strings.Contains(spec.Features[0].Description, "Desc B") {
+		t.Fatalf("expected merged description, got %q", spec.Features[0].Description)
+	}
+}
+
+func TestSpecService_AddFeature(t *testing.T) {
+	tempDir, _ := os.MkdirTemp("", "roady-spec-add-*")
+	defer os.RemoveAll(tempDir)
+	repo := storage.NewFilesystemRepository(tempDir)
+	repo.Initialize()
+	service := application.NewSpecService(repo)
+
+	if err := repo.SaveSpec(&spec.ProductSpec{
+		ID:      "spec-1",
+		Title:   "Project",
+		Version: "0.1.0",
+		Features: []spec.Feature{
+			{ID: "f1", Title: "Feature 1"},
+		},
+	}); err != nil {
+		t.Fatalf("save spec: %v", err)
+	}
+
+	oldWD, _ := os.Getwd()
+	defer os.Chdir(oldWD)
+	os.Chdir(tempDir)
+
+	updated, err := service.AddFeature("Feature 2", "Desc 2")
+	if err != nil {
+		t.Fatalf("AddFeature failed: %v", err)
+	}
+	if len(updated.Features) != 2 {
+		t.Fatalf("expected 2 features, got %d", len(updated.Features))
+	}
+	content, err := os.ReadFile(filepath.Join(tempDir, "docs", "backlog.md"))
+	if err != nil {
+		t.Fatalf("read backlog: %v", err)
+	}
+	if !strings.Contains(string(content), "Feature 2") {
+		t.Fatalf("expected backlog to include feature, got %q", string(content))
+	}
+}

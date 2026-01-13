@@ -13,8 +13,12 @@ dist/
 
 # Coverage and Reports
 .cover/
+!.cover/history.json
 .verdict/
 coverage.out
+
+# Relicta artifacts
+.relicta/
 
 # IDEs
 .vscode/

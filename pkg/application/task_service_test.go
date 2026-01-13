@@ -34,15 +34,38 @@ func TestTaskService_Transition_Mock(t *testing.T) {
 
 	// 2. Task not found
 	err = service.TransitionTask("missing", "start", "test-user", "")
-		if err == nil {
-			t.Error("Expected error for missing task")
-		}
-	
-		// 3. Save error
-		repo.SaveError = errors.New("save fail")
-		err = service.TransitionTask("t1", "start", "test-user", "")
-		if err == nil {
-			t.Error("Expected error on save fail")
-		}
+	if err == nil {
+		t.Error("Expected error for missing task")
 	}
-	
+
+	// 3. Save error
+	repo.SaveError = errors.New("save fail")
+	err = service.TransitionTask("t1", "start", "test-user", "")
+	if err == nil {
+		t.Error("Expected error on save fail")
+	}
+}
+
+func TestTaskService_LinkTask(t *testing.T) {
+	repo := &MockRepo{
+		State: &planning.ExecutionState{
+			TaskStates: map[string]planning.TaskResult{
+				"t1": {Status: planning.StatusPending},
+			},
+		},
+	}
+	audit := application.NewAuditService(repo)
+	service := application.NewTaskService(repo, audit)
+
+	ref := planning.ExternalRef{
+		ID:         "123",
+		Identifier: "EXT-1",
+		URL:        "https://example.com/EXT-1",
+	}
+	if err := service.LinkTask("t1", "jira", ref); err != nil {
+		t.Fatalf("LinkTask failed: %v", err)
+	}
+	if repo.State.TaskStates["t1"].ExternalRefs["jira"].Identifier != "EXT-1" {
+		t.Fatalf("expected external ref to be stored")
+	}
+}

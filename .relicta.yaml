@@ -1,0 +1,25 @@
+# .relicta.yaml
+version: "1"
+project:
+  name: roady
+  type: cli
+release:
+  strategy: semver
+  tag_prefix: v
+  branch: main
+changelog:
+  provider: git
+  groups:
+    - title: Features
+      types: [feat]
+    - title: Bug Fixes
+      types: [fix]
+    - title: Refactoring
+      types: [refactor]
+    - title: Build System
+      types: [build]
+hooks:
+  before_bump:
+    - go test ./...
+  after_bump:
+    - git add go.mod go.sum
