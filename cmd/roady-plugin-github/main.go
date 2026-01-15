@@ -60,22 +60,40 @@ func (s *GitHubSyncer) Init(config map[string]string) error {
 	return nil
 }
 
-func (s *GitHubSyncer) Sync(plan *planning.Plan, state *planning.ExecutionState) (*domainPlugin.SyncResult, error) {
-	ctx := context.Background()
-	log.Printf("GitHub Syncer: Syncing %d tasks for repo %s/%s", len(plan.Tasks), s.owner, s.name)
-
-	// 1. Fetch all issues (open and closed)
-	// Note: Pagination omitted for MVP, fetches default page size (usually 30 or 100).
-	// TODO: Implement pagination for large repos.
+// fetchAllIssues retrieves all issues from the repository with pagination.
+func (s *GitHubSyncer) fetchAllIssues(ctx context.Context) ([]*github.Issue, error) {
+	var allIssues []*github.Issue
 	opts := &github.IssueListByRepoOptions{
 		State: "all",
 		ListOptions: github.ListOptions{
 			PerPage: 100,
 		},
 	}
-	issues, _, err := s.client.Issues.ListByRepo(ctx, s.owner, s.name, opts)
+
+	for {
+		issues, resp, err := s.client.Issues.ListByRepo(ctx, s.owner, s.name, opts)
+		if err != nil {
+			return nil, fmt.Errorf("list issues: %w", err)
+		}
+		allIssues = append(allIssues, issues...)
+
+		if resp.NextPage == 0 {
+			break
+		}
+		opts.Page = resp.NextPage
+	}
+
+	return allIssues, nil
+}
+
+func (s *GitHubSyncer) Sync(plan *planning.Plan, state *planning.ExecutionState) (*domainPlugin.SyncResult, error) {
+	ctx := context.Background()
+	log.Printf("GitHub Syncer: Syncing %d tasks for repo %s/%s", len(plan.Tasks), s.owner, s.name)
+
+	// Fetch all issues with pagination
+	issues, err := s.fetchAllIssues(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("failed to list issues: %w", err)
+		return nil, err
 	}
 
 	// 2. Index issues by title for simple matching

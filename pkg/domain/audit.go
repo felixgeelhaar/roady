@@ -3,6 +3,8 @@ package domain
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
+	"sort"
 	"time"
 )
 
@@ -20,15 +22,46 @@ type Event struct {
 // CalculateHash generates a deterministic SHA256 hash of the event data.
 func (e *Event) CalculateHash() string {
 	h := sha256.New()
-	// Deterministic sequence: PrevHash + ID + Timestamp + Action + Actor
+	// Deterministic sequence: PrevHash + ID + Timestamp + Action + Actor + Metadata
 	h.Write([]byte(e.PrevHash))
 	h.Write([]byte(e.ID))
 	h.Write([]byte(e.Timestamp.Format(time.RFC3339Nano)))
 	h.Write([]byte(e.Action))
 	h.Write([]byte(e.Actor))
-	// We skip Metadata for hashing simplicity in this prototype,
-	// but a production-grade implementation would hash a canonical JSON of Metadata too.
+	h.Write([]byte(canonicalJSON(e.Metadata)))
 	return hex.EncodeToString(h.Sum(nil))
+}
+
+// canonicalJSON produces a deterministic JSON representation of metadata.
+// Keys are sorted alphabetically to ensure consistent hashing.
+func canonicalJSON(m map[string]interface{}) string {
+	if len(m) == 0 {
+		return ""
+	}
+
+	// Sort keys for deterministic output
+	keys := make([]string, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	// Build ordered map representation
+	ordered := make([]byte, 0, 256)
+	ordered = append(ordered, '{')
+	for i, k := range keys {
+		if i > 0 {
+			ordered = append(ordered, ',')
+		}
+		keyJSON, _ := json.Marshal(k)
+		valJSON, _ := json.Marshal(m[k])
+		ordered = append(ordered, keyJSON...)
+		ordered = append(ordered, ':')
+		ordered = append(ordered, valJSON...)
+	}
+	ordered = append(ordered, '}')
+
+	return string(ordered)
 }
 
 // UsageStats tracks the "cost" and telemetry of operations.

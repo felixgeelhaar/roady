@@ -80,3 +80,61 @@ func TestLoader_LoadNonExecutable(t *testing.T) {
 		t.Error("expected error for non-executable file")
 	}
 }
+
+func TestLoader_LoadNotFound(t *testing.T) {
+	l := NewLoader()
+	_, err := l.Load("/path/that/does/not/exist/plugin.bin")
+	if err == nil {
+		t.Error("expected error for non-existent plugin")
+	}
+	// Verify error message mentions "not found"
+	if err != nil && !containsString(err.Error(), "not found") {
+		t.Errorf("error should mention 'not found', got: %v", err)
+	}
+}
+
+func TestLoader_LoadRelativePath(t *testing.T) {
+	tempDir := t.TempDir()
+	filePath := filepath.Join(tempDir, "plugin")
+	if err := os.WriteFile(filePath, []byte("fake plugin"), 0755); err != nil {
+		t.Fatalf("create file: %v", err)
+	}
+
+	// Change to tempDir and use relative path
+	oldWd, _ := os.Getwd()
+	os.Chdir(tempDir)
+	defer os.Chdir(oldWd)
+
+	l := NewLoader()
+	// This should fail because it's not a real plugin, but the path validation should pass
+	_, err := l.Load("./plugin")
+	// We expect an error because the file is not a real plugin, but it should get past path validation
+	if err == nil {
+		t.Error("expected error for fake plugin")
+	}
+	// Should not be a "not found" error since the file exists
+	if err != nil && containsString(err.Error(), "not found") {
+		t.Errorf("file should exist, unexpected error: %v", err)
+	}
+}
+
+func TestLoader_CleanupMultiplePlugins(t *testing.T) {
+	l := NewLoader()
+	// Just verify cleanup doesn't panic on empty loader
+	l.Cleanup()
+	// Cleanup again should also be safe
+	l.Cleanup()
+}
+
+func containsString(s, substr string) bool {
+	return len(s) >= len(substr) && (s == substr || len(s) > 0 && containsSubstring(s, substr))
+}
+
+func containsSubstring(s, substr string) bool {
+	for i := 0; i <= len(s)-len(substr); i++ {
+		if s[i:i+len(substr)] == substr {
+			return true
+		}
+	}
+	return false
+}

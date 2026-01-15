@@ -14,6 +14,11 @@ const aiConfigFile = "ai.yaml"
 type AIConfig struct {
 	Provider string `yaml:"provider"`
 	Model    string `yaml:"model"`
+
+	// Resilience settings
+	MaxRetries   int `yaml:"max_retries"`    // Maximum retry attempts (default: 2)
+	RetryDelayMs int `yaml:"retry_delay_ms"` // Initial retry delay in milliseconds (default: 1000)
+	TimeoutSec   int `yaml:"timeout_sec"`    // Request timeout in seconds (default: 300)
 }
 
 func LoadAIConfig(root string) (*AIConfig, error) {
