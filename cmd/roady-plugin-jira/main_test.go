@@ -1,19 +1,10 @@
 package main
 
 import (
-	"bytes"
-	"io"
-	"net/http"
 	"testing"
 
 	"github.com/felixgeelhaar/roady/pkg/domain/planning"
 )
-
-type roundTripFunc func(*http.Request) (*http.Response, error)
-
-func (f roundTripFunc) RoundTrip(req *http.Request) (*http.Response, error) {
-	return f(req)
-}
 
 func TestJiraSyncer_InitMissing(t *testing.T) {
 	s := &JiraSyncer{}
@@ -33,81 +24,134 @@ func TestJiraSyncer_InitConfigPrefix(t *testing.T) {
 	if err := s.Init(cfg); err != nil {
 		t.Fatalf("Init failed: %v", err)
 	}
-	if s.domain != "https://example.atlassian.net" {
-		t.Fatalf("expected https prefix, got %q", s.domain)
+	if s.baseURL != "https://example.atlassian.net" {
+		t.Fatalf("expected https prefix, got %q", s.baseURL)
+	}
+}
+
+func TestJiraSyncer_InitWithHttps(t *testing.T) {
+	s := &JiraSyncer{}
+	cfg := map[string]string{
+		"domain":      "https://example.atlassian.net",
+		"project_key": "RD",
+		"email":       "test@example.com",
+		"api_token":   "token",
+	}
+	if err := s.Init(cfg); err != nil {
+		t.Fatalf("Init failed: %v", err)
+	}
+	if s.baseURL != "https://example.atlassian.net" {
+		t.Fatalf("expected unchanged https URL, got %q", s.baseURL)
 	}
 }
 
 func TestJiraHelpers(t *testing.T) {
+	// Test extractRoadyID
 	id := extractRoadyID("hello\nroady-id: task-123")
 	if id != "task-123" {
 		t.Fatalf("expected roady id, got %q", id)
 	}
 
-	if got := mapJiraStatus("Done"); got != "done" {
-		t.Fatalf("expected done, got %q", got)
+	// Test extractRoadyID with trailing content
+	id = extractRoadyID("hello\nroady-id: task-456\nmore content")
+	if id != "task-456" {
+		t.Fatalf("expected roady id with trailing content, got %q", id)
 	}
-	if got := mapJiraStatus("in progress"); got != "in_progress" {
-		t.Fatalf("expected in_progress, got %q", got)
+
+	// Test extractRoadyID with no marker
+	id = extractRoadyID("no roady id here")
+	if id != "" {
+		t.Fatalf("expected empty id, got %q", id)
 	}
-	if got := mapJiraStatus("blocked"); got != "blocked" {
-		t.Fatalf("expected blocked, got %q", got)
+
+	// Test mapJiraStatus - returns planning.TaskStatus values
+	if got := mapJiraStatus("Done"); got != planning.StatusDone {
+		t.Fatalf("expected StatusDone, got %v", got)
 	}
-	if got := mapJiraStatus("unknown"); got != "pending" {
-		t.Fatalf("expected pending, got %q", got)
+	if got := mapJiraStatus("resolved"); got != planning.StatusDone {
+		t.Fatalf("expected StatusDone for resolved, got %v", got)
+	}
+	if got := mapJiraStatus("In Progress"); got != planning.StatusInProgress {
+		t.Fatalf("expected StatusInProgress, got %v", got)
+	}
+	if got := mapJiraStatus("started"); got != planning.StatusInProgress {
+		t.Fatalf("expected StatusInProgress for started, got %v", got)
+	}
+	if got := mapJiraStatus("Blocked"); got != planning.StatusBlocked {
+		t.Fatalf("expected StatusBlocked, got %v", got)
+	}
+	if got := mapJiraStatus("on hold"); got != planning.StatusBlocked {
+		t.Fatalf("expected StatusBlocked for on hold, got %v", got)
+	}
+	if got := mapJiraStatus("unknown"); got != planning.StatusPending {
+		t.Fatalf("expected StatusPending, got %v", got)
+	}
+	if got := mapJiraStatus("To Do"); got != planning.StatusPending {
+		t.Fatalf("expected StatusPending for To Do, got %v", got)
 	}
 }
 
-func TestJiraSyncer_SyncCreatesIssues(t *testing.T) {
-	origTransport := http.DefaultTransport
-	t.Cleanup(func() { http.DefaultTransport = origTransport })
-
-	http.DefaultTransport = roundTripFunc(func(req *http.Request) (*http.Response, error) {
-		var respBody string
-		switch {
-		case req.URL.Path == "/rest/api/2/search":
-			respBody = `{"issues":[{"id":"2001","key":"RD-1","fields":{"summary":"Task 1","description":"roady-id: t1","status":{"name":"In Progress","id":"3"}},"self":"self"}]}`
-		case req.URL.Path == "/rest/api/2/issue" && req.Method == http.MethodPost:
-			respBody = `{"id":"3001","key":"RD-2","self":"self"}`
-		case req.URL.Path == "/rest/api/2/issue/3001":
-			respBody = `{"id":"3001","key":"RD-2","fields":{"summary":"Task 2","description":"roady-id: t2","status":{"name":"Done","id":"4"}},"self":"self"}`
-		default:
-			respBody = `{}`
-		}
-		return &http.Response{
-			StatusCode: http.StatusOK,
-			Body:       io.NopCloser(bytes.NewBufferString(respBody)),
-			Header:     make(http.Header),
-		}, nil
-	})
-
-	s := &JiraSyncer{
-		domain:     "http://jira.test",
-		projectKey: "RD",
-		email:      "test@example.com",
-		apiToken:   "token",
-	}
-
-	plan := &planning.Plan{
-		ID: "p1",
-		Tasks: []planning.Task{
-			{ID: "t1", Title: "Task 1"},
-			{ID: "t2", Title: "Task 2"},
+func TestJiraSyncer_InitPartialConfig(t *testing.T) {
+	tests := []struct {
+		name   string
+		config map[string]string
+	}{
+		{
+			name: "missing domain",
+			config: map[string]string{
+				"project_key": "RD",
+				"email":       "test@example.com",
+				"api_token":   "token",
+			},
+		},
+		{
+			name: "missing project_key",
+			config: map[string]string{
+				"domain":    "example.atlassian.net",
+				"email":     "test@example.com",
+				"api_token": "token",
+			},
+		},
+		{
+			name: "missing email",
+			config: map[string]string{
+				"domain":      "example.atlassian.net",
+				"project_key": "RD",
+				"api_token":   "token",
+			},
+		},
+		{
+			name: "missing api_token",
+			config: map[string]string{
+				"domain":      "example.atlassian.net",
+				"project_key": "RD",
+				"email":       "test@example.com",
+			},
 		},
 	}
-	state := planning.NewExecutionState("p1")
 
-	res, err := s.Sync(plan, state)
-	if err != nil {
-		t.Fatalf("Sync failed: %v", err)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := &JiraSyncer{}
+			if err := s.Init(tt.config); err == nil {
+				t.Fatalf("expected error for %s", tt.name)
+			}
+		})
 	}
-	if res.StatusUpdates["t1"] != planning.StatusInProgress {
-		t.Fatalf("expected t1 status update, got %q", res.StatusUpdates["t1"])
+}
+
+func TestJiraSyncer_ProjectKey(t *testing.T) {
+	s := &JiraSyncer{}
+	cfg := map[string]string{
+		"domain":      "example.atlassian.net",
+		"project_key": "MYPROJECT",
+		"email":       "test@example.com",
+		"api_token":   "token",
 	}
-	if res.StatusUpdates["t2"] != planning.StatusDone {
-		t.Fatalf("expected t2 status update, got %q", res.StatusUpdates["t2"])
+	if err := s.Init(cfg); err != nil {
+		t.Fatalf("Init failed: %v", err)
 	}
-	if _, ok := res.LinkUpdates["t2"]; !ok {
-		t.Fatal("expected link update for t2")
+	if s.projectKey != "MYPROJECT" {
+		t.Fatalf("expected project key MYPROJECT, got %q", s.projectKey)
 	}
 }

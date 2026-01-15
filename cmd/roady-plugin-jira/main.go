@@ -1,16 +1,15 @@
 package main
 
 import (
-	"bytes"
-	"encoding/base64"
-	"encoding/json"
+	"context"
 	"fmt"
-	"io"
-	"net/http"
 	"os"
 	"strings"
 	"time"
 
+	jira "github.com/felixgeelhaar/jirasdk"
+	"github.com/felixgeelhaar/jirasdk/core/issue"
+	"github.com/felixgeelhaar/jirasdk/core/search"
 	"github.com/felixgeelhaar/roady/pkg/domain/planning"
 	domainPlugin "github.com/felixgeelhaar/roady/pkg/domain/plugin"
 	infraPlugin "github.com/felixgeelhaar/roady/pkg/plugin"
@@ -18,114 +17,115 @@ import (
 )
 
 type JiraSyncer struct {
-	domain     string
+	client     *jira.Client
 	projectKey string
-	email      string
-	apiToken   string
+	baseURL    string
 }
 
 func (s *JiraSyncer) Init(config map[string]string) error {
-	s.domain = config["domain"]
-	if s.domain == "" {
-		s.domain = os.Getenv("JIRA_DOMAIN")
+	baseURL := config["domain"]
+	if baseURL == "" {
+		baseURL = os.Getenv("JIRA_DOMAIN")
 	}
 	s.projectKey = config["project_key"]
 	if s.projectKey == "" {
 		s.projectKey = os.Getenv("JIRA_PROJECT_KEY")
 	}
-	s.email = config["email"]
-	if s.email == "" {
-		s.email = os.Getenv("JIRA_EMAIL")
+	email := config["email"]
+	if email == "" {
+		email = os.Getenv("JIRA_EMAIL")
 	}
-	s.apiToken = config["api_token"]
-	if s.apiToken == "" {
-		s.apiToken = os.Getenv("JIRA_API_TOKEN")
-	}
-
-	if s.domain == "" || s.projectKey == "" || s.email == "" || s.apiToken == "" {
-		return fmt.Errorf("Jira configuration missing (domain, project_key, email, api_token required)")
+	apiToken := config["api_token"]
+	if apiToken == "" {
+		apiToken = os.Getenv("JIRA_API_TOKEN")
 	}
 
-	if !strings.HasPrefix(s.domain, "http") {
-		s.domain = "https://" + s.domain
+	if baseURL == "" || s.projectKey == "" || email == "" || apiToken == "" {
+		return fmt.Errorf("jira configuration missing (domain, project_key, email, api_token required)")
 	}
+
+	if !strings.HasPrefix(baseURL, "http") {
+		baseURL = "https://" + baseURL
+	}
+	s.baseURL = baseURL
+
+	client, err := jira.NewClient(
+		jira.WithBaseURL(baseURL),
+		jira.WithAPIToken(email, apiToken),
+		jira.WithTimeout(30*time.Second),
+	)
+	if err != nil {
+		return fmt.Errorf("create jira client: %w", err)
+	}
+	s.client = client
+
 	return nil
 }
 
-type jiraIssue struct {
-	ID     string `json:"id"`
-	Key    string `json:"key"`
-	Fields struct {
-		Summary     string `json:"summary"`
-		Description string `json:"description"`
-		Status      struct {
-			Name string `json:"name"`
-			ID   string `json:"id"`
-		} `json:"status"`
-	} `json:"fields"`
-	Self string `json:"self"`
-}
-
 func (s *JiraSyncer) Sync(plan *planning.Plan, state *planning.ExecutionState) (*domainPlugin.SyncResult, error) {
+	ctx := context.Background()
 	result := &domainPlugin.SyncResult{
 		StatusUpdates: make(map[string]planning.TaskStatus),
 		LinkUpdates:   make(map[string]planning.ExternalRef),
 	}
 
-	// 1. Fetch issues for the project
-	existingIssues, err := s.fetchProjectIssues()
+	// 1. Fetch all issues for the project using iterator
+	existingIssues, err := s.fetchProjectIssues(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("failed to fetch jira issues: %w", err)
+		return nil, fmt.Errorf("fetch jira issues: %w", err)
 	}
 
-	issueByRoadyID := make(map[string]jiraIssue)
-	for _, issue := range existingIssues {
-		if rid := extractRoadyID(issue.Fields.Description); rid != "" {
-			issueByRoadyID[rid] = issue
+	// Index by roady-id marker in description
+	issueByRoadyID := make(map[string]*issue.Issue)
+	for i := range existingIssues {
+		iss := existingIssues[i]
+		if rid := extractRoadyID(iss.GetDescriptionText()); rid != "" {
+			issueByRoadyID[rid] = iss
 		}
 	}
 
 	// 2. Iterate through Roady tasks
 	for _, task := range plan.Tasks {
-		var targetIssue *jiraIssue
+		var targetIssue *issue.Issue
 
 		// A. Check state links
 		if res, ok := state.TaskStates[task.ID]; ok {
 			if ref, ok := res.ExternalRefs["jira"]; ok {
-				for _, issue := range existingIssues {
-					if issue.ID == ref.ID || issue.Key == ref.Identifier {
-						targetIssue = &issue
+				for i := range existingIssues {
+					iss := existingIssues[i]
+					if iss.ID == ref.ID || iss.Key == ref.Identifier {
+						targetIssue = iss
 						break
 					}
 				}
 			}
 		}
 
-		// B. Match by marker
+		// B. Match by roady-id marker
 		if targetIssue == nil {
-			if issue, ok := issueByRoadyID[task.ID]; ok {
-				targetIssue = &issue
+			if iss, ok := issueByRoadyID[task.ID]; ok {
+				targetIssue = iss
 			}
 		}
 
 		// C. Create if missing
 		if targetIssue == nil {
-			issue, err := s.createIssue(task)
+			iss, err := s.createIssue(ctx, task)
 			if err != nil {
-				result.Errors = append(result.Errors, fmt.Sprintf("failed to create jira issue for %s: %v", task.ID, err))
+				result.Errors = append(result.Errors, fmt.Sprintf("create jira issue for %s: %v", task.ID, err))
 				continue
 			}
-			targetIssue = issue
+			targetIssue = iss
 			result.LinkUpdates[task.ID] = planning.ExternalRef{
-				ID:           issue.ID,
-				Identifier:   issue.Key,
-				URL:          fmt.Sprintf("%s/browse/%s", s.domain, issue.Key),
+				ID:           iss.ID,
+				Identifier:   iss.Key,
+				URL:          fmt.Sprintf("%s/browse/%s", s.baseURL, iss.Key),
 				LastSyncedAt: time.Now(),
 			}
 		}
 
 		// 3. Map Status
-		newStatus := mapJiraStatus(targetIssue.Fields.Status.Name)
+		newStatus := mapJiraStatus(targetIssue.GetStatusName())
 		currentStatus := planning.StatusPending
 		if res, ok := state.TaskStates[task.ID]; ok {
 			currentStatus = res.Status
@@ -139,95 +139,60 @@ func (s *JiraSyncer) Sync(plan *planning.Plan, state *planning.ExecutionState) (
 	return result, nil
 }
 
-func (s *JiraSyncer) request(method, path string, body interface{}) ([]byte, error) {
-	var bodyReader io.Reader
-	if body != nil {
-		data, _ := json.Marshal(body)
-		bodyReader = bytes.NewBuffer(data)
+func (s *JiraSyncer) fetchProjectIssues(ctx context.Context) ([]*issue.Issue, error) {
+	var allIssues []*issue.Issue
+
+	// Use the JQL iterator for automatic pagination
+	iter := s.client.Search.NewSearchJQLIterator(ctx, &search.SearchJQLOptions{
+		JQL:        fmt.Sprintf("project = '%s'", s.projectKey),
+		Fields:     []string{"summary", "description", "status"},
+		MaxResults: 100,
+	})
+
+	for iter.Next() {
+		iss := iter.Issue()
+		allIssues = append(allIssues, iss)
 	}
 
-	url := fmt.Sprintf("%s/rest/api/2/%s", s.domain, path)
-	req, _ := http.NewRequest(method, url, bodyReader)
-
-	auth := base64.StdEncoding.EncodeToString([]byte(s.email + ":" + s.apiToken))
-	req.Header.Set("Authorization", "Basic "+auth)
-	req.Header.Set("Content-Type", "application/json")
-
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
+	if err := iter.Err(); err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
 
-	respBody, _ := io.ReadAll(resp.Body)
-	if resp.StatusCode >= 400 {
-		return nil, fmt.Errorf("jira api error (%d): %s", resp.StatusCode, string(respBody))
-	}
-
-	return respBody, nil
+	return allIssues, nil
 }
 
-func (s *JiraSyncer) fetchProjectIssues() ([]jiraIssue, error) {
-	jql := fmt.Sprintf("project = '%s'", s.projectKey)
-	path := fmt.Sprintf("search?jql=%s&fields=summary,description,status", jql)
-
-	data, err := s.request("GET", path, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	var searchResp struct {
-		Issues []jiraIssue `json:"issues"`
-	}
-	if err := json.Unmarshal(data, &searchResp); err != nil {
-		return nil, err
-	}
-
-	return searchResp.Issues, nil
-}
-
-func (s *JiraSyncer) createIssue(task planning.Task) (*jiraIssue, error) {
+func (s *JiraSyncer) createIssue(ctx context.Context, task planning.Task) (*issue.Issue, error) {
 	description := fmt.Sprintf("%s\n\nroady-id: %s", task.Description, task.ID)
 
-	input := map[string]interface{}{
-		"fields": map[string]interface{}{
-			"project":     map[string]string{"key": s.projectKey},
-			"summary":     task.Title,
-			"description": description,
-			"issuetype":   map[string]string{"name": "Task"},
-		},
+	fields := &issue.IssueFields{
+		Project:   &issue.Project{Key: s.projectKey},
+		Summary:   task.Title,
+		IssueType: &issue.IssueType{Name: "Task"},
 	}
+	fields.SetDescriptionText(description)
 
-	data, err := s.request("POST", "issue", input)
+	created, err := s.client.Issue.Create(ctx, &issue.CreateInput{
+		Fields: fields,
+	})
 	if err != nil {
 		return nil, err
 	}
 
-	var created struct {
-		ID   string `json:"id"`
-		Key  string `json:"key"`
-		Self string `json:"self"`
-	}
-	json.Unmarshal(data, &created)
-
-	// Fetch full details to get status etc
-	return s.getIssue(created.ID)
-}
-
-func (s *JiraSyncer) getIssue(id string) (*jiraIssue, error) {
-	data, err := s.request("GET", "issue/"+id, nil)
-	if err != nil {
-		return nil, err
-	}
-	var issue jiraIssue
-	json.Unmarshal(data, &issue)
-	return &issue, nil
+	// Fetch full issue to get status
+	return s.client.Issue.Get(ctx, created.Key, &issue.GetOptions{
+		Fields: []string{"summary", "description", "status"},
+	})
 }
 
 func extractRoadyID(desc string) string {
 	if strings.Contains(desc, "roady-id: ") {
 		idx := strings.Index(desc, "roady-id: ")
-		return strings.TrimSpace(desc[idx+10:])
+		remaining := desc[idx+10:]
+		// Take until newline or end
+		if nlIdx := strings.Index(remaining, "\n"); nlIdx != -1 {
+			return strings.TrimSpace(remaining[:nlIdx])
+		}
+		return strings.TrimSpace(remaining)
 	}
 	return ""
 }
@@ -244,6 +209,55 @@ func mapJiraStatus(jiraName string) planning.TaskStatus {
 	default:
 		return planning.StatusPending
 	}
+}
+
+func (s *JiraSyncer) Push(taskID string, status planning.TaskStatus) error {
+	ctx := context.Background()
+
+	// Find the issue by roady-id marker
+	issues, err := s.fetchProjectIssues(ctx)
+	if err != nil {
+		return fmt.Errorf("fetch issues: %w", err)
+	}
+
+	var targetIssue *issue.Issue
+	for _, iss := range issues {
+		if extractRoadyID(iss.GetDescriptionText()) == taskID {
+			targetIssue = iss
+			break
+		}
+	}
+
+	if targetIssue == nil {
+		return fmt.Errorf("issue not found for task %s", taskID)
+	}
+
+	// Map Roady status to common Jira transition IDs
+	// Note: These are standard IDs for Jira Software simplified workflow
+	// Users may need to configure custom IDs for their workflow
+	var transitionID string
+	switch status {
+	case planning.StatusDone:
+		transitionID = "31" // "Done" in simplified workflow
+	case planning.StatusInProgress:
+		transitionID = "21" // "In Progress" in simplified workflow
+	case planning.StatusPending:
+		transitionID = "11" // "To Do" in simplified workflow
+	case planning.StatusBlocked:
+		// Blocked typically doesn't have a standard transition
+		return fmt.Errorf("status 'blocked' requires custom workflow configuration")
+	default:
+		return fmt.Errorf("unsupported status: %s", status)
+	}
+
+	err = s.client.Issue.DoTransition(ctx, targetIssue.Key, &issue.TransitionInput{
+		Transition: &issue.Transition{ID: transitionID},
+	})
+	if err != nil {
+		return fmt.Errorf("do transition (ID=%s): %w - if this fails, your Jira workflow may use different transition IDs", transitionID, err)
+	}
+
+	return nil
 }
 
 func main() {
