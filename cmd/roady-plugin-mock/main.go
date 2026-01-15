@@ -37,6 +37,11 @@ func (m *MockSyncer) Sync(plan *planning.Plan, state *planning.ExecutionState) (
 
 	return &domainPlugin.SyncResult{StatusUpdates: updates}, nil
 }
+
+func (m *MockSyncer) Push(taskID string, status planning.TaskStatus) error {
+	log.Printf("Mock push: task %s -> status %s", taskID, status)
+	return nil
+}
 func main() {
 	plugin.Serve(&plugin.ServeConfig{
 		HandshakeConfig: infraPlugin.HandshakeConfig,

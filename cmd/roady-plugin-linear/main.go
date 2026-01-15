@@ -264,6 +264,120 @@ func mapLinearStatus(linearType string, linearName string) planning.TaskStatus {
 	}
 }
 
+type workflowState struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+	Type string `json:"type"`
+}
+
+func (s *LinearSyncer) Push(taskID string, status planning.TaskStatus) error {
+	// Find the issue by roady-id marker
+	issues, err := s.fetchTeamIssues()
+	if err != nil {
+		return fmt.Errorf("fetch issues: %w", err)
+	}
+
+	var targetIssue *linearIssue
+	for i := range issues {
+		if extractRoadyID(issues[i].Description) == taskID {
+			targetIssue = &issues[i]
+			break
+		}
+	}
+
+	if targetIssue == nil {
+		return fmt.Errorf("issue not found for task %s", taskID)
+	}
+
+	// Get available workflow states for the team
+	states, err := s.fetchWorkflowStates()
+	if err != nil {
+		return fmt.Errorf("fetch workflow states: %w", err)
+	}
+
+	// Map Roady status to Linear state type
+	var targetStateType string
+	switch status {
+	case planning.StatusDone:
+		targetStateType = "completed"
+	case planning.StatusInProgress:
+		targetStateType = "started"
+	case planning.StatusPending:
+		targetStateType = "unstarted"
+	case planning.StatusBlocked:
+		targetStateType = "canceled" // Linear doesn't have blocked, use canceled
+	}
+
+	// Find matching state
+	var targetState *workflowState
+	for i := range states {
+		if states[i].Type == targetStateType {
+			targetState = &states[i]
+			break
+		}
+	}
+
+	if targetState == nil {
+		return fmt.Errorf("no workflow state found for status %s", status)
+	}
+
+	// Update the issue
+	return s.updateIssueState(targetIssue.ID, targetState.ID)
+}
+
+func (s *LinearSyncer) fetchWorkflowStates() ([]workflowState, error) {
+	q := `query($teamId: String!) {
+		team(id: $teamId) {
+			states {
+				nodes {
+					id
+					name
+					type
+				}
+			}
+		}
+	}`
+	data, err := s.query(q, map[string]interface{}{"teamId": s.teamID})
+	if err != nil {
+		return nil, err
+	}
+
+	team, ok := data["team"].(map[string]interface{})
+	if !ok || team == nil {
+		return nil, fmt.Errorf("team not found")
+	}
+	statesData := team["states"].(map[string]interface{})["nodes"]
+
+	var states []workflowState
+	marshaled, _ := json.Marshal(statesData)
+	json.Unmarshal(marshaled, &states)
+
+	return states, nil
+}
+
+func (s *LinearSyncer) updateIssueState(issueID, stateID string) error {
+	q := `mutation($issueId: String!, $stateId: String!) {
+		issueUpdate(id: $issueId, input: { stateId: $stateId }) {
+			success
+		}
+	}`
+
+	data, err := s.query(q, map[string]interface{}{
+		"issueId": issueID,
+		"stateId": stateID,
+	})
+	if err != nil {
+		return err
+	}
+
+	updateData := data["issueUpdate"].(map[string]interface{})
+	if !updateData["success"].(bool) {
+		return fmt.Errorf("failed to update issue state")
+	}
+
+	return nil
+}
+
 func main() {
 	plugin.Serve(&plugin.ServeConfig{
 		HandshakeConfig: infraPlugin.HandshakeConfig,
