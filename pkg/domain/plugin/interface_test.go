@@ -22,6 +22,10 @@ func (s *StubSyncer) Sync(plan *planning.Plan, state *planning.ExecutionState) (
 	return &plugin.SyncResult{StatusUpdates: s.Response}, nil
 }
 
+func (s *StubSyncer) Push(taskID string, status planning.TaskStatus) error {
+	return nil
+}
+
 func TestSyncerRPC(t *testing.T) {
 	stub := &StubSyncer{
 		Response: map[string]planning.TaskStatus{"t1": "done"},
@@ -44,6 +48,9 @@ type ErrorSyncer struct{}
 func (e *ErrorSyncer) Init(config map[string]string) error { return nil }
 func (e *ErrorSyncer) Sync(plan *planning.Plan, state *planning.ExecutionState) (*plugin.SyncResult, error) {
 	return nil, errors.New("fail")
+}
+func (e *ErrorSyncer) Push(taskID string, status planning.TaskStatus) error {
+	return errors.New("push fail")
 }
 
 func TestSyncerRPC_Error(t *testing.T) {
@@ -99,5 +106,31 @@ func TestSyncerRPCClientCalls(t *testing.T) {
 	}
 	if result.StatusUpdates["t1"] != planning.StatusDone {
 		t.Fatalf("unexpected status updates: %#v", result)
+	}
+
+	// Test Push via RPC
+	if err := rpcClient.Push("task-1", planning.StatusDone); err != nil {
+		t.Fatalf("Push failed: %v", err)
+	}
+}
+
+func TestSyncerRPCPush(t *testing.T) {
+	stub := &StubSyncer{}
+	server := &plugin.SyncerRPCServer{Impl: stub}
+
+	var resp interface{}
+	args := &plugin.PushArgs{TaskID: "task-123", Status: planning.StatusDone}
+	err := server.Push(args, &resp)
+	if err != nil {
+		t.Fatalf("Push failed: %v", err)
+	}
+}
+
+func TestSyncerRPCPush_Error(t *testing.T) {
+	server := &plugin.SyncerRPCServer{Impl: &ErrorSyncer{}}
+	var resp interface{}
+	args := &plugin.PushArgs{TaskID: "task-123", Status: planning.StatusDone}
+	if err := server.Push(args, &resp); err == nil {
+		t.Error("expected error")
 	}
 }

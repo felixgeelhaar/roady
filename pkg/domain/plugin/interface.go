@@ -14,6 +14,9 @@ type Syncer interface {
 
 	// Sync performs the bi-directional synchronization
 	Sync(plan *planning.Plan, state *planning.ExecutionState) (*SyncResult, error)
+
+	// Push sends a status update for a specific task to the external system
+	Push(taskID string, status planning.TaskStatus) error
 }
 
 // SyncResult captures the outcome of a sync operation
@@ -42,6 +45,11 @@ type SyncArgs struct {
 	State *planning.ExecutionState
 }
 
+type PushArgs struct {
+	TaskID string
+	Status planning.TaskStatus
+}
+
 type SyncerRPCClient struct{ Client *rpc.Client }
 
 func (g *SyncerRPCClient) Init(config map[string]string) error {
@@ -56,6 +64,12 @@ func (g *SyncerRPCClient) Sync(plan *planning.Plan, state *planning.ExecutionSta
 	return &resp, err
 }
 
+func (g *SyncerRPCClient) Push(taskID string, status planning.TaskStatus) error {
+	var resp interface{}
+	args := &PushArgs{TaskID: taskID, Status: status}
+	return g.Client.Call("Plugin.Push", args, &resp)
+}
+
 type SyncerRPCServer struct{ Impl Syncer }
 
 func (s *SyncerRPCServer) Init(config map[string]string, resp *interface{}) error {
@@ -68,4 +82,8 @@ func (s *SyncerRPCServer) Sync(args *SyncArgs, resp *SyncResult) error {
 		*resp = *result
 	}
 	return err
+}
+
+func (s *SyncerRPCServer) Push(args *PushArgs, resp *interface{}) error {
+	return s.Impl.Push(args.TaskID, args.Status)
 }
