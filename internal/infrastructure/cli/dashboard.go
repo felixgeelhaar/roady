@@ -4,16 +4,29 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"os/exec"
+	"os/signal"
+	"runtime"
+	"syscall"
+	"time"
 
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/felixgeelhaar/roady/internal/infrastructure/wiring"
+	"github.com/felixgeelhaar/roady/pkg/domain/planning"
+	"github.com/felixgeelhaar/roady/pkg/infrastructure/dashboard"
 	"github.com/spf13/cobra"
 )
 
 var dashboardCmd = &cobra.Command{
 	Use:   "dashboard",
-	Short: "Interactive TUI dashboard",
+	Short: "Project dashboards (TUI and web-based)",
+	Long: `The dashboard command provides both TUI and web-based interfaces for viewing
+your Roady project status, tasks, and plan details.
+
+Without subcommands, opens the interactive TUI dashboard.
+Use 'roady dashboard serve' for the web-based dashboard.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if os.Getenv("ROADY_SKIP_DASHBOARD_RUN") == "true" {
 			return nil
@@ -26,8 +39,158 @@ var dashboardCmd = &cobra.Command{
 	},
 }
 
+var dashboardPort int
+
+var dashboardServeCmd = &cobra.Command{
+	Use:   "serve",
+	Short: "Start the web dashboard server",
+	Long: `Start a local web server to view the dashboard.
+
+The dashboard provides:
+  - Project overview with completion statistics
+  - Task list with status indicators
+  - Plan details and approval status
+
+Access the dashboard in your browser at the displayed URL.`,
+	Example: `  # Start on default port 3000
+  roady dashboard serve
+
+  # Start on custom port
+  roady dashboard serve --port 8080`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		services, err := loadServicesForCurrentDir()
+		if err != nil {
+			return err
+		}
+
+		provider := &dashboardDataProvider{services: services}
+
+		addr := fmt.Sprintf(":%d", dashboardPort)
+		server, err := dashboard.NewServer(addr, provider)
+		if err != nil {
+			return fmt.Errorf("create server: %w", err)
+		}
+
+		// Handle graceful shutdown
+		stop := make(chan os.Signal, 1)
+		signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
+
+		go func() {
+			<-stop
+			fmt.Println("\nShutting down dashboard...")
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			server.Shutdown(ctx)
+		}()
+
+		fmt.Printf("Dashboard starting on http://localhost:%d\n", dashboardPort)
+		fmt.Println("Press Ctrl+C to stop")
+
+		if err := server.Start(); err != nil && err.Error() != "http: Server closed" {
+			return fmt.Errorf("server error: %w", err)
+		}
+
+		return nil
+	},
+}
+
+var dashboardOpenCmd = &cobra.Command{
+	Use:   "open",
+	Short: "Start the web dashboard and open in browser",
+	Long:  `Start the web dashboard server and automatically open it in your default browser.`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		services, err := loadServicesForCurrentDir()
+		if err != nil {
+			return err
+		}
+
+		provider := &dashboardDataProvider{services: services}
+
+		addr := fmt.Sprintf(":%d", dashboardPort)
+		server, err := dashboard.NewServer(addr, provider)
+		if err != nil {
+			return fmt.Errorf("create server: %w", err)
+		}
+
+		// Handle graceful shutdown
+		stop := make(chan os.Signal, 1)
+		signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
+
+		go func() {
+			<-stop
+			fmt.Println("\nShutting down dashboard...")
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			server.Shutdown(ctx)
+		}()
+
+		// Start server in background
+		go func() {
+			if err := server.Start(); err != nil && err.Error() != "http: Server closed" {
+				fmt.Printf("Server error: %v\n", err)
+			}
+		}()
+
+		// Wait a moment for server to start
+		time.Sleep(500 * time.Millisecond)
+
+		// Open browser
+		url := fmt.Sprintf("http://localhost:%d", dashboardPort)
+		fmt.Printf("Opening %s in browser...\n", url)
+		fmt.Println("Press Ctrl+C to stop")
+
+		if err := openBrowser(url); err != nil {
+			fmt.Printf("Could not open browser: %v\n", err)
+			fmt.Printf("Please open %s manually\n", url)
+		}
+
+		// Wait for signal
+		<-stop
+		return nil
+	},
+}
+
 func init() {
 	RootCmd.AddCommand(dashboardCmd)
+	dashboardCmd.AddCommand(dashboardServeCmd)
+	dashboardCmd.AddCommand(dashboardOpenCmd)
+
+	dashboardServeCmd.Flags().IntVarP(&dashboardPort, "port", "p", 3000, "Port to listen on")
+	dashboardOpenCmd.Flags().IntVarP(&dashboardPort, "port", "p", 3000, "Port to listen on")
+}
+
+// dashboardDataProvider implements dashboard.DataProvider
+type dashboardDataProvider struct {
+	services *wiring.AppServices
+}
+
+func (p *dashboardDataProvider) GetPlan() (*planning.Plan, error) {
+	return p.services.Plan.GetPlan()
+}
+
+func (p *dashboardDataProvider) GetState() (*planning.ExecutionState, error) {
+	return p.services.Plan.GetState()
+}
+
+func openBrowser(url string) error {
+	var cmd string
+	var args []string
+
+	switch runtime.GOOS {
+	case "darwin":
+		cmd = "open"
+		args = []string{url}
+	case "linux":
+		cmd = "xdg-open"
+		args = []string{url}
+	case "windows":
+		cmd = "cmd"
+		args = []string{"/c", "start", url}
+	default:
+		return fmt.Errorf("unsupported platform")
+	}
+
+	return exec.Command(cmd, args...).Start()
 }
 
 // Styles
