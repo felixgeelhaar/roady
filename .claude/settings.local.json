@@ -21,7 +21,8 @@
       "Bash(go search:*)",
       "WebSearch",
       "Bash(find:*)",
-      "Bash(protoc:*)"
+      "Bash(protoc:*)",
+      "Bash(git checkout:*)"
     ]
   }
 }
