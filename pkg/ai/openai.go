@@ -11,8 +11,10 @@ import (
 )
 
 type OpenAIProvider struct {
-	Model  string
-	APIKey string
+	Model      string
+	APIKey     string
+	baseURL    string       // For testing - defaults to OpenAI API
+	httpClient *http.Client // For testing - defaults to http.DefaultClient
 }
 
 func NewOpenAIProvider(model string, apiKey string) *OpenAIProvider {
@@ -20,8 +22,25 @@ func NewOpenAIProvider(model string, apiKey string) *OpenAIProvider {
 		model = "gpt-4o"
 	}
 	return &OpenAIProvider{
-		Model:  model,
-		APIKey: apiKey,
+		Model:   model,
+		APIKey:  apiKey,
+		baseURL: "https://api.openai.com/v1/chat/completions",
+	}
+}
+
+// NewOpenAIProviderWithClient creates a provider with custom HTTP client and base URL (for testing).
+func NewOpenAIProviderWithClient(model, apiKey, baseURL string, client *http.Client) *OpenAIProvider {
+	if model == "" {
+		model = "gpt-4o"
+	}
+	if baseURL == "" {
+		baseURL = "https://api.openai.com/v1/chat/completions"
+	}
+	return &OpenAIProvider{
+		Model:      model,
+		APIKey:     apiKey,
+		baseURL:    baseURL,
+		httpClient: client,
 	}
 }
 
@@ -68,7 +87,7 @@ func (p *OpenAIProvider) Complete(ctx context.Context, req ai.CompletionRequest)
 		return nil, err
 	}
 
-	httpReq, err := http.NewRequestWithContext(ctx, "POST", "https://api.openai.com/v1/chat/completions", bytes.NewReader(body))
+	httpReq, err := http.NewRequestWithContext(ctx, "POST", p.baseURL, bytes.NewReader(body))
 	if err != nil {
 		return nil, err
 	}
@@ -76,7 +95,11 @@ func (p *OpenAIProvider) Complete(ctx context.Context, req ai.CompletionRequest)
 	httpReq.Header.Set("Content-Type", "application/json")
 	httpReq.Header.Set("Authorization", "Bearer "+p.APIKey)
 
-	resp, err := http.DefaultClient.Do(httpReq)
+	client := p.httpClient
+	if client == nil {
+		client = http.DefaultClient
+	}
+	resp, err := client.Do(httpReq)
 	if err != nil {
 		return nil, err
 	}

@@ -11,8 +11,10 @@ import (
 )
 
 type GeminiProvider struct {
-	Model  string
-	APIKey string
+	Model      string
+	APIKey     string
+	baseURL    string       // For testing - if set, used directly; otherwise uses default Gemini URL
+	httpClient *http.Client // For testing - defaults to http.DefaultClient
 }
 
 func NewGeminiProvider(model string, apiKey string) *GeminiProvider {
@@ -22,6 +24,19 @@ func NewGeminiProvider(model string, apiKey string) *GeminiProvider {
 	return &GeminiProvider{
 		Model:  model,
 		APIKey: apiKey,
+	}
+}
+
+// NewGeminiProviderWithClient creates a provider with custom HTTP client and base URL (for testing).
+func NewGeminiProviderWithClient(model, apiKey, baseURL string, client *http.Client) *GeminiProvider {
+	if model == "" {
+		model = "gemini-1.5-pro"
+	}
+	return &GeminiProvider{
+		Model:      model,
+		APIKey:     apiKey,
+		baseURL:    baseURL,
+		httpClient: client,
 	}
 }
 
@@ -74,7 +89,10 @@ func (p *GeminiProvider) Complete(ctx context.Context, req ai.CompletionRequest)
 		return nil, err
 	}
 
-	url := fmt.Sprintf("https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent?key=%s", p.Model, p.APIKey)
+	url := p.baseURL
+	if url == "" {
+		url = fmt.Sprintf("https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent?key=%s", p.Model, p.APIKey)
+	}
 	httpReq, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewReader(body))
 	if err != nil {
 		return nil, err
@@ -82,7 +100,11 @@ func (p *GeminiProvider) Complete(ctx context.Context, req ai.CompletionRequest)
 
 	httpReq.Header.Set("Content-Type", "application/json")
 
-	resp, err := http.DefaultClient.Do(httpReq)
+	client := p.httpClient
+	if client == nil {
+		client = http.DefaultClient
+	}
+	resp, err := client.Do(httpReq)
 	if err != nil {
 		return nil, err
 	}
