@@ -47,7 +47,10 @@ func TestMCPHTTPTransport(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	srv := NewServer(tempDir)
+	srv, err := NewServer(tempDir)
+	if err != nil {
+		t.Fatalf("create server: %v", err)
+	}
 	errCh := make(chan error, 1)
 	go func() {
 		errCh <- srv.ServeHTTP(ctx, addr)

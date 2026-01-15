@@ -27,10 +27,10 @@ func TestInitialModel(t *testing.T) {
 	if m.project != "Test" {
 		t.Errorf("Expected project Test, got %s", m.project)
 	}
-	
+
 	// Test drift view
 	repo.SaveSpec(&spec.ProductSpec{ID: "test", Features: []spec.Feature{{
-		ID: "f1",
+		ID:           "f1",
 		Requirements: []spec.Requirement{{ID: "r1", Title: "R1"}},
 	}}})
 	repo.SavePlan(&planning.Plan{Tasks: []planning.Task{}}) // Force drift (missing r1)
@@ -41,7 +41,7 @@ func TestInitialModel(t *testing.T) {
 	if !strings.Contains(mDrift.View(), "DRIFT DETECTED") {
 		t.Error("expected drift warning in view")
 	}
-	
+
 	// Test update (unrecognized key)
 	m3, _ := m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("x")})
 	if m3.(model).project != "Test" {

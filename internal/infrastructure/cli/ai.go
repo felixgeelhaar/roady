@@ -74,7 +74,9 @@ var aiConfigureCmd = &cobra.Command{
 			return fmt.Errorf("failed to save AI config: %w", err)
 		}
 
-		fmt.Println("AI configuration updated in .roady/policy.yaml and .roady/ai.yaml")
+		fmt.Println("AI configuration saved.")
+		fmt.Println("- Governance flags (allow_ai, token_limit) are stored in .roady/policy.yaml")
+		fmt.Println("- Provider/model defaults live in .roady/ai.yaml and drive both CLI and MCP")
 		return nil
 	},
 }
@@ -113,7 +115,9 @@ func runAIConfigureInteractive(repo *storage.FilesystemRepository) error {
 		return fmt.Errorf("failed to save AI config: %w", err)
 	}
 
-	fmt.Println("AI configuration updated in .roady/policy.yaml and .roady/ai.yaml")
+	fmt.Println("AI configuration saved.")
+	fmt.Println("- Governance flags (allow_ai, token_limit) are stored in .roady/policy.yaml")
+	fmt.Println("- Provider/model defaults live in .roady/ai.yaml and drive both CLI and MCP")
 	return nil
 }
 

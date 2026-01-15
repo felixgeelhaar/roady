@@ -148,7 +148,7 @@ func (s *JiraSyncer) request(method, path string, body interface{}) ([]byte, err
 
 	url := fmt.Sprintf("%s/rest/api/2/%s", s.domain, path)
 	req, _ := http.NewRequest(method, url, bodyReader)
-	
+
 	auth := base64.StdEncoding.EncodeToString([]byte(s.email + ":" + s.apiToken))
 	req.Header.Set("Authorization", "Basic "+auth)
 	req.Header.Set("Content-Type", "application/json")
@@ -170,7 +170,7 @@ func (s *JiraSyncer) request(method, path string, body interface{}) ([]byte, err
 func (s *JiraSyncer) fetchProjectIssues() ([]jiraIssue, error) {
 	jql := fmt.Sprintf("project = '%s'", s.projectKey)
 	path := fmt.Sprintf("search?jql=%s&fields=summary,description,status", jql)
-	
+
 	data, err := s.request("GET", path, nil)
 	if err != nil {
 		return nil, err
@@ -188,7 +188,7 @@ func (s *JiraSyncer) fetchProjectIssues() ([]jiraIssue, error) {
 
 func (s *JiraSyncer) createIssue(task planning.Task) (*jiraIssue, error) {
 	description := fmt.Sprintf("%s\n\nroady-id: %s", task.Description, task.ID)
-	
+
 	input := map[string]interface{}{
 		"fields": map[string]interface{}{
 			"project":     map[string]string{"key": s.projectKey},

@@ -8,24 +8,24 @@ import (
 
 func TestReport_HasCriticalDrift(t *testing.T) {
 	tests := []struct {
-		name string
+		name   string
 		issues []drift.Issue
-		want bool
+		want   bool
 	}{
 		{
-			name: "No Issues",
+			name:   "No Issues",
 			issues: []drift.Issue{},
-			want: false,
+			want:   false,
 		},
 		{
-			name: "Low Severity",
+			name:   "Low Severity",
 			issues: []drift.Issue{{Severity: drift.SeverityLow}},
-			want: false,
+			want:   false,
 		},
 		{
-			name: "Critical Severity",
+			name:   "Critical Severity",
 			issues: []drift.Issue{{Severity: drift.SeverityCritical}},
-			want: true,
+			want:   true,
 		},
 	}
 

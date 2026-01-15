@@ -2,10 +2,7 @@ package cli
 
 import (
 	"fmt"
-	"os"
 
-	"github.com/felixgeelhaar/roady/internal/infrastructure/wiring"
-	"github.com/felixgeelhaar/roady/pkg/application"
 	"github.com/felixgeelhaar/roady/pkg/domain/planning"
 	"github.com/spf13/cobra"
 )
@@ -21,24 +18,16 @@ var planGenerateCmd = &cobra.Command{
 	Use:   "generate",
 	Short: "Generate a plan from the current spec",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		cwd, _ := os.Getwd()
-		workspace := wiring.NewWorkspace(cwd)
-		repo := workspace.Repo
-		audit := workspace.Audit
+		services, err := loadServicesForCurrentDir()
+		if err != nil {
+			return err
+		}
 
 		var plan *planning.Plan
-		var err error
-
 		if useAI {
-			provider, err := wiring.LoadAIProvider(cwd)
-			if err != nil {
-				return err
-			}
-			service := application.NewAIPlanningService(repo, provider, audit)
-			plan, err = service.DecomposeSpec(cmd.Context())
+			plan, err = services.AI.DecomposeSpec(cmd.Context())
 		} else {
-			service := application.NewPlanService(repo, audit)
-			plan, err = service.GeneratePlan()
+			plan, err = services.Plan.GeneratePlan(cmd.Context())
 		}
 
 		if err != nil {
@@ -54,7 +43,7 @@ var planGenerateCmd = &cobra.Command{
 		fmt.Printf("Status: %s\n", plan.ApprovalStatus)
 		fmt.Printf("Tasks generated: %d\n", len(plan.Tasks))
 
-		state, _ := repo.LoadState()
+		state, _ := services.Workspace.Repo.LoadState()
 		for _, t := range plan.Tasks {
 			status := "pending"
 			if res, ok := state.TaskStates[t.ID]; ok {
@@ -73,25 +62,17 @@ var planApproveCmd = &cobra.Command{
 	Short: "Approve the current plan for execution",
 
 	RunE: func(cmd *cobra.Command, args []string) error {
+		services, err := loadServicesForCurrentDir()
+		if err != nil {
+			return err
+		}
 
-		cwd, _ := os.Getwd()
-
-		workspace := wiring.NewWorkspace(cwd)
-		repo := workspace.Repo
-		audit := workspace.Audit
-
-		service := application.NewPlanService(repo, audit)
-
-		if err := service.ApprovePlan(); err != nil {
-
+		if err := services.Plan.ApprovePlan(); err != nil {
 			return fmt.Errorf("failed to approve plan: %w", err)
-
 		}
 
 		fmt.Println("Plan approved. You can now start tasks.")
-
 		return nil
-
 	},
 }
 
@@ -102,25 +83,17 @@ var planRejectCmd = &cobra.Command{
 	Short: "Reject the current plan",
 
 	RunE: func(cmd *cobra.Command, args []string) error {
+		services, err := loadServicesForCurrentDir()
+		if err != nil {
+			return err
+		}
 
-		cwd, _ := os.Getwd()
-
-		workspace := wiring.NewWorkspace(cwd)
-		repo := workspace.Repo
-		audit := workspace.Audit
-
-		service := application.NewPlanService(repo, audit)
-
-		if err := service.RejectPlan(); err != nil {
-
+		if err := services.Plan.RejectPlan(); err != nil {
 			return fmt.Errorf("failed to reject plan: %w", err)
-
 		}
 
 		fmt.Println("Plan rejected.")
-
 		return nil
-
 	},
 }
 
@@ -131,25 +104,17 @@ var planPruneCmd = &cobra.Command{
 	Short: "Remove tasks from the plan that are no longer in the spec",
 
 	RunE: func(cmd *cobra.Command, args []string) error {
+		services, err := loadServicesForCurrentDir()
+		if err != nil {
+			return err
+		}
 
-		cwd, _ := os.Getwd()
-
-		workspace := wiring.NewWorkspace(cwd)
-		repo := workspace.Repo
-		audit := workspace.Audit
-
-		service := application.NewPlanService(repo, audit)
-
-		if err := service.PrunePlan(); err != nil {
-
+		if err := services.Plan.PrunePlan(); err != nil {
 			return fmt.Errorf("failed to prune plan: %w", err)
-
 		}
 
 		fmt.Println("Plan pruned. Orphan tasks removed.")
-
 		return nil
-
 	},
 }
 

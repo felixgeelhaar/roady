@@ -3,10 +3,7 @@ package cli
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 
-	"github.com/felixgeelhaar/roady/internal/infrastructure/wiring"
-	"github.com/felixgeelhaar/roady/pkg/application"
 	"github.com/spf13/cobra"
 )
 
@@ -19,24 +16,17 @@ var driftExplainCmd = &cobra.Command{
 	Use:   "explain",
 	Short: "Provide an AI-generated explanation and resolution steps for current drift",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		cwd, _ := os.Getwd()
-		workspace := wiring.NewWorkspace(cwd)
-		repo := workspace.Repo
-		driftSvc := application.NewDriftService(repo)
-		audit := workspace.Audit
-
-		provider, err := wiring.LoadAIProvider(cwd)
+		services, err := loadServicesForCurrentDir()
 		if err != nil {
 			return err
 		}
-		aiSvc := application.NewAIPlanningService(repo, provider, audit)
 
-		report, err := driftSvc.DetectDrift()
+		report, err := services.Drift.DetectDrift(cmd.Context())
 		if err != nil {
 			return fmt.Errorf("failed to detect drift: %w", err)
 		}
 
-		explanation, err := aiSvc.ExplainDrift(cmd.Context(), report)
+		explanation, err := services.AI.ExplainDrift(cmd.Context(), report)
 		if err != nil {
 			return fmt.Errorf("failed to explain drift: %w", err)
 		}
@@ -54,12 +44,12 @@ var driftDetectCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		outputFormat, _ := cmd.Flags().GetString("output")
 
-		cwd, _ := os.Getwd()
-		workspace := wiring.NewWorkspace(cwd)
-		repo := workspace.Repo
-		service := application.NewDriftService(repo)
+		services, err := loadServicesForCurrentDir()
+		if err != nil {
+			return err
+		}
 
-		report, err := service.DetectDrift()
+		report, err := services.Drift.DetectDrift(cmd.Context())
 		if err != nil {
 			return fmt.Errorf("failed to detect drift: %w", err)
 		}
@@ -94,26 +84,13 @@ var driftAcceptCmd = &cobra.Command{
 	Use:   "accept",
 	Short: "Accept current drift by locking the spec snapshot",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		cwd, _ := os.Getwd()
-		workspace := wiring.NewWorkspace(cwd)
-		repo := workspace.Repo
-		spec, err := repo.LoadSpec()
+		services, err := loadServicesForCurrentDir()
 		if err != nil {
-			return fmt.Errorf("failed to load spec: %w", err)
-		}
-		if spec == nil {
-			return fmt.Errorf("no spec found to lock")
+			return err
 		}
 
-		if err := repo.SaveSpecLock(spec); err != nil {
-			return fmt.Errorf("failed to update spec lock: %w", err)
-		}
-
-		if err := workspace.Audit.Log("drift.accepted", "cli", map[string]interface{}{
-			"spec_id":   spec.ID,
-			"spec_hash": spec.Hash(),
-		}); err != nil {
-			return fmt.Errorf("failed to write audit log: %w", err)
+		if err := services.Drift.AcceptDrift(); err != nil {
+			return fmt.Errorf("failed to accept drift: %w", err)
 		}
 
 		fmt.Println("Drift accepted. Spec snapshot locked.")

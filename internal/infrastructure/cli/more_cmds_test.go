@@ -290,7 +290,9 @@ func TestWatchCmd_RunOnce(t *testing.T) {
 
 func TestMCPCmd_Skip(t *testing.T) {
 	t.Setenv("ROADY_SKIP_MCP_START", "true")
-	mcpCmd.Run(mcpCmd, []string{})
+	if err := mcpCmd.RunE(mcpCmd, []string{}); err != nil {
+		t.Fatalf("mcp cmd failed: %v", err)
+	}
 }
 
 func TestWatchCmd_AutoSync(t *testing.T) {

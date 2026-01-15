@@ -16,9 +16,9 @@ var usageCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cwd, _ := os.Getwd()
 		workspace := wiring.NewWorkspace(cwd)
-		service := application.NewPlanService(workspace.Repo, workspace.Audit)
+		usageService := application.NewUsageService(workspace.Repo)
 
-		stats, err := service.GetUsage()
+		stats, err := usageService.GetUsage()
 		if err != nil {
 			return fmt.Errorf("failed to load usage stats: %w", err)
 		}

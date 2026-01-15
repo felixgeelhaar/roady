@@ -16,11 +16,11 @@ const (
 type DriftCategory string
 
 const (
-	CategoryMissing      DriftCategory = "MISSING"      // Something exists in source but not in target
-	CategoryOrphan       DriftCategory = "ORPHAN"       // Something exists in target but not in source
-	CategoryMismatch     DriftCategory = "MISMATCH"     // Source and target exist but differ (e.g. description/estimate)
-	CategoryDebt         DriftCategory = "DEBT"         // Known alignment issue that hasn't been resolved
-	CategoryViolation    DriftCategory = "VIOLATION"    // Policy violation
+	CategoryMissing        DriftCategory = "MISSING"        // Something exists in source but not in target
+	CategoryOrphan         DriftCategory = "ORPHAN"         // Something exists in target but not in source
+	CategoryMismatch       DriftCategory = "MISMATCH"       // Source and target exist but differ (e.g. description/estimate)
+	CategoryDebt           DriftCategory = "DEBT"           // Known alignment issue that hasn't been resolved
+	CategoryViolation      DriftCategory = "VIOLATION"      // Policy violation
 	CategoryImplementation DriftCategory = "IMPLEMENTATION" // Code reality doesn't match state
 )
 

@@ -17,13 +17,18 @@ var (
 var mcpCmd = &cobra.Command{
 	Use:   "mcp",
 	Short: "Start the Roady MCP server",
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		if os.Getenv("ROADY_SKIP_MCP_START") == "true" {
-			return
+			return nil
 		}
-		cwd, _ := os.Getwd()
-		server := inframcp.NewServer(cwd)
-		var err error
+		cwd, err := os.Getwd()
+		if err != nil {
+			return fmt.Errorf("get working directory: %w", err)
+		}
+		server, err := inframcp.NewServer(cwd)
+		if err != nil {
+			return fmt.Errorf("create MCP server: %w", err)
+		}
 		switch strings.ToLower(mcpTransport) {
 		case "stdio", "":
 			err = server.StartStdio()
@@ -34,9 +39,7 @@ var mcpCmd = &cobra.Command{
 		default:
 			err = fmt.Errorf("unsupported transport: %s", mcpTransport)
 		}
-		if err != nil {
-			os.Exit(1)
-		}
+		return err
 	},
 }
 

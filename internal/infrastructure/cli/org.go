@@ -52,8 +52,7 @@ var orgStatusCmd = &cobra.Command{
 			{Title: "Path", Width: 40},
 		}
 
-	
-rows := []table.Row{}
+		rows := []table.Row{}
 		for _, p := range projects {
 			repo := storage.NewFilesystemRepository(p)
 			spec, _ := repo.LoadSpec()
@@ -100,7 +99,7 @@ rows := []table.Row{}
 		t := table.New(
 			table.WithColumns(columns),
 			table.WithRows(rows),
-			table.WithHeight(len(rows) + 1),
+			table.WithHeight(len(rows)+1),
 		)
 
 		s := table.DefaultStyles()

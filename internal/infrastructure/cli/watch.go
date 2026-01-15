@@ -5,8 +5,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/felixgeelhaar/roady/internal/infrastructure/wiring"
-	"github.com/felixgeelhaar/roady/pkg/application"
 	"github.com/spf13/cobra"
 )
 
@@ -19,21 +17,20 @@ var watchCmd = &cobra.Command{
 	Short: "Watch a directory for documentation changes and automatically detect drift",
 
 	RunE: func(cmd *cobra.Command, args []string) error {
-
 		dir := "docs"
 
 		if len(args) > 0 {
-
 			dir = args[0]
-
 		}
 
-		cwd, _ := os.Getwd()
-		workspace := wiring.NewWorkspace(cwd)
-		repo := workspace.Repo
-		specSvc := application.NewSpecService(repo)
-		driftSvc := application.NewDriftService(repo)
-		audit := workspace.Audit
+		services, err := loadServicesForCurrentDir()
+		if err != nil {
+			return err
+		}
+
+		specSvc := services.Spec
+		driftSvc := services.Drift
+		aiSvc := services.AI
 
 		fmt.Printf("Watching %s for changes... (Auto-sync: %v)\n", dir, autoSync)
 
@@ -56,23 +53,15 @@ var watchCmd = &cobra.Command{
 						if autoSync {
 							fmt.Println("Autonomous Reconciliation: Synchronizing plan with new intent...")
 
-							provider, err := wiring.LoadAIProvider(cwd)
-							if err != nil {
+							if _, err := aiSvc.DecomposeSpec(cmd.Context()); err != nil {
 								fmt.Printf("Auto-sync failed: %v\n", err)
 							} else {
-								aiSvc := application.NewAIPlanningService(repo, provider, audit)
-
-								_, err := aiSvc.DecomposeSpec(cmd.Context())
-								if err != nil {
-									fmt.Printf("Auto-sync failed: %v\n", err)
-								} else {
-									fmt.Println("Plan successfully synchronized.")
-								}
+								fmt.Println("Plan successfully synchronized.")
 							}
 						}
 
 						// 2. Detect Drift Automatically
-						report, err := driftSvc.DetectDrift()
+						report, err := driftSvc.DetectDrift(cmd.Context())
 						if err == nil && len(report.Issues) > 0 {
 							fmt.Printf("Drift detected: %d issues found.\n", len(report.Issues))
 							for _, iss := range report.Issues {

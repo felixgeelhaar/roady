@@ -30,8 +30,8 @@ func (p *GeminiProvider) ID() string {
 }
 
 type geminiRequest struct {
-	Contents []geminiContent `json:"contents"`
-	SystemInstruction *geminiContent `json:"system_instruction,omitempty"`
+	Contents          []geminiContent `json:"contents"`
+	SystemInstruction *geminiContent  `json:"system_instruction,omitempty"`
 }
 
 type geminiContent struct {

@@ -146,14 +146,10 @@ func TestUsageCmd_PrintsStats(t *testing.T) {
 		t.Fatalf("init repo: %v", err)
 	}
 
-	audit := application.NewAuditService(repo)
-	err := audit.Log("ai.plan", "ai", map[string]interface{}{
-		"model":         "gpt-4o",
-		"input_tokens":  5,
-		"output_tokens": 3,
-	})
-	if err != nil {
-		t.Fatalf("log event: %v", err)
+	// Use UsageService for token tracking (SRP: audit logs events, usage tracks tokens)
+	usageSvc := application.NewUsageService(repo)
+	if err := usageSvc.RecordTokenUsage("gpt-4o", 5, 3); err != nil {
+		t.Fatalf("record token usage: %v", err)
 	}
 
 	output := captureStdout(t, func() {

@@ -171,8 +171,6 @@ func (s *SpecService) GetSpec() (*spec.ProductSpec, error) {
 
 }
 
-
-
 // AddFeature programmatically adds a new functional unit and syncs it back to documentation.
 
 func (s *SpecService) AddFeature(title, description string) (*spec.ProductSpec, error) {
@@ -185,25 +183,18 @@ func (s *SpecService) AddFeature(title, description string) (*spec.ProductSpec, 
 
 	}
 
-
-
 	id := strings.ToLower(strings.ReplaceAll(title, " ", "-"))
 
 	newFeat := spec.Feature{
 
-		ID:          id,
+		ID: id,
 
-		Title:       title,
+		Title: title,
 
 		Description: description,
-
 	}
 
-
-
 	current.Features = append(current.Features, newFeat)
-
-
 
 	if err := s.repo.SaveSpec(current); err != nil {
 
@@ -217,33 +208,25 @@ func (s *SpecService) AddFeature(title, description string) (*spec.ProductSpec, 
 
 	}
 
-
-
 	// Step 4: Sync back to documentation
-
-	_ = s.syncToMarkdown(newFeat)
-
-
+	if err := s.syncToMarkdown(newFeat); err != nil {
+		fmt.Fprintf(os.Stderr, "warning: failed to sync feature to markdown: %v\n", err)
+	}
 
 	return current, nil
 
 }
-
-
 
 func (s *SpecService) syncToMarkdown(f spec.Feature) error {
 
 	path := "docs/backlog.md"
 
 	// Ensure directory exists
-
-	_ = os.MkdirAll("docs", 0700)
-
-
+	if err := os.MkdirAll("docs", 0700); err != nil {
+		return fmt.Errorf("failed to create docs directory: %w", err)
+	}
 
 	content := fmt.Sprintf("\n## %s\n\n%s\n\n---\n", f.Title, f.Description)
-
-	
 
 	fWriter, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
 
@@ -254,8 +237,6 @@ func (s *SpecService) syncToMarkdown(f spec.Feature) error {
 	}
 
 	defer fWriter.Close()
-
-
 
 	_, err = fWriter.WriteString(content)
 

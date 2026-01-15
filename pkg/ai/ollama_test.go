@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/felixgeelhaar/roady/pkg/domain/ai"
 	infraAI "github.com/felixgeelhaar/roady/pkg/ai"
+	"github.com/felixgeelhaar/roady/pkg/domain/ai"
 )
 
 func TestOllamaProvider_Basic(t *testing.T) {
@@ -36,7 +36,7 @@ func TestOllamaProvider_Temp(t *testing.T) {
 func TestOllamaProvider_ContextCancel(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel() // Cancel immediately
-	
+
 	p := infraAI.NewOllamaProvider("llama3")
 	_, err := p.Complete(ctx, ai.CompletionRequest{Prompt: "hi"})
 	if err == nil {
@@ -64,7 +64,7 @@ func (s *StubProvider) Complete(ctx context.Context, req ai.CompletionRequest) (
 func TestResilientProvider_Success(t *testing.T) {
 	stub := &StubProvider{Result: "ok"}
 	res := infraAI.NewResilientProvider(stub)
-	
+
 	resp, err := res.Complete(context.Background(), ai.CompletionRequest{})
 	if err != nil {
 		t.Fatal(err)
@@ -105,6 +105,7 @@ func TestResilientProvider_Retry(t *testing.T) {
 }
 
 type SlowProvider struct{}
+
 func (s *SlowProvider) ID() string { return "slow" }
 func (s *SlowProvider) Complete(ctx context.Context, req ai.CompletionRequest) (*ai.CompletionResponse, error) {
 	select {
@@ -118,10 +119,10 @@ func (s *SlowProvider) Complete(ctx context.Context, req ai.CompletionRequest) (
 func TestResilientProvider_Timeout_Fail(t *testing.T) {
 	slow := &SlowProvider{}
 	resilient := infraAI.NewResilientProvider(slow)
-	
+
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Millisecond)
 	defer cancel()
-	
+
 	_, err := resilient.Complete(ctx, ai.CompletionRequest{})
 	if err == nil {
 		t.Error("expected timeout error")

@@ -52,7 +52,7 @@ func (p *OllamaProvider) Complete(ctx context.Context, req ai.CompletionRequest)
 	}
 
 	url := "http://localhost:11434/api/generate"
-	
+
 	format := ""
 	if strings.Contains(req.Prompt, "JSON") || strings.Contains(req.System, "JSON") {
 		format = "json"

@@ -15,7 +15,10 @@ func TestServer_Handlers(t *testing.T) {
 	tempDir, _ := os.MkdirTemp("", "roady-mcp-handlers-*")
 	defer os.RemoveAll(tempDir)
 
-	s := NewServer(tempDir)
+	s, err := NewServer(tempDir)
+	if err != nil {
+		t.Fatalf("create server: %v", err)
+	}
 
 	// 1. HandleInit
 	resp, err := s.handleInit(context.Background(), InitArgs{Name: "test"})
@@ -123,7 +126,10 @@ func TestServer_Handlers(t *testing.T) {
 	// 8.1 HandleGeneratePlan missing spec
 	tempEmpty2, _ := os.MkdirTemp("", "roady-mcp-empty-*")
 	defer os.RemoveAll(tempEmpty2)
-	s2 := NewServer(tempEmpty2)
+	s2, err := NewServer(tempEmpty2)
+	if err != nil {
+		t.Fatalf("create server: %v", err)
+	}
 	_, err = s2.handleGeneratePlan(context.Background(), struct{}{})
 	if err == nil {
 		t.Error("expected error for handleGeneratePlan without spec")

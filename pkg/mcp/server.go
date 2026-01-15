@@ -6,6 +6,6 @@ import infra "github.com/felixgeelhaar/roady/internal/infrastructure/mcp"
 type Server = infra.Server
 
 // NewServer constructs an MCP server rooted at the provided path.
-func NewServer(root string) *Server {
+func NewServer(root string) (*Server, error) {
 	return infra.NewServer(root)
 }

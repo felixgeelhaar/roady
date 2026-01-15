@@ -1,14 +1,13 @@
 package cli
 
 import (
+	"context"
 	"fmt"
 	"os"
 
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/felixgeelhaar/roady/internal/infrastructure/wiring"
-	"github.com/felixgeelhaar/roady/pkg/application"
 	"github.com/spf13/cobra"
 )
 
@@ -58,8 +57,11 @@ type model struct {
 }
 
 func initialModel() model {
-	cwd, _ := os.Getwd()
-	repo := wiring.NewWorkspace(cwd).Repo
+	services, err := loadServicesForCurrentDir()
+	if err != nil {
+		return model{err: err}
+	}
+	repo := services.Workspace.Repo
 
 	// Load Data
 	spec, err := repo.LoadSpec()
@@ -133,8 +135,7 @@ func initialModel() model {
 	t.SetStyles(s)
 
 	// Drift Detection (Quick check)
-	driftService := application.NewDriftService(repo)
-	report, _ := driftService.DetectDrift()
+	report, _ := services.Drift.DetectDrift(context.Background())
 	driftMsgs := []string{}
 	if report != nil {
 		for _, issue := range report.Issues {

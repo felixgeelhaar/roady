@@ -27,7 +27,8 @@ var specExplainCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		service := application.NewAIPlanningService(repo, provider, audit)
+		planSvc := application.NewPlanService(repo, audit)
+		service := application.NewAIPlanningService(repo, provider, audit, planSvc)
 
 		explanation, err := service.ExplainSpec(cmd.Context())
 		if err != nil {
@@ -114,7 +115,8 @@ var specAnalyzeCmd = &cobra.Command{
 			if err != nil {
 				return err
 			}
-			aiSvc := application.NewAIPlanningService(repo, provider, audit)
+			planSvc := application.NewPlanService(repo, audit)
+			aiSvc := application.NewAIPlanningService(repo, provider, audit, planSvc)
 
 			fmt.Println("Reconciling specification using AI...")
 			spec, err = aiSvc.ReconcileSpec(cmd.Context(), spec)

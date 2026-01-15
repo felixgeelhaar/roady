@@ -21,15 +21,15 @@ func TestMockSyncer_Sync(t *testing.T) {
 		},
 	}
 
-		result, err := m.Sync(plan, state)
-		if err != nil {
-			t.Fatal(err)
-		}
-	
-		if result.StatusUpdates["t1"] != planning.StatusDone {
-			t.Errorf("Expected t1 done, got %s", result.StatusUpdates["t1"])
-		}
-		if result.StatusUpdates["t2"] != planning.StatusInProgress {
-			t.Errorf("Expected t2 in_progress, got %s", result.StatusUpdates["t2"])
-		}
+	result, err := m.Sync(plan, state)
+	if err != nil {
+		t.Fatal(err)
 	}
+
+	if result.StatusUpdates["t1"] != planning.StatusDone {
+		t.Errorf("Expected t1 done, got %s", result.StatusUpdates["t1"])
+	}
+	if result.StatusUpdates["t2"] != planning.StatusInProgress {
+		t.Errorf("Expected t2 in_progress, got %s", result.StatusUpdates["t2"])
+	}
+}

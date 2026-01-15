@@ -14,9 +14,9 @@ type CompletionRequest struct {
 
 // CompletionResponse represents the AI's answer.
 type CompletionResponse struct {
-	Text   string
-	Usage  TokenUsage
-	Model  string
+	Text  string
+	Usage TokenUsage
+	Model string
 }
 
 // TokenUsage tracks costs.

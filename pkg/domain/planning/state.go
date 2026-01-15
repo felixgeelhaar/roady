@@ -20,8 +20,8 @@ type TaskResult struct {
 
 // ExternalRef links a Roady task to an external system (Linear, Jira, etc.)
 type ExternalRef struct {
-	ID           string    `json:"id"`             // Internal ID (e.g. "e84910...")
-	Identifier   string    `json:"identifier"`     // Human readable ID (e.g. "LIN-123")
+	ID           string    `json:"id"`         // Internal ID (e.g. "e84910...")
+	Identifier   string    `json:"identifier"` // Human readable ID (e.g. "LIN-123")
 	URL          string    `json:"url"`
 	LastSyncedAt time.Time `json:"last_synced_at"`
 }
@@ -32,4 +32,129 @@ func NewExecutionState(projectID string) *ExecutionState {
 		TaskStates: make(map[string]TaskResult),
 		UpdatedAt:  time.Now(),
 	}
+}
+
+// GetTaskStatus returns the current status of a task, defaulting to Pending if not found.
+func (s *ExecutionState) GetTaskStatus(taskID string) TaskStatus {
+	if result, ok := s.TaskStates[taskID]; ok {
+		return result.Status
+	}
+	return StatusPending
+}
+
+// GetTaskResult returns the full task result for a task ID.
+func (s *ExecutionState) GetTaskResult(taskID string) (TaskResult, bool) {
+	result, ok := s.TaskStates[taskID]
+	return result, ok
+}
+
+// SetTaskStatus updates the status for a task and records the update time.
+func (s *ExecutionState) SetTaskStatus(taskID string, status TaskStatus) {
+	result := s.TaskStates[taskID]
+	result.Status = status
+	s.TaskStates[taskID] = result
+	s.UpdatedAt = time.Now()
+}
+
+// SetTaskOwner sets the owner for a task.
+func (s *ExecutionState) SetTaskOwner(taskID string, owner string) {
+	result := s.TaskStates[taskID]
+	result.Owner = owner
+	s.TaskStates[taskID] = result
+	s.UpdatedAt = time.Now()
+}
+
+// AddEvidence appends evidence to a task's result.
+func (s *ExecutionState) AddEvidence(taskID string, evidence string) {
+	result := s.TaskStates[taskID]
+	result.Evidence = append(result.Evidence, evidence)
+	s.TaskStates[taskID] = result
+	s.UpdatedAt = time.Now()
+}
+
+// SetExternalRef sets an external reference for a task.
+func (s *ExecutionState) SetExternalRef(taskID string, provider string, ref ExternalRef) {
+	result := s.TaskStates[taskID]
+	if result.ExternalRefs == nil {
+		result.ExternalRefs = make(map[string]ExternalRef)
+	}
+	result.ExternalRefs[provider] = ref
+	s.TaskStates[taskID] = result
+	s.UpdatedAt = time.Now()
+}
+
+// CountByStatus returns the count of tasks with the given status.
+func (s *ExecutionState) CountByStatus(status TaskStatus) int {
+	count := 0
+	for _, result := range s.TaskStates {
+		if result.Status == status {
+			count++
+		}
+	}
+	return count
+}
+
+// GetTasksByStatus returns all task IDs with the given status.
+func (s *ExecutionState) GetTasksByStatus(status TaskStatus) []string {
+	var taskIDs []string
+	for taskID, result := range s.TaskStates {
+		if result.Status == status {
+			taskIDs = append(taskIDs, taskID)
+		}
+	}
+	return taskIDs
+}
+
+// CanStartTask checks if a task can be started based on plan approval and dependencies.
+func (s *ExecutionState) CanStartTask(taskID string, plan *Plan) (bool, string) {
+	if plan == nil {
+		return false, "no plan found"
+	}
+
+	if plan.ApprovalStatus != ApprovalApproved {
+		return false, "plan is not approved"
+	}
+
+	// Find the task in the plan
+	var task *Task
+	for i := range plan.Tasks {
+		if plan.Tasks[i].ID == taskID {
+			task = &plan.Tasks[i]
+			break
+		}
+	}
+
+	if task == nil {
+		return false, "task not found in plan"
+	}
+
+	// Check if dependencies are met (all must be Done or Verified)
+	for _, depID := range task.DependsOn {
+		depStatus := s.GetTaskStatus(depID)
+		if depStatus != StatusDone && depStatus != StatusVerified {
+			return false, "dependencies not completed: " + depID
+		}
+	}
+
+	return true, ""
+}
+
+// HasUnfinishedDependencies checks if a task has any unfinished dependencies.
+func (s *ExecutionState) HasUnfinishedDependencies(taskID string, plan *Plan) bool {
+	if plan == nil {
+		return false
+	}
+
+	for _, task := range plan.Tasks {
+		if task.ID == taskID {
+			for _, depID := range task.DependsOn {
+				depStatus := s.GetTaskStatus(depID)
+				if depStatus != StatusDone && depStatus != StatusVerified {
+					return true
+				}
+			}
+			break
+		}
+	}
+	return false
 }

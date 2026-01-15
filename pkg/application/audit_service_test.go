@@ -35,14 +35,8 @@ func TestAuditService_Log(t *testing.T) {
 		t.Error("Event not logged")
 	}
 
-	// 3. Verify Usage
-	usageContent, err := os.ReadFile(filepath.Join(tempDir, ".roady", "usage.json"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !strings.Contains(string(usageContent), "total_commands") {
-		t.Error("Usage stats not updated")
-	}
+	// Note: Usage tracking is now handled by UsageService (SRP separation)
+	// See usage_service_test.go for usage tracking tests
 }
 
 func TestAuditService_Error(t *testing.T) {
@@ -192,5 +186,24 @@ func TestAuditService_GetVelocity_NoVerified(t *testing.T) {
 	}
 	if got != 0 {
 		t.Fatalf("expected velocity 0, got %.2f", got)
+	}
+}
+
+func TestAuditService_GetTimeline(t *testing.T) {
+	events := []domain.Event{
+		{ID: "e1", Action: "spec.update"},
+		{ID: "e2", Action: "plan.generate"},
+	}
+	repo := &eventRepo{
+		MockRepo: &MockRepo{},
+		Events:   events,
+	}
+	service := application.NewAuditService(repo)
+	timeline, err := service.GetTimeline()
+	if err != nil {
+		t.Fatalf("GetTimeline failed: %v", err)
+	}
+	if len(timeline) != len(events) {
+		t.Fatalf("expected %d events in timeline, got %d", len(events), len(timeline))
 	}
 }

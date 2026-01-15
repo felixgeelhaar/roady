@@ -8,6 +8,8 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/xeipuuv/gojsonschema"
+
 	"github.com/felixgeelhaar/roady/pkg/domain"
 	"github.com/felixgeelhaar/roady/pkg/domain/ai"
 	"github.com/felixgeelhaar/roady/pkg/domain/drift"
@@ -18,14 +20,39 @@ import (
 type AIPlanningService struct {
 	repo     domain.WorkspaceRepository
 	provider ai.Provider
-	audit    *AuditService
+	audit    domain.AuditLogger
+	planSvc  *PlanService
 }
 
-func NewAIPlanningService(repo domain.WorkspaceRepository, provider ai.Provider, audit *AuditService) *AIPlanningService {
-	return &AIPlanningService{repo: repo, provider: provider, audit: audit}
+const taskSchemaJSON = `{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": ["id", "feature_id"],
+    "properties": {
+      "id": { "type": "string" },
+      "feature_id": { "type": "string" },
+      "title": { "type": "string" },
+      "description": { "type": "string" }
+    },
+    "anyOf": [
+      { "required": ["title"] },
+      { "required": ["description"] }
+    ]
+  }
+}`
+
+var (
+	taskSchemaLoader = gojsonschema.NewStringLoader(taskSchemaJSON)
+)
+
+func NewAIPlanningService(repo domain.WorkspaceRepository, provider ai.Provider, audit domain.AuditLogger, planSvc *PlanService) *AIPlanningService {
+	return &AIPlanningService{repo: repo, provider: provider, audit: audit, planSvc: planSvc}
 }
 
-func (s *AIPlanningService) GetAuditService() *AuditService {
+// GetAuditLogger returns the audit logger used by this service.
+func (s *AIPlanningService) GetAuditLogger() domain.AuditLogger {
 	return s.audit
 }
 
@@ -55,7 +82,7 @@ func (s *AIPlanningService) DecomposeSpec(ctx context.Context) (*planning.Plan, 
 	// 2. Load Spec
 	productSpec, err := s.repo.LoadSpec()
 	if err != nil {
-		return nil, fmt.Errorf("failed to load spec: %w", err)
+		return nil, fmt.Errorf("load spec: %w", err)
 	}
 	if productSpec == nil {
 		return nil, fmt.Errorf("spec is nil")
@@ -92,6 +119,10 @@ Features to decompose:
 
 	cleanTasks, err := s.parseTasksFromResponse(resp.Text)
 	if err != nil {
+		_ = s.audit.Log("plan.ai_decomposition_retry", "ai", map[string]interface{}{
+			"reason":  err.Error(),
+			"attempt": 2,
+		})
 		retryPrompt := prompt + "\n\nIMPORTANT: Your previous response was invalid. Return ONLY a JSON array of tasks with valid fields. Do not include any extra text."
 		respRetry, retryErr := s.completeDecomposition(ctx, retryPrompt, 2)
 		if retryErr != nil {
@@ -159,11 +190,10 @@ Features to decompose:
 
 	// Lock the spec content to this new plan to resolve Intent Drift
 	if err := s.repo.SaveSpecLock(productSpec); err != nil {
-		return nil, fmt.Errorf("failed to save spec lock: %w", err)
+		return nil, fmt.Errorf("save spec lock: %w", err)
 	}
 
-	planSvc := NewPlanService(s.repo, s.audit)
-	return planSvc.UpdatePlan(cleanTasks)
+	return s.planSvc.UpdatePlan(cleanTasks)
 }
 
 func (s *AIPlanningService) completeDecomposition(ctx context.Context, prompt string, attempt int) (*ai.CompletionResponse, error) {
@@ -183,7 +213,7 @@ func (s *AIPlanningService) completeDecomposition(ctx context.Context, prompt st
 		"output_tokens": resp.Usage.OutputTokens,
 		"attempt":       attempt,
 	}); err != nil {
-		return nil, fmt.Errorf("failed to write audit log: %w", err)
+		return nil, fmt.Errorf("write audit log: %w", err)
 	}
 
 	return resp, nil
@@ -528,7 +558,7 @@ Features:
 	cleanJSON = strings.TrimSpace(cleanJSON)
 
 	if err := json.Unmarshal([]byte(cleanJSON), &reconciled); err != nil {
-		return nil, fmt.Errorf("failed to parse reconciled spec: %w", err)
+		return nil, fmt.Errorf("parse reconciled spec: %w", err)
 	}
 
 	// 4. Save and Lock
@@ -539,9 +569,11 @@ Features:
 		return nil, err
 	}
 
-	_ = s.audit.Log("spec.reconcile", "ai", map[string]interface{}{
+	if err := s.audit.Log("spec.reconcile", "ai", map[string]interface{}{
 		"model": resp.Model,
-	})
+	}); err != nil {
+		fmt.Fprintf(os.Stderr, "warning: failed to log audit event: %v\n", err)
+	}
 
 	return &reconciled, nil
 }
@@ -582,11 +614,13 @@ func (s *AIPlanningService) ExplainSpec(ctx context.Context) (string, error) {
 	}
 
 	// 4. Log Usage
-	_ = s.audit.Log("spec.ai_explanation", "ai", map[string]interface{}{
+	if err := s.audit.Log("spec.ai_explanation", "ai", map[string]interface{}{
 		"model":         resp.Model,
 		"input_tokens":  resp.Usage.InputTokens,
 		"output_tokens": resp.Usage.OutputTokens,
-	})
+	}); err != nil {
+		fmt.Fprintf(os.Stderr, "warning: failed to log audit event: %v\n", err)
+	}
 
 	return resp.Text, nil
 }
@@ -605,8 +639,11 @@ func (s *AIPlanningService) ExplainDrift(ctx context.Context, report *drift.Repo
 		return "", fmt.Errorf("AI usage is disabled by project policy")
 	}
 
-	// 2. Load Spec and Plan for context
-	spec, _ := s.repo.LoadSpec()
+	// 2. Load Spec for context
+	spec, err := s.repo.LoadSpec()
+	if err != nil {
+		return "", fmt.Errorf("failed to load spec: %w", err)
+	}
 
 	// 3. Prompt AI
 	prompt := fmt.Sprintf("Analyze these detected drift issues in a software project. "+
@@ -628,12 +665,14 @@ func (s *AIPlanningService) ExplainDrift(ctx context.Context, report *drift.Repo
 	}
 
 	// 4. Log Usage
-	_ = s.audit.Log("drift.ai_explanation", "ai", map[string]interface{}{
+	if err := s.audit.Log("drift.ai_explanation", "ai", map[string]interface{}{
 		"model":         resp.Model,
 		"issue_count":   len(report.Issues),
 		"input_tokens":  resp.Usage.InputTokens,
 		"output_tokens": resp.Usage.OutputTokens,
-	})
+	}); err != nil {
+		fmt.Fprintf(os.Stderr, "warning: failed to log audit event: %v\n", err)
+	}
 
 	return resp.Text, nil
 }

@@ -41,13 +41,13 @@ func TestAllCmds_Internal(t *testing.T) {
 	// 4. Drift
 	RootCmd.SetArgs([]string{"drift", "detect"})
 	RootCmd.Execute()
-	
+
 	// Drift detected
 	os.WriteFile(filepath.Join(tempDir, ".roady", "spec.yaml"), []byte("id: test\ntitle: test\nfeatures: [{id: f1, title: F1}, {id: f2, title: F2}]"), 0600)
 	os.WriteFile(filepath.Join(tempDir, ".roady", "plan.json"), []byte("{\"id\":\"p1\",\"tasks\":[{\"id\":\"t1\",\"feature_id\":\"f1\"}]}"), 0600)
 	RootCmd.SetArgs([]string{"drift", "detect"})
 	RootCmd.Execute()
-	
+
 	// Drift with JSON and issues
 	os.WriteFile(filepath.Join(tempDir, ".roady", "spec.yaml"), []byte("id: test\ntitle: test\nfeatures:\n  - id: f1\n    title: F1"), 0600)
 	RootCmd.SetArgs([]string{"drift", "detect", "--output", "json"})
@@ -60,7 +60,7 @@ func TestAllCmds_Internal(t *testing.T) {
 	// 6. Spec
 	RootCmd.SetArgs([]string{"spec", "validate"})
 	RootCmd.Execute()
-	
+
 	// Spec Validate failure
 	os.WriteFile(filepath.Join(tempDir, ".roady", "spec.yaml"), []byte("id: test\ntitle: test\nfeatures: [{id: f1}, {id: f1}]"), 0600)
 	RootCmd.SetArgs([]string{"spec", "validate"})
@@ -69,7 +69,7 @@ func TestAllCmds_Internal(t *testing.T) {
 	// 7. Task
 	RootCmd.SetArgs([]string{"task", "start", "task-core-foundation"})
 	RootCmd.Execute()
-	
+
 	// Task block
 	RootCmd.SetArgs([]string{"task", "block", "task-core-foundation"})
 	RootCmd.Execute()
@@ -87,7 +87,7 @@ func TestAllCmds_Internal(t *testing.T) {
 	RootCmd.Execute()
 	RootCmd.SetArgs([]string{"task", "complete", "task-core-foundation"})
 	RootCmd.Execute()
-	
+
 	RootCmd.SetArgs([]string{"task", "block", "task-core-foundation"})
 	RootCmd.Execute()
 
@@ -102,7 +102,7 @@ func TestAllCmds_Internal(t *testing.T) {
 
 	RootCmd.SetArgs([]string{"task", "complete", "task-core-foundation"})
 	RootCmd.Execute()
-	
+
 	// 8. Doctor
 	RootCmd.SetArgs([]string{"doctor"})
 	RootCmd.Execute()

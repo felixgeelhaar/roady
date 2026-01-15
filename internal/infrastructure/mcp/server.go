@@ -6,7 +6,6 @@ import (
 
 	"github.com/felixgeelhaar/mcp-go"
 	"github.com/felixgeelhaar/roady/internal/infrastructure/wiring"
-	"github.com/felixgeelhaar/roady/pkg/ai"
 	"github.com/felixgeelhaar/roady/pkg/application"
 	"github.com/felixgeelhaar/roady/pkg/domain/planning"
 )
@@ -20,6 +19,9 @@ type Server struct {
 	policySvc *application.PolicyService
 	taskSvc   *application.TaskService
 	aiSvc     *application.AIPlanningService
+	gitSvc    *application.GitService
+	syncSvc   *application.SyncService
+	auditSvc  *application.AuditService
 }
 
 var (
@@ -28,15 +30,13 @@ var (
 	BuildDate   = "unknown"
 )
 
-func NewServer(root string) *Server {
-	workspace := wiring.NewWorkspace(root)
-	repo := workspace.Repo
-	audit := workspace.Audit
-
-	provider, err := wiring.LoadAIProvider(root)
+func NewServer(root string) (*Server, error) {
+	services, err := wiring.BuildAppServices(root)
 	if err != nil {
-		baseProvider, _ := ai.GetDefaultProvider("ollama", "llama3")
-		provider = ai.NewResilientProvider(baseProvider)
+		return nil, fmt.Errorf("build services: %w", err)
+	}
+	if services == nil {
+		return nil, fmt.Errorf("services initialization returned nil")
 	}
 
 	info := mcp.ServerInfo{
@@ -52,17 +52,20 @@ func NewServer(root string) *Server {
 			mcp.WithBuildInfo(BuildCommit, BuildDate),
 			mcp.WithInstructions("Use tools to read spec/plan, generate plans, detect drift, and transition tasks."),
 		),
-		initSvc:   application.NewInitService(repo, audit),
-		specSvc:   application.NewSpecService(repo),
-		planSvc:   application.NewPlanService(repo, audit),
-		driftSvc:  application.NewDriftService(repo),
-		policySvc: application.NewPolicyService(repo),
-		taskSvc:   application.NewTaskService(repo, audit),
-		aiSvc:     application.NewAIPlanningService(repo, provider, audit),
+		initSvc:   services.Init,
+		specSvc:   services.Spec,
+		planSvc:   services.Plan,
+		driftSvc:  services.Drift,
+		policySvc: services.Policy,
+		taskSvc:   services.Task,
+		aiSvc:     services.AI,
+		gitSvc:    services.Git,
+		syncSvc:   services.Sync,
+		auditSvc:  services.Audit,
 	}
 
 	s.registerTools()
-	return s
+	return s, nil
 }
 
 type InitArgs struct {
@@ -71,6 +74,10 @@ type InitArgs struct {
 
 type UpdatePlanArgs struct {
 	Tasks []planning.Task `json:"tasks" jsonschema:"description=The list of tasks to define the plan"`
+}
+
+type SyncArgs struct {
+	PluginPath string `json:"plugin_path" jsonschema:"description=Path to the syncer plugin binary"`
 }
 
 func (s *Server) registerTools() {
@@ -108,6 +115,11 @@ func (s *Server) registerTools() {
 	s.mcpServer.Tool("roady_detect_drift").
 		Description("Detect discrepancies between the current Spec and Plan").
 		Handler(s.handleDetectDrift)
+
+	// Tool: roady_accept_drift
+	s.mcpServer.Tool("roady_accept_drift").
+		Description("Accept the current drift by locking the spec snapshot").
+		Handler(s.handleAcceptDrift)
 
 	// Tool: roady_status
 	s.mcpServer.Tool("roady_status").
@@ -163,16 +175,27 @@ func (s *Server) registerTools() {
 	s.mcpServer.Tool("roady_git_sync").
 		Description("Synchronize task statuses by scanning git commit messages for markers").
 		Handler(s.handleGitSync)
+
+	// Tool: roady_sync (External Plugins)
+	s.mcpServer.Tool("roady_sync").
+		Description("Sync the plan with an external system via a plugin binary").
+		Handler(s.handleSync)
 }
 
 func (s *Server) handleForecast(ctx context.Context, args struct{}) (string, error) {
-	velocity, err := s.aiSvc.GetAuditService().GetVelocity()
+	velocity, err := s.auditSvc.GetVelocity()
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("get velocity: %w", err)
 	}
 
-	plan, _ := s.planSvc.GetPlan()
-	state, _ := s.planSvc.GetState()
+	plan, err := s.planSvc.GetPlan()
+	if err != nil {
+		return "", fmt.Errorf("load plan: %w", err)
+	}
+	state, err := s.planSvc.GetState()
+	if err != nil {
+		return "", fmt.Errorf("load state: %w", err)
+	}
 	remaining := 0
 	for _, t := range plan.Tasks {
 		if state.TaskStates[t.ID].Status != planning.StatusVerified {
@@ -188,16 +211,35 @@ func (s *Server) handleOrgStatus(ctx context.Context, args struct{}) (any, error
 	return "Organizational status check initiated. Use CLI for full table view.", nil
 }
 
-func (s *Server) handleGitSync(ctx context.Context, args struct{}) (string, error) {
-	return "Git sync triggered.", nil
+func (s *Server) handleGitSync(ctx context.Context, args struct{}) (any, error) {
+	results, err := s.gitSvc.SyncMarkers(10)
+	if err != nil {
+		return nil, err
+	}
+	return results, nil
+}
+
+func (s *Server) handleSync(ctx context.Context, args SyncArgs) (any, error) {
+	results, err := s.syncSvc.SyncWithPlugin(args.PluginPath)
+	if err != nil {
+		return nil, err
+	}
+	return results, nil
 }
 
 func (s *Server) handleExplainDrift(ctx context.Context, args struct{}) (string, error) {
-	report, err := s.driftSvc.DetectDrift()
+	report, err := s.driftSvc.DetectDrift(ctx)
 	if err != nil {
 		return "", err
 	}
 	return s.aiSvc.ExplainDrift(ctx, report)
+}
+
+func (s *Server) handleAcceptDrift(ctx context.Context, args struct{}) (string, error) {
+	if err := s.driftSvc.AcceptDrift(); err != nil {
+		return "", err
+	}
+	return "Drift accepted and spec snapshot locked.", nil
 }
 
 type AddFeatureArgs struct {
@@ -276,7 +318,7 @@ func (s *Server) handleGetState(ctx context.Context, args struct{}) (any, error)
 }
 
 func (s *Server) handleGeneratePlan(ctx context.Context, args struct{}) (string, error) {
-	plan, err := s.planSvc.GeneratePlan()
+	plan, err := s.planSvc.GeneratePlan(ctx)
 	if err != nil {
 		return "", err
 	}
@@ -292,7 +334,7 @@ func (s *Server) handleUpdatePlan(ctx context.Context, args UpdatePlanArgs) (str
 }
 
 func (s *Server) handleDetectDrift(ctx context.Context, args struct{}) (any, error) {
-	report, err := s.driftSvc.DetectDrift()
+	report, err := s.driftSvc.DetectDrift(ctx)
 	if err != nil {
 		return nil, err
 	}

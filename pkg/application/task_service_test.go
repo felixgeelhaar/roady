@@ -21,7 +21,8 @@ func TestTaskService_Transition_Mock(t *testing.T) {
 		},
 	}
 	audit := application.NewAuditService(repo)
-	service := application.NewTaskService(repo, audit)
+	policy := application.NewPolicyService(repo)
+	service := application.NewTaskService(repo, audit, policy)
 
 	// 1. Valid
 	err := service.TransitionTask("t1", "start", "test-user", "some evidence")
@@ -55,7 +56,8 @@ func TestTaskService_LinkTask(t *testing.T) {
 		},
 	}
 	audit := application.NewAuditService(repo)
-	service := application.NewTaskService(repo, audit)
+	policy := application.NewPolicyService(repo)
+	service := application.NewTaskService(repo, audit, policy)
 
 	ref := planning.ExternalRef{
 		ID:         "123",

@@ -14,13 +14,13 @@ func (r *FilesystemRepository) RecordEvent(event domain.Event) error {
 	if err != nil {
 		return err
 	}
-	
-data, err := json.Marshal(event)
+
+	data, err := json.Marshal(event)
 	if err != nil {
 		return fmt.Errorf("failed to marshal event: %w", err)
 	}
-	
-data = append(data, '\n')
+
+	data = append(data, '\n')
 
 	// #nosec G304 -- Path is resolved and validated via resolvePath
 	f, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)

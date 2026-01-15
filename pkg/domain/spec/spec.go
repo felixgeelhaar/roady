@@ -44,7 +44,7 @@ type Constraint struct {
 func (s *ProductSpec) Hash() string {
 	h := sha256.New()
 	h.Write([]byte(fmt.Sprintf("%s:%s:%s", s.ID, s.Version, s.Title)))
-	
+
 	// Hash features and descriptions
 	for _, f := range s.Features {
 		h.Write([]byte(f.ID))
@@ -69,7 +69,7 @@ func (s *ProductSpec) Validate() []error {
 	if len(s.Features) == 0 {
 		errs = append(errs, fmt.Errorf("spec must have at least one feature"))
 	}
-	
+
 	seenIDs := make(map[string]bool)
 	for i, f := range s.Features {
 		if f.ID == "" {

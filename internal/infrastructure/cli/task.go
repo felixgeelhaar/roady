@@ -25,7 +25,8 @@ func createTaskCommand(use, short, event string) *cobra.Command {
 			workspace := wiring.NewWorkspace(cwd)
 			repo := workspace.Repo
 			audit := workspace.Audit
-			service := application.NewTaskService(repo, audit)
+			policy := application.NewPolicyService(repo)
+			service := application.NewTaskService(repo, audit, policy)
 			taskID := args[0]
 
 			actor := os.Getenv("USER")

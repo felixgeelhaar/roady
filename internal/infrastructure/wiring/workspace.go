@@ -9,6 +9,7 @@ import (
 type Workspace struct {
 	Repo  *storage.FilesystemRepository
 	Audit *application.AuditService
+	Usage *application.UsageService
 }
 
 func NewWorkspace(root string) *Workspace {
@@ -16,5 +17,6 @@ func NewWorkspace(root string) *Workspace {
 	return &Workspace{
 		Repo:  repo,
 		Audit: application.NewAuditService(repo),
+		Usage: application.NewUsageService(repo),
 	}
 }

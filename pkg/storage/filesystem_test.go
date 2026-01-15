@@ -16,7 +16,7 @@ func TestFilesystemRepository_Thorough(t *testing.T) {
 	defer os.RemoveAll(tempDir)
 
 	repo := NewFilesystemRepository(tempDir)
-	
+
 	// 1. Init
 	if err := repo.Initialize(); err != nil {
 		t.Fatal(err)
@@ -114,7 +114,7 @@ func TestFilesystemRepository_Thorough(t *testing.T) {
 	if err == nil {
 		t.Error("expected error for nested path")
 	}
-	
+
 	validPath, _ := repo.ResolvePath("spec.yaml")
 	if !strings.Contains(validPath, ".roady/spec.yaml") {
 		t.Errorf("Unexpected path: %s", validPath)
@@ -155,7 +155,7 @@ func TestFilesystemRepository_Thorough(t *testing.T) {
 	}
 
 	// 14. Read failure (is a directory)
-	os.Remove(repoEmpty.root+"/.roady/spec.yaml")
+	os.Remove(repoEmpty.root + "/.roady/spec.yaml")
 	os.Mkdir(repoEmpty.root+"/.roady/spec.yaml", 0700)
 	if _, err := repoEmpty.LoadSpec(); err == nil {
 		t.Error("expected read error for directory (spec)")
@@ -164,7 +164,7 @@ func TestFilesystemRepository_Thorough(t *testing.T) {
 	os.Mkdir(repoEmpty.root+"/.roady/policy.isadir", 0700)
 	// We can't rename because PolicyFile is a constant "policy.yaml"
 	// I'll just remove the file and create a dir with same name
-	os.Remove(repoEmpty.root+"/.roady/policy.yaml")
+	os.Remove(repoEmpty.root + "/.roady/policy.yaml")
 	os.Mkdir(repoEmpty.root+"/.roady/policy.yaml", 0700)
 	if _, err := repoEmpty.LoadPolicy(); err == nil {
 		t.Error("expected read error for directory (policy)")
@@ -173,11 +173,11 @@ func TestFilesystemRepository_Thorough(t *testing.T) {
 
 func TestFilesystemRepository_ResolvePath_Edge(t *testing.T) {
 	repo := NewFilesystemRepository("/tmp")
-	
+
 	tests := []struct {
-		name     string
-		input    string
-		wantErr  bool
+		name    string
+		input   string
+		wantErr bool
 	}{
 		{"Empty", "", true},
 		{"Dot", ".", true},
@@ -200,7 +200,7 @@ func TestFilesystemRepository_Errors(t *testing.T) {
 	defer os.RemoveAll(tempDir)
 	repo := NewFilesystemRepository(tempDir)
 	repo.Initialize()
-	
+
 	// Make .roady read-only to force WriteFile failure
 	os.Chmod(filepath.Join(repo.root, ".roady"), 0400)
 	defer os.Chmod(filepath.Join(repo.root, ".roady"), 0700)
@@ -228,7 +228,7 @@ func TestFilesystemRepository_Errors(t *testing.T) {
 func TestFilesystemRepository_InitError(t *testing.T) {
 	tempFile, _ := os.CreateTemp("", "roady-init-fail-*")
 	defer os.Remove(tempFile.Name())
-	
+
 	repo := NewFilesystemRepository(tempFile.Name())
 	if err := repo.Initialize(); err == nil {
 		t.Error("expected init error when root is a file")

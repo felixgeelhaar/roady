@@ -45,7 +45,7 @@ func (r *FilesystemRepository) ResolvePath(filename string) (string, error) {
 	if filename == "" {
 		return "", fmt.Errorf("filename cannot be empty")
 	}
-	
+
 	// Base directory is strictly root/.roady
 	baseDir := filepath.Join(r.root, RoadyDir)
 	fullPath := filepath.Join(baseDir, filename)

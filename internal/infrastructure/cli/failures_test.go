@@ -80,5 +80,3 @@ func TestCmdFailures_Internal(t *testing.T) {
 	RootCmd.SetArgs([]string{"dashboard"})
 	_ = RootCmd.Execute()
 }
-
-	

@@ -48,7 +48,7 @@ type Task struct {
 	Title       string       `json:"title" yaml:"title"`
 	Description string       `json:"description" yaml:"description"`
 	Priority    TaskPriority `json:"priority" yaml:"priority"`
-	Estimate    string       `json:"estimate" yaml:"estimate"` // e.g., "4h", "1d"
+	Estimate    string       `json:"estimate" yaml:"estimate"`     // e.g., "4h", "1d"
 	DependsOn   []string     `json:"depends_on" yaml:"depends_on"` // IDs of tasks this task depends on
 	FeatureID   string       `json:"feature_id" yaml:"feature_id"` // Link to the feature in the spec
 }

@@ -191,11 +191,11 @@ func (s *LinearSyncer) fetchTeamIssues() ([]linearIssue, error) {
 		return nil, fmt.Errorf("team not found")
 	}
 	issuesData := team["issues"].(map[string]interface{})["nodes"]
-	
+
 	var issues []linearIssue
 	marshaled, _ := json.Marshal(issuesData)
 	json.Unmarshal(marshaled, &issues)
-	
+
 	return issues, nil
 }
 
@@ -216,7 +216,7 @@ func (s *LinearSyncer) createIssue(task planning.Task) (*linearIssue, error) {
 			}
 		}
 	}`
-	
+
 	desc := fmt.Sprintf("%s\n\n---\nroady-id: %s", task.Description, task.ID)
 	data, err := s.query(q, map[string]interface{}{
 		"teamId":      s.teamID,
@@ -235,7 +235,7 @@ func (s *LinearSyncer) createIssue(task planning.Task) (*linearIssue, error) {
 	var issue linearIssue
 	marshaled, _ := json.Marshal(createData["issue"])
 	json.Unmarshal(marshaled, &issue)
-	
+
 	return &issue, nil
 }
 

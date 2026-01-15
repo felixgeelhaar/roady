@@ -12,12 +12,15 @@ type AuditService struct {
 	repo domain.WorkspaceRepository
 }
 
+// Compile-time check that AuditService implements AuditLogger
+var _ domain.AuditLogger = (*AuditService)(nil)
+
 func NewAuditService(repo domain.WorkspaceRepository) *AuditService {
 	return &AuditService{repo: repo}
 }
 
 func (s *AuditService) Log(action string, actor string, metadata map[string]interface{}) error {
-	// 1. Get the latest event to continue the hash chain
+	// Get the latest event to continue the hash chain
 	events, _ := s.repo.LoadEvents()
 	prevHash := ""
 	if len(events) > 0 {
@@ -34,37 +37,7 @@ func (s *AuditService) Log(action string, actor string, metadata map[string]inte
 	}
 	event.Hash = event.CalculateHash()
 
-	if err := s.repo.RecordEvent(event); err != nil {
-		return err
-	}
-
-	// Update Usage Stats
-	stats, err := s.repo.LoadUsage()
-	if err != nil || stats == nil {
-		stats = &domain.UsageStats{
-			ProviderStats: make(map[string]int),
-		}
-	}
-	if stats.ProviderStats == nil {
-		stats.ProviderStats = make(map[string]int)
-	}
-
-	stats.TotalCommands++
-	stats.LastCommandAt = time.Now()
-
-	// Track AI tokens if present in metadata
-	if actor == "ai" && metadata != nil {
-		if model, ok := metadata["model"].(string); ok {
-			if in, ok := metadata["input_tokens"].(int); ok {
-				stats.ProviderStats[model+":input"] += in
-			}
-			if out, ok := metadata["output_tokens"].(int); ok {
-				stats.ProviderStats[model+":output"] += out
-			}
-		}
-	}
-
-	return s.repo.UpdateUsage(*stats)
+	return s.repo.RecordEvent(event)
 }
 
 func (s *AuditService) GetTimeline() ([]domain.Event, error) {
@@ -111,7 +84,7 @@ func (s *AuditService) GetVelocity() (float64, error) {
 
 	var firstVerify time.Time
 	verifiedCount := 0
-	
+
 	for _, e := range events {
 		if e.Action == "task.transition" && e.Metadata["status"] == "verified" {
 			if firstVerify.IsZero() {

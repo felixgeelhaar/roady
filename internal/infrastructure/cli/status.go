@@ -2,11 +2,8 @@ package cli
 
 import (
 	"fmt"
-	"os"
 	"sort"
 
-	"github.com/felixgeelhaar/roady/internal/infrastructure/wiring"
-	"github.com/felixgeelhaar/roady/pkg/application"
 	"github.com/felixgeelhaar/roady/pkg/domain/planning"
 	"github.com/spf13/cobra"
 )
@@ -15,8 +12,12 @@ var statusCmd = &cobra.Command{
 	Use:   "status",
 	Short: "Show a high-level summary of the project state",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		cwd, _ := os.Getwd()
-		repo := wiring.NewWorkspace(cwd).Repo
+		services, err := loadServicesForCurrentDir()
+		if err != nil {
+			return err
+		}
+
+		repo := services.Workspace.Repo
 
 		spec, err := repo.LoadSpec()
 		if err != nil {
@@ -95,7 +96,7 @@ var statusCmd = &cobra.Command{
 			if sI != sJ {
 				return statusRank[sI] < statusRank[sJ]
 			}
-			return sortedTasks[i].Priority > sortedTasks[j].Priority // Sub-sort by priority
+			return sortedTasks[i].Priority > sortedTasks[j].Priority
 		})
 
 		for _, t := range sortedTasks {
@@ -120,8 +121,7 @@ var statusCmd = &cobra.Command{
 		}
 
 		// Implicit Drift Check
-		driftSvc := application.NewDriftService(repo)
-		report, err := driftSvc.DetectDrift()
+		report, err := services.Drift.DetectDrift(cmd.Context())
 		if err == nil && len(report.Issues) > 0 {
 			fmt.Printf("\nDRIFT DETECTED: %d issues found. Run 'roady drift detect' for details.\n", len(report.Issues))
 		}

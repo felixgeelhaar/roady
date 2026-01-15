@@ -9,12 +9,13 @@ import (
 )
 
 type TaskService struct {
-	repo  domain.WorkspaceRepository
-	audit *AuditService
+	repo   domain.WorkspaceRepository
+	audit  domain.AuditLogger
+	policy *PolicyService
 }
 
-func NewTaskService(repo domain.WorkspaceRepository, audit *AuditService) *TaskService {
-	return &TaskService{repo: repo, audit: audit}
+func NewTaskService(repo domain.WorkspaceRepository, audit domain.AuditLogger, policy *PolicyService) *TaskService {
+	return &TaskService{repo: repo, audit: audit, policy: policy}
 }
 
 func (s *TaskService) TransitionTask(taskID string, event string, actor string, evidence string) error {
@@ -32,8 +33,6 @@ func (s *TaskService) TransitionTask(taskID string, event string, actor string, 
 		return fmt.Errorf("no plan found")
 
 	}
-
-
 
 	found := false
 
@@ -55,8 +54,6 @@ func (s *TaskService) TransitionTask(taskID string, event string, actor string, 
 
 	}
 
-
-
 	state, err := s.repo.LoadState()
 
 	if err != nil {
@@ -64,8 +61,6 @@ func (s *TaskService) TransitionTask(taskID string, event string, actor string, 
 		return err
 
 	}
-
-
 
 	// 1. Get Current Status (default to Pending if not in state)
 
@@ -77,12 +72,7 @@ func (s *TaskService) TransitionTask(taskID string, event string, actor string, 
 
 	}
 
-
-
 	// 2. Setup Guard with Policy Service
-
-	policySvc := NewPolicyService(s.repo)
-
 	guard := func(tid string, ev string) bool {
 
 		// Block starts if plan not approved
@@ -99,13 +89,11 @@ func (s *TaskService) TransitionTask(taskID string, event string, actor string, 
 
 		}
 
-		err := policySvc.ValidateTransition(tid, ev)
+		err := s.policy.ValidateTransition(tid, ev)
 
 		return err == nil
 
 	}
-
-
 
 	// 3. FSM Transition
 
@@ -116,8 +104,6 @@ func (s *TaskService) TransitionTask(taskID string, event string, actor string, 
 		return err
 
 	}
-
-
 
 	if err := fsm.Transition(event); err != nil {
 
@@ -133,7 +119,7 @@ func (s *TaskService) TransitionTask(taskID string, event string, actor string, 
 
 			}
 
-			if pErr := policySvc.ValidateTransition(taskID, event); pErr != nil {
+			if pErr := s.policy.ValidateTransition(taskID, event); pErr != nil {
 
 				return pErr
 
@@ -145,8 +131,6 @@ func (s *TaskService) TransitionTask(taskID string, event string, actor string, 
 
 	}
 
-
-
 	// 4. Update State
 
 	newState := fsm.Current()
@@ -154,8 +138,6 @@ func (s *TaskService) TransitionTask(taskID string, event string, actor string, 
 	result := state.TaskStates[taskID]
 
 	result.Status = planning.TaskStatus(newState)
-
-
 
 	// Ownership Inference (Horizon 3)
 
@@ -165,8 +147,6 @@ func (s *TaskService) TransitionTask(taskID string, event string, actor string, 
 
 	}
 
-
-
 	// Status Confidence / Evidence (Horizon 3)
 
 	if evidence != "" {
@@ -175,288 +155,66 @@ func (s *TaskService) TransitionTask(taskID string, event string, actor string, 
 
 	}
 
+	state.TaskStates[taskID] = result
 
+	state.UpdatedAt = time.Now()
 
-		state.TaskStates[taskID] = result
+	if err := s.repo.SaveState(state); err != nil {
 
+		return err
 
+	}
 
-		state.UpdatedAt = time.Now()
+	return s.audit.Log("task.transition", actor, map[string]interface{}{
 
+		"task_id": taskID,
 
+		"event": event,
 
-	
+		"status": newState,
 
+		"evidence": evidence,
+	})
 
+}
 
-		if err := s.repo.SaveState(state); err != nil {
+func (s *TaskService) LinkTask(taskID string, provider string, ref planning.ExternalRef) error {
 
+	state, err := s.repo.LoadState()
 
+	if err != nil {
 
-			return err
+		return err
 
+	}
 
+	result := state.TaskStates[taskID]
 
-		}
+	if result.ExternalRefs == nil {
 
+		result.ExternalRefs = make(map[string]planning.ExternalRef)
 
+	}
 
-	
+	result.ExternalRefs[provider] = ref
 
+	state.TaskStates[taskID] = result
 
+	state.UpdatedAt = time.Now()
 
-				return s.audit.Log("task.transition", actor, map[string]interface{}{
+	if err := s.repo.SaveState(state); err != nil {
 
+		return err
 
+	}
 
-	
+	return s.audit.Log("task.link", "plugin", map[string]interface{}{
 
+		"task_id": taskID,
 
+		"provider": provider,
 
-					"task_id":  taskID,
+		"ref": ref.Identifier,
+	})
 
-
-
-	
-
-
-
-					"event":    event,
-
-
-
-	
-
-
-
-					"status":   newState,
-
-
-
-	
-
-
-
-					"evidence": evidence,
-
-
-
-	
-
-
-
-				})
-
-
-
-	
-
-
-
-		}
-
-
-
-	
-
-
-
-		
-
-
-
-	
-
-
-
-		func (s *TaskService) LinkTask(taskID string, provider string, ref planning.ExternalRef) error {
-
-
-
-	
-
-
-
-			state, err := s.repo.LoadState()
-
-
-
-	
-
-
-
-			if err != nil {
-
-
-
-	
-
-
-
-				return err
-
-
-
-	
-
-
-
-			}
-
-
-
-	
-
-
-
-		
-
-
-
-	
-
-
-
-			result := state.TaskStates[taskID]
-
-
-
-	
-
-
-
-			if result.ExternalRefs == nil {
-
-
-
-	
-
-
-
-				result.ExternalRefs = make(map[string]planning.ExternalRef)
-
-
-
-	
-
-
-
-			}
-
-
-
-	
-
-
-
-			result.ExternalRefs[provider] = ref
-
-
-
-	
-
-
-
-			state.TaskStates[taskID] = result
-
-
-
-	
-
-
-
-			state.UpdatedAt = time.Now()
-
-
-
-	
-
-
-
-		
-
-
-
-	
-
-
-
-			if err := s.repo.SaveState(state); err != nil {
-
-
-
-	
-
-
-
-				return err
-
-
-
-	
-
-
-
-			}
-
-
-
-	
-
-
-
-		
-
-
-
-	
-
-
-
-			return s.audit.Log("task.link", "plugin", map[string]interface{}{
-
-
-
-	
-
-
-
-				"task_id":  taskID,
-
-
-
-	
-
-
-
-				"provider": provider,
-
-
-
-	
-
-
-
-				"ref":      ref.Identifier,
-
-
-
-	
-
-
-
-			})
-
-
-
-	
-
-
-
-		}
-
-
-
-	
-
-
+}

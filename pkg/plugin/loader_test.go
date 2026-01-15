@@ -57,3 +57,26 @@ func TestLoader_LoadError(t *testing.T) {
 		t.Error("expected error for invalid plugin path")
 	}
 }
+
+func TestLoader_LoadDirectory(t *testing.T) {
+	tempDir := t.TempDir()
+	l := NewLoader()
+	_, err := l.Load(tempDir)
+	if err == nil {
+		t.Error("expected error for directory path")
+	}
+}
+
+func TestLoader_LoadNonExecutable(t *testing.T) {
+	tempDir := t.TempDir()
+	filePath := filepath.Join(tempDir, "plugin")
+	if err := os.WriteFile(filePath, []byte("not executable"), 0644); err != nil {
+		t.Fatalf("create file: %v", err)
+	}
+
+	l := NewLoader()
+	_, err := l.Load(filePath)
+	if err == nil {
+		t.Error("expected error for non-executable file")
+	}
+}

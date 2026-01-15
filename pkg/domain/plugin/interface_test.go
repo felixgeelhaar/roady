@@ -2,6 +2,8 @@ package plugin_test
 
 import (
 	"errors"
+	"net"
+	"net/rpc"
 	"testing"
 
 	"github.com/felixgeelhaar/roady/pkg/domain/planning"
@@ -53,11 +55,6 @@ func TestSyncerRPC_Error(t *testing.T) {
 	}
 }
 
-type FailSyncer struct{}
-func (f *FailSyncer) Sync(plan *planning.Plan, state *planning.ExecutionState) (map[string]planning.TaskStatus, error) {
-	return nil, errors.New("fail")
-}
-
 func TestSyncerPlugin_Methods(t *testing.T) {
 	p := &plugin.SyncerPlugin{Impl: &StubSyncer{}}
 	if _, err := p.Server(nil); err != nil {
@@ -66,12 +63,41 @@ func TestSyncerPlugin_Methods(t *testing.T) {
 	// Client call requires rpc.Client, but we hit the line
 }
 
-func TestSyncerRPCClient(t *testing.T) {
-	// Stub client is hard without real server, but we can test the struct
+func TestSyncerRPCClientNil(t *testing.T) {
 	c := &plugin.SyncerRPCClient{}
 	if c == nil {
-		t.Error("client nil")
+		t.Fatal("expected non-nil client")
 	}
-	
-	// We can't call Sync without a real rpc.Client
+}
+
+func TestSyncerRPCClientCalls(t *testing.T) {
+	serverConn, clientConn := net.Pipe()
+	server := rpc.NewServer()
+	stub := &StubSyncer{
+		Response: map[string]planning.TaskStatus{"t1": planning.StatusDone},
+	}
+	if err := server.RegisterName("Plugin", &plugin.SyncerRPCServer{Impl: stub}); err != nil {
+		t.Fatalf("register server: %v", err)
+	}
+	go server.ServeConn(serverConn)
+
+	client := rpc.NewClient(clientConn)
+	rpcClient := &plugin.SyncerRPCClient{Client: client}
+
+	defer func() {
+		client.Close()
+		serverConn.Close()
+	}()
+
+	if err := rpcClient.Init(map[string]string{"foo": "bar"}); err != nil {
+		t.Fatalf("Init failed: %v", err)
+	}
+
+	result, err := rpcClient.Sync(&planning.Plan{}, &planning.ExecutionState{})
+	if err != nil {
+		t.Fatalf("Sync failed: %v", err)
+	}
+	if result.StatusUpdates["t1"] != planning.StatusDone {
+		t.Fatalf("unexpected status updates: %#v", result)
+	}
 }

@@ -1,6 +1,7 @@
 package application_test
 
 import (
+	"context"
 	"errors"
 	"os"
 	"path/filepath"
@@ -19,7 +20,9 @@ func TestDriftService_Detect(t *testing.T) {
 
 	repo := storage.NewFilesystemRepository(tempDir)
 	repo.Initialize()
-	service := application.NewDriftService(repo)
+	audit := application.NewAuditService(repo)
+	policy := application.NewPolicyService(repo)
+	service := application.NewDriftService(repo, audit, storage.NewCodebaseInspector(), policy)
 
 	// 1. Spec Drift (Missing Task)
 	s := &spec.ProductSpec{Features: []spec.Feature{{
@@ -27,11 +30,11 @@ func TestDriftService_Detect(t *testing.T) {
 		Requirements: []spec.Requirement{{ID: "r1", Title: "R1"}},
 	}}}
 	repo.SaveSpec(s)
-	
+
 	plan := &planning.Plan{Tasks: []planning.Task{}}
 	repo.SavePlan(plan)
 
-	report, err := service.DetectDrift()
+	report, err := service.DetectDrift(context.Background())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -54,7 +57,7 @@ func TestDriftService_Detect(t *testing.T) {
 		},
 	})
 
-	report, err = service.DetectDrift()
+	report, err = service.DetectDrift(context.Background())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -72,7 +75,7 @@ func TestDriftService_Detect(t *testing.T) {
 
 	// 3. Normal code drift (file exists and not empty)
 	os.WriteFile(emptyFile, []byte("content"), 0600)
-	report, _ = service.DetectDrift()
+	report, _ = service.DetectDrift(context.Background())
 	// Should have 0 issues now because task-r1 matches r1 and code is present
 	if len(report.Issues) != 0 {
 		t.Errorf("Expected 0 issues for valid implementation, got %+v", report.Issues)
@@ -85,9 +88,11 @@ func TestDriftService_Detect_Mock(t *testing.T) {
 		Plan:  &planning.Plan{Tasks: []planning.Task{}},
 		State: &planning.ExecutionState{},
 	}
-	service := application.NewDriftService(repo)
+	audit := application.NewAuditService(repo)
+	policy := application.NewPolicyService(repo)
+	service := application.NewDriftService(repo, audit, &MockInspector{}, policy)
 
-	report, _ := service.DetectDrift()
+	report, _ := service.DetectDrift(context.Background())
 	if len(report.Issues) == 0 {
 		t.Error("Expected drift")
 	}
@@ -95,10 +100,58 @@ func TestDriftService_Detect_Mock(t *testing.T) {
 
 func TestDriftService_Errors(t *testing.T) {
 	repo := &MockRepo{LoadError: errors.New("fail")}
-	service := application.NewDriftService(repo)
+	audit := application.NewAuditService(repo)
+	policy := application.NewPolicyService(repo)
+	service := application.NewDriftService(repo, audit, &MockInspector{}, policy)
 
-	_, err := service.DetectDrift()
+	_, err := service.DetectDrift(context.Background())
 	if err == nil {
 		t.Error("expected error on load fail")
+	}
+}
+
+func TestDriftService_AcceptDrift(t *testing.T) {
+	tempDir, _ := os.MkdirTemp("", "roady-drift-accept-*")
+	defer os.RemoveAll(tempDir)
+
+	repo := storage.NewFilesystemRepository(tempDir)
+	if err := repo.Initialize(); err != nil {
+		t.Fatalf("initialize repo: %v", err)
+	}
+
+	spec := &spec.ProductSpec{ID: "accept-spec", Title: "Accept Spec"}
+	if err := repo.SaveSpec(spec); err != nil {
+		t.Fatalf("save spec: %v", err)
+	}
+
+	audit := application.NewAuditService(repo)
+	policy := application.NewPolicyService(repo)
+	service := application.NewDriftService(repo, audit, storage.NewCodebaseInspector(), policy)
+
+	if err := service.AcceptDrift(); err != nil {
+		t.Fatalf("accept drift failed: %v", err)
+	}
+
+	lock, err := repo.LoadSpecLock()
+	if err != nil {
+		t.Fatalf("load spec lock: %v", err)
+	}
+	if lock == nil || lock.ID != spec.ID {
+		t.Fatalf("expected locked spec, got %+v", lock)
+	}
+
+	events, err := repo.LoadEvents()
+	if err != nil {
+		t.Fatalf("load events: %v", err)
+	}
+	if len(events) == 0 {
+		t.Fatal("expected governance event")
+	}
+	last := events[len(events)-1]
+	if last.Action != "drift.accepted" {
+		t.Fatalf("unexpected event action: %s", last.Action)
+	}
+	if id, _ := last.Metadata["spec_id"]; id != spec.ID {
+		t.Fatalf("unexpected metadata: %+v", last.Metadata)
 	}
 }

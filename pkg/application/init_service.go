@@ -25,7 +25,7 @@ func (s *InitService) InitializeProject(name string) error {
 	if err := s.repo.Initialize(); err != nil {
 		return err
 	}
-	
+
 	if err := s.audit.Log("project.initialized", "cli", map[string]interface{}{
 		"project_name": name,
 	}); err != nil {

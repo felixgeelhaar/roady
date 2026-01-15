@@ -97,7 +97,7 @@ func (s *PolicyService) ValidateTransition(taskID string, event string) error {
 			if strings.Contains(depID, ":") {
 				parts := strings.Split(depID, ":")
 				extProject, extTask := parts[0], parts[1]
-				
+
 				// Discovery loop to find the project
 				extRepoPath, found := s.findExternalProject(extProject)
 				if !found {
@@ -132,25 +132,34 @@ func (s *PolicyService) ValidateTransition(taskID string, event string) error {
 }
 
 func (s *PolicyService) findExternalProject(name string) (string, bool) {
-	cwd, _ := os.Getwd()
-	
+	cwd, err := os.Getwd()
+	if err != nil {
+		return "", false
+	}
+
 	// Start from parent of current repo to find siblings
 	root := filepath.Dir(cwd)
 
 	foundPath := ""
-	_ = filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
-		if err != nil { return nil }
+	walkErr := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return nil // Skip inaccessible paths
+		}
 		if info.IsDir() && info.Name() == ".roady" {
 			projectDir := filepath.Dir(path)
 			repo := storage.NewFilesystemRepository(projectDir)
-			spec, _ := repo.LoadSpec()
-			if spec != nil && (spec.ID == name || spec.Title == name) {
+			spec, loadErr := repo.LoadSpec()
+			if loadErr == nil && spec != nil && (spec.ID == name || spec.Title == name) {
 				foundPath = projectDir
 				return filepath.SkipDir
 			}
 		}
 		return nil
 	})
+
+	if walkErr != nil {
+		return "", false
+	}
 
 	return foundPath, foundPath != ""
 }

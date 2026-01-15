@@ -13,43 +13,43 @@ func TestProductSpec_Validate(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "Valid Spec",
-			spec: spec.ProductSpec{ID: "s1", Title: "T1", Features: []spec.Feature{{ID: "f1"}}},
+			name:    "Valid Spec",
+			spec:    spec.ProductSpec{ID: "s1", Title: "T1", Features: []spec.Feature{{ID: "f1"}}},
 			wantErr: false,
 		},
 		{
-			name: "Missing ID",
-			spec: spec.ProductSpec{Title: "T1", Features: []spec.Feature{{ID: "f1"}}},
+			name:    "Missing ID",
+			spec:    spec.ProductSpec{Title: "T1", Features: []spec.Feature{{ID: "f1"}}},
 			wantErr: true,
 		},
 		{
-			name: "Missing Title",
-			spec: spec.ProductSpec{ID: "s1", Features: []spec.Feature{{ID: "f1"}}},
+			name:    "Missing Title",
+			spec:    spec.ProductSpec{ID: "s1", Features: []spec.Feature{{ID: "f1"}}},
 			wantErr: true,
 		},
 		{
-			name: "No Features",
-			spec: spec.ProductSpec{ID: "s1", Title: "T1"},
+			name:    "No Features",
+			spec:    spec.ProductSpec{ID: "s1", Title: "T1"},
 			wantErr: true,
 		},
 		{
-			name: "Duplicate Feature ID",
-			spec: spec.ProductSpec{ID: "s1", Title: "T1", Features: []spec.Feature{{ID: "f1"}, {ID: "f1"}}},
+			name:    "Duplicate Feature ID",
+			spec:    spec.ProductSpec{ID: "s1", Title: "T1", Features: []spec.Feature{{ID: "f1"}, {ID: "f1"}}},
 			wantErr: true,
 		},
 		{
-			name: "Missing Feature ID",
-			spec: spec.ProductSpec{ID: "s1", Title: "T1", Features: []spec.Feature{{ID: ""}}},
+			name:    "Missing Feature ID",
+			spec:    spec.ProductSpec{ID: "s1", Title: "T1", Features: []spec.Feature{{ID: ""}}},
 			wantErr: true,
 		},
 		{
-			name: "Missing Requirement ID",
-			spec: spec.ProductSpec{ID: "s1", Title: "T1", Features: []spec.Feature{{ID: "f1", Requirements: []spec.Requirement{{ID: "", Title: "R1"}}}}},
+			name:    "Missing Requirement ID",
+			spec:    spec.ProductSpec{ID: "s1", Title: "T1", Features: []spec.Feature{{ID: "f1", Requirements: []spec.Requirement{{ID: "", Title: "R1"}}}}},
 			wantErr: true,
 		},
 		{
-			name: "Missing Requirement Title",
-			spec: spec.ProductSpec{ID: "s1", Title: "T1", Features: []spec.Feature{{ID: "f1", Requirements: []spec.Requirement{{ID: "r1", Title: ""}}}}},
+			name:    "Missing Requirement Title",
+			spec:    spec.ProductSpec{ID: "s1", Title: "T1", Features: []spec.Feature{{ID: "f1", Requirements: []spec.Requirement{{ID: "r1", Title: ""}}}}},
 			wantErr: true,
 		},
 	}

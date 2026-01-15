@@ -36,7 +36,7 @@ func (p *ResilientProvider) Complete(ctx context.Context, req ai.CompletionReque
 
 	// Execute with both
 	// Timeout.Execute takes (ctx, duration, func). If duration is 0, it might use default or no extra timeout.
-	// Since we set DefaultTimeout in config, passing 0 here might work if the library supports it, 
+	// Since we set DefaultTimeout in config, passing 0 here might work if the library supports it,
 	// otherwise we pass the config value again or rely on the Config's behavior.
 	// Based on typical patterns, let's pass the same 300s or 0.
 	return t.Execute(ctx, 300*time.Second, func(ctx context.Context) (*ai.CompletionResponse, error) {

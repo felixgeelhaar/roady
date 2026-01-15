@@ -96,7 +96,7 @@ func (sm *TaskStateMachine) Transition(event string) error {
 
 	// If state didn't change, check if the event was valid for the state
 	// In statekit, if no transition matches OR guard fails, state stays the same.
-	// For simplicity in this investigation, we'll assume if it didn't change, 
+	// For simplicity in this investigation, we'll assume if it didn't change,
 	// it was either invalid or blocked.
 	return fmt.Errorf("the action '%s' is not allowed while the task is in the '%s' state. Please check the task status or ensure all project policies are met.", event, before)
 }

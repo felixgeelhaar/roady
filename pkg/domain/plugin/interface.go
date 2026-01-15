@@ -18,9 +18,9 @@ type Syncer interface {
 
 // SyncResult captures the outcome of a sync operation
 type SyncResult struct {
-	StatusUpdates map[string]planning.TaskStatus `json:"status_updates"`
+	StatusUpdates map[string]planning.TaskStatus  `json:"status_updates"`
 	LinkUpdates   map[string]planning.ExternalRef `json:"link_updates"`
-	Errors        []string                       `json:"errors"`
+	Errors        []string                        `json:"errors"`
 }
 
 // SyncerPlugin is the implementation of plugin.Plugin so we can serve/consume this.
