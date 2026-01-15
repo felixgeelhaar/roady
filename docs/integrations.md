@@ -58,6 +58,21 @@ type SyncResult struct {
 }
 ```
 
+## 2. AI Configuration
+
+Roady records provider/model defaults in `.roady/ai.yaml`. If a file doesn’t exist,
+the CLI falls back to `ollama` with `llama3`. Environment variables (`ROADY_AI_PROVIDER`
+and `ROADY_AI_MODEL`) override either location.
+
+```yaml
+provider: ollama
+model: qwen3:8b
+```
+
+Use `roady ai configure` to update this file alongside `.roady/policy.yaml`, and keep
+`policy.yaml` focused on limits (`max_wip`, `allow_ai`, `token_limit`). All MCP transports
+and CLI commands read from the same wiring layer to stay in sync.
+
 ## 3. Implementation Strategy: Linear (The Pathfinder)
 
 We will implement **Linear** first because its API is modern, fast, and strict, making it a better model for Roady's DAG than Jira's complex workflows.

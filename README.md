@@ -77,6 +77,20 @@ provider: openai   # Use OpenAI or Ollama
 model: gpt-4o      # Your preferred model
 ```
 
+See `docs/ai-configuration.md` for the latest policy/provider split and governance logging details.
+
+Plan lifecycle transitions (generate/update/approve) are logged in `.roady/events.jsonl` so governance can trace when the spec-plan pair changed; the release workflow and MCP approval steps rely on those entries to show when drift was accepted.
+
+## Release Automation
+
+Use `scripts/release.sh` to run coverage recording, tests, AI plan generation, and the Relicta release workflow in a single, repeatable script:
+
+```bash
+./scripts/release.sh
+```
+
+Ensure `coverctl` and `relicta` are installed before running the script. It regenerates the plan with `--ai` so you can ship Roady and the MCP tools together.
+
 ## AI Integration (MCP)
 
 Roady is a first-class MCP server. Add it to your `claude_desktop_config.json`:

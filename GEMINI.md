@@ -10,43 +10,39 @@
 
 ## Documentation Structure
 
-The project is currently in the design and planning phase. The `docs/` directory contains the foundational documents:
+The project is in the **Implementation / Alpha** phase. The `docs/` directory contains the foundational documents:
 
-*   **`docs/vision.md`**: The high-level philosophy and "North Star" of the project. Defines what Roady is (planning engine, source of truth) and what it is not (task runner, chat transcript).
+*   **`docs/vision.md`**: The high-level philosophy and "North Star".
 *   **`docs/prd.md` (Product Requirements Document)**: Detailed capabilities for Roady Core.
-    *   **Core Capabilities:** Spec Management, Plan Generation, Drift Detection, Status & Querying.
-    *   **Interfaces:** CLI (`roady`) and MCP (Model Context Protocol).
-    *   **Scope:** Focuses on individual and repo-scoped planning (Core), excluding org-wide governance (Pro).
-*   **`docs/roadmap.md`**: The problem-driven roadmap, split into Horizons (Core Foundation, Core Maturity, Pro Exploration, Org Intelligence).
+*   **`docs/roadmap.md`**: The problem-driven roadmap.
 *   **`docs/tdd.md` (Technical Design Document)**: Architectural overview.
-    *   **Architecture:** DDD-oriented, event-driven, bounded contexts (Spec, Planning, Drift, Policy, Plugin).
-    *   **Tech Stack Components:** Mentions usage of `statekit` (state management) and `fortify` (resilience).
-    *   **Storage:** Local `.roady/` directory, git-friendly formats (YAML/JSON).
 
 ## Architecture & Design
 
-Roady is designed as a modular system with clear boundaries:
+Roady follows a **Domain-Driven Design (DDD)** approach with a clean separation of concerns:
 
-*   **Spec Context:** Handles product specifications and requirements.
-*   **Planning Context:** Manages plans as Directed Acyclic Graphs (DAGs) of tasks.
-*   **Drift Context:** Detects discrepancies between specs, plans, and actual code/state.
-*   **Interfaces:**
-    *   **CLI:** `roady init`, `roady spec`, `roady plan`, `roady drift`, `roady status`.
-    *   **MCP:** Exposes these capabilities to AI agents.
+*   **`pkg/domain/`**: Pure domain logic and entities (Spec, Planning, Drift, Policy).
+*   **`pkg/application/`**: Use-case services that orchestrate domain logic.
+*   **`internal/infrastructure/`**: Adapters for CLI (`cobra`), AI Providers, MCP, and Storage.
+*   **`pkg/plugin/`**: Infrastructure for the plugin system (based on `hashicorp/go-plugin`).
 
 ## Project Status
 
-**Current Phase:** Design & Documentation.
-**Codebase:** No source code implementation is currently present in the root directory. The project is defined by its specifications in `docs/`.
+**Current Phase:** Implementation / Alpha.
+**Codebase:**
+*   **CLI:** Fully scaffolded `cmd/roady` with commands for `init`, `spec`, `plan`, `drift`, `status`.
+*   **Core Logic:** Implemented services in `pkg/application` for Specs, Plans, and Drift.
+*   **AI:** Flexible provider architecture (`pkg/ai`) supporting Anthropic, Gemini, OpenAI, and Ollama.
+*   **Plugins:** Architecture defined in `pkg/plugin` with stubbed implementations for GitHub, Jira, and Linear.
 
 ## Intended Usage
 
-Once implemented, Roady will be used via the command line to manage the software development lifecycle:
+Roady is used via the command line or MCP:
 
 ```bash
-# Example Workflow
-roady init              # Initialize a new roady project
-roady spec generate     # Create a spec from intent/docs
-roady plan generate     # Create a plan from the spec
-roady drift detect      # Check if reality matches the plan
+# Workflow
+roady init              # Initialize project
+roady spec generate     # Create spec from context
+roady plan generate     # Generate plan DAG
+roady drift detect      # Compare plan vs reality
 ```
