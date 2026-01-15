@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(go test:*)",
+      "Bash(grep:*)",
+      "Bash(go build:*)",
+      "Bash(gofmt:*)",
+      "Bash(xargs gofmt -d)",
+      "Bash(xargs gofmt:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nrefactor: complete phase 3 best practices improvements\n\nPhase 3.1 - Context Propagation:\n- Add context.Context parameter to GeneratePlan\\(\\) and DetectDrift\\(\\)\n- Update all callers in MCP server, CLI commands\n- Add nil context checks to prevent panics\n\nPhase 3.2 - Separate UsageService from AuditService \\(SRP\\):\n- Create UsageService for token/command tracking\n- Remove usage tracking from AuditService.Log\\(\\)\n- Update wiring and CLI to use new service\n\nPhase 3.3 - Fix Code Formatting:\n- Run gofmt across all Go files\n- Fix whitespace and indentation issues\n\nPhase 3.4 - Standardize Error Messages:\n- Change \"failed to X\" patterns to \"X\"\n- Apply consistently across application layer\n- Update tests for new error patterns\n\nAll tests passing with good coverage across domain \\(82-100%\\),\napplication \\(75%\\), and infrastructure \\(78-94%\\) layers.\nEOF\n\\)\")",
+      "Bash(git rm:*)",
+      "Bash(git commit:*)",
+      "Bash(go tool cover:*)",
+      "Bash(ls:*)",
+      "Bash(go doc:*)",
+      "mcp__exa__get_code_context_exa",
+      "Bash(go get:*)",
+      "Bash(go mod tidy:*)",
+      "Bash(go list -m -json github.com/felixgeelhaar/jirasdk)",
+      "Bash(go search:*)",
+      "WebSearch",
+      "Bash(find:*)",
+      "Bash(protoc:*)"
+    ]
+  }
+}
