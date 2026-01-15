@@ -90,71 +90,195 @@ func (s *GitHubSyncer) Sync(plan *planning.Plan, state *planning.ExecutionState)
 	ctx := context.Background()
 	log.Printf("GitHub Syncer: Syncing %d tasks for repo %s/%s", len(plan.Tasks), s.owner, s.name)
 
+	result := &domainPlugin.SyncResult{
+		StatusUpdates: make(map[string]planning.TaskStatus),
+		LinkUpdates:   make(map[string]planning.ExternalRef),
+	}
+
 	// Fetch all issues with pagination
 	issues, err := s.fetchAllIssues(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	// 2. Index issues by title for simple matching
-	// In a real world, we'd use a robust ID correlation (e.g. metadata in issue body).
-	issueMap := make(map[string]*github.Issue)
+	// Index issues by roady-id marker in body (preferred) and title (fallback)
+	issueByRoadyID := make(map[string]*github.Issue)
+	issueByTitle := make(map[string]*github.Issue)
 	for _, issue := range issues {
 		// Skip pull requests
 		if issue.IsPullRequest() {
 			continue
 		}
-		issueMap[issue.GetTitle()] = issue
+		// Check for roady-id marker in body
+		if rid := extractRoadyID(issue.GetBody()); rid != "" {
+			issueByRoadyID[rid] = issue
+		}
+		issueByTitle[issue.GetTitle()] = issue
 	}
 
-	updates := make(map[string]planning.TaskStatus)
-	linkUpdates := make(map[string]planning.ExternalRef)
-	var errors []string
-
 	for _, task := range plan.Tasks {
-		issue, exists := issueMap[task.Title]
+		var targetIssue *github.Issue
 
-		if !exists {
-			// Option: Create issue if it doesn't exist?
-			// For this MVP, we only read state to avoid spamming repos unexpectedly.
-			continue
-		}
-
-		// Link update
-		linkUpdates[task.ID] = planning.ExternalRef{
-			ID:           fmt.Sprintf("%d", issue.GetNumber()),
-			Identifier:   fmt.Sprintf("#%d", issue.GetNumber()),
-			URL:          issue.GetHTMLURL(),
-			LastSyncedAt: time.Now(),
-		}
-
-		// Status update
-		ghState := issue.GetState()
-		var roadyStatus planning.TaskStatus
-
-		if ghState == "closed" {
-			roadyStatus = planning.StatusDone
-		} else {
-			// Map open to InProgress if assigned, else Todo?
-			// For now, let's just say if it's open, verify it's not Done in Roady.
-			// Ideally we map: Open -> Todo/InProgress, Closed -> Done
-			if issue.GetAssignee() != nil {
-				roadyStatus = planning.StatusInProgress
-			} else {
-				roadyStatus = planning.StatusPending
+		// 1. Check state refs first (already linked)
+		if res, ok := state.TaskStates[task.ID]; ok {
+			if ref, ok := res.ExternalRefs["github"]; ok {
+				for _, issue := range issues {
+					if issue.IsPullRequest() {
+						continue
+					}
+					if fmt.Sprintf("%d", issue.GetNumber()) == ref.ID {
+						targetIssue = issue
+						break
+					}
+				}
 			}
 		}
 
-		// Only propose update if different
-		// (The caller will handle the diff, we just report what the external world says)
-		updates[task.ID] = roadyStatus
+		// 2. Match by roady-id marker in issue body
+		if targetIssue == nil {
+			if issue, ok := issueByRoadyID[task.ID]; ok {
+				targetIssue = issue
+			}
+		}
+
+		// 3. Fall back to title matching
+		if targetIssue == nil {
+			if issue, ok := issueByTitle[task.Title]; ok {
+				targetIssue = issue
+			}
+		}
+
+		// 4. Create issue if not found
+		if targetIssue == nil {
+			issue, err := s.createIssue(ctx, task)
+			if err != nil {
+				result.Errors = append(result.Errors, fmt.Sprintf("create issue for %s: %v", task.ID, err))
+				continue
+			}
+			targetIssue = issue
+			result.LinkUpdates[task.ID] = planning.ExternalRef{
+				ID:           fmt.Sprintf("%d", issue.GetNumber()),
+				Identifier:   fmt.Sprintf("#%d", issue.GetNumber()),
+				URL:          issue.GetHTMLURL(),
+				LastSyncedAt: time.Now(),
+			}
+		} else {
+			// Update link for existing issue
+			result.LinkUpdates[task.ID] = planning.ExternalRef{
+				ID:           fmt.Sprintf("%d", targetIssue.GetNumber()),
+				Identifier:   fmt.Sprintf("#%d", targetIssue.GetNumber()),
+				URL:          targetIssue.GetHTMLURL(),
+				LastSyncedAt: time.Now(),
+			}
+		}
+
+		// Map GitHub state to Roady status
+		newStatus := mapGitHubStatus(targetIssue)
+		currentStatus := planning.StatusPending
+		if res, ok := state.TaskStates[task.ID]; ok {
+			currentStatus = res.Status
+		}
+
+		if newStatus != currentStatus {
+			result.StatusUpdates[task.ID] = newStatus
+		}
 	}
 
-	return &domainPlugin.SyncResult{
-		StatusUpdates: updates,
-		LinkUpdates:   linkUpdates,
-		Errors:        errors,
-	}, nil
+	return result, nil
+}
+
+func (s *GitHubSyncer) createIssue(ctx context.Context, task planning.Task) (*github.Issue, error) {
+	body := task.Description
+	if body == "" {
+		body = task.Title
+	}
+	body = fmt.Sprintf("%s\n\nroady-id: %s", body, task.ID)
+
+	issue, _, err := s.client.Issues.Create(ctx, s.owner, s.name, &github.IssueRequest{
+		Title: github.String(task.Title),
+		Body:  github.String(body),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return issue, nil
+}
+
+func extractRoadyID(body string) string {
+	if strings.Contains(body, "roady-id: ") {
+		idx := strings.Index(body, "roady-id: ")
+		remaining := body[idx+10:]
+		if nlIdx := strings.Index(remaining, "\n"); nlIdx != -1 {
+			return strings.TrimSpace(remaining[:nlIdx])
+		}
+		return strings.TrimSpace(remaining)
+	}
+	return ""
+}
+
+func mapGitHubStatus(issue *github.Issue) planning.TaskStatus {
+	if issue.GetState() == "closed" {
+		return planning.StatusDone
+	}
+	// Open issue: check if assigned
+	if issue.GetAssignee() != nil {
+		return planning.StatusInProgress
+	}
+	return planning.StatusPending
+}
+
+func (s *GitHubSyncer) Push(taskID string, status planning.TaskStatus) error {
+	ctx := context.Background()
+	log.Printf("GitHub Syncer: Pushing status %s for task %s", status, taskID)
+
+	// Find the issue by roady-id marker
+	issues, err := s.fetchAllIssues(ctx)
+	if err != nil {
+		return fmt.Errorf("fetch issues: %w", err)
+	}
+
+	var targetIssue *github.Issue
+	for _, issue := range issues {
+		if issue.IsPullRequest() {
+			continue
+		}
+		if extractRoadyID(issue.GetBody()) == taskID {
+			targetIssue = issue
+			break
+		}
+	}
+
+	if targetIssue == nil {
+		return fmt.Errorf("issue not found for task %s", taskID)
+	}
+
+	// Map Roady status to GitHub state
+	var newState string
+	switch status {
+	case planning.StatusDone:
+		newState = "closed"
+	case planning.StatusPending, planning.StatusInProgress, planning.StatusBlocked:
+		newState = "open"
+	default:
+		return fmt.Errorf("unsupported status: %s", status)
+	}
+
+	// Only update if state differs
+	if targetIssue.GetState() == newState {
+		log.Printf("GitHub Syncer: Issue #%d already in state %s", targetIssue.GetNumber(), newState)
+		return nil
+	}
+
+	_, _, err = s.client.Issues.Edit(ctx, s.owner, s.name, targetIssue.GetNumber(), &github.IssueRequest{
+		State: github.String(newState),
+	})
+	if err != nil {
+		return fmt.Errorf("update issue: %w", err)
+	}
+
+	log.Printf("GitHub Syncer: Updated issue #%d to state %s", targetIssue.GetNumber(), newState)
+	return nil
 }
 
 func main() {
