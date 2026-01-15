@@ -1,0 +1,45 @@
+# Example workflow for syncing Roady with GitHub Issues
+# Copy this to .github/workflows/roady-sync.yml to enable
+
+name: Roady Sync
+
+on:
+  # Sync on push to main (creates/updates issues)
+  push:
+    branches: [main]
+    paths:
+      - '.roady/**'
+
+  # Sync when issues change (updates Roady state)
+  issues:
+    types: [opened, closed, reopened, assigned, unassigned]
+
+  # Allow manual trigger
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Sync with GitHub Issues
+        uses: felixgeelhaar/roady/.github/actions/roady-sync@main
+        with:
+          plugin: github
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-repo: ${{ github.repository }}
+
+      # Optional: Commit updated state back to repo
+      - name: Commit state changes
+        if: github.event_name == 'issues'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add .roady/
+          git diff --staged --quiet || git commit -m "chore: sync roady state from GitHub"
+          git push

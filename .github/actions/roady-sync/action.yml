@@ -1,0 +1,115 @@
+name: 'Roady Sync'
+description: 'Sync Roady plan with external project management tools'
+author: 'Felix Geelhaar'
+
+branding:
+  icon: 'refresh-cw'
+  color: 'blue'
+
+inputs:
+  plugin:
+    description: 'Plugin to use for sync (github, jira, linear, or path to custom plugin)'
+    required: false
+    default: 'github'
+  github-token:
+    description: 'GitHub token for authentication (required for github plugin)'
+    required: false
+    default: ${{ github.token }}
+  github-repo:
+    description: 'GitHub repository in format owner/repo (defaults to current repo)'
+    required: false
+    default: ${{ github.repository }}
+  jira-domain:
+    description: 'Jira domain (e.g., mycompany.atlassian.net)'
+    required: false
+  jira-email:
+    description: 'Jira email for authentication'
+    required: false
+  jira-api-token:
+    description: 'Jira API token'
+    required: false
+  jira-project-key:
+    description: 'Jira project key (e.g., PROJ)'
+    required: false
+  linear-api-key:
+    description: 'Linear API key'
+    required: false
+  linear-team-id:
+    description: 'Linear team ID'
+    required: false
+  working-directory:
+    description: 'Working directory containing .roady folder'
+    required: false
+    default: '.'
+  create-issues:
+    description: 'Create issues in external system for unlinked tasks'
+    required: false
+    default: 'true'
+
+outputs:
+  sync-results:
+    description: 'JSON array of sync results'
+  status-updates:
+    description: 'Number of status updates applied'
+  issues-created:
+    description: 'Number of new issues created'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '>=1.21'
+        cache: false
+
+    - name: Install Roady
+      shell: bash
+      run: |
+        go install github.com/felixgeelhaar/roady/cmd/roady@latest
+        echo "Roady installed: $(roady --version 2>/dev/null || echo 'version unknown')"
+
+    - name: Configure Environment
+      shell: bash
+      run: |
+        # Set up environment variables based on plugin
+        case "${{ inputs.plugin }}" in
+          github)
+            echo "GITHUB_TOKEN=${{ inputs.github-token }}" >> $GITHUB_ENV
+            echo "GITHUB_REPO=${{ inputs.github-repo }}" >> $GITHUB_ENV
+            ;;
+          jira)
+            echo "JIRA_DOMAIN=${{ inputs.jira-domain }}" >> $GITHUB_ENV
+            echo "JIRA_EMAIL=${{ inputs.jira-email }}" >> $GITHUB_ENV
+            echo "JIRA_API_TOKEN=${{ inputs.jira-api-token }}" >> $GITHUB_ENV
+            echo "JIRA_PROJECT_KEY=${{ inputs.jira-project-key }}" >> $GITHUB_ENV
+            ;;
+          linear)
+            echo "LINEAR_API_KEY=${{ inputs.linear-api-key }}" >> $GITHUB_ENV
+            echo "LINEAR_TEAM_ID=${{ inputs.linear-team-id }}" >> $GITHUB_ENV
+            ;;
+        esac
+
+    - name: Run Sync
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: |
+        # Determine plugin path
+        PLUGIN="${{ inputs.plugin }}"
+        case "$PLUGIN" in
+          github)
+            PLUGIN_PATH="roady-plugin-github"
+            ;;
+          jira)
+            PLUGIN_PATH="roady-plugin-jira"
+            ;;
+          linear)
+            PLUGIN_PATH="roady-plugin-linear"
+            ;;
+          *)
+            PLUGIN_PATH="$PLUGIN"
+            ;;
+        esac
+
+        echo "Running roady sync with plugin: $PLUGIN_PATH"
+        roady sync "$PLUGIN_PATH"
