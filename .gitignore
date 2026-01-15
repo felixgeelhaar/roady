@@ -6,10 +6,8 @@ dist/
 # OS files
 .DS_Store
 
-# Local Roady State (Optional: Commit spec.yaml but ignore execution state)
-# .roady/state.json
-# .roady/usage.json
-# .roady/events.jsonl
+# Local Roady State
+.roady/
 
 # Coverage and Reports
 .cover/
@@ -19,6 +17,9 @@ coverage.out
 
 # Relicta artifacts
 .relicta/
+
+# Local guidance
+AGENTS.md
 
 # IDEs
 .vscode/
