@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/bubbles/list"
+	"github.com/charmbracelet/bubbles/spinner"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -94,25 +95,34 @@ type configPhase int
 
 const (
 	phaseSelectPlugin configPhase = iota
+	phaseInstallPlugin
 	phaseConfigurePlugin
 )
 
+// Messages for async operations
+type installResultMsg struct {
+	err error
+}
+
 type configureModel struct {
-	phase       configPhase
-	pluginList  list.Model
-	inputs      []textinput.Model
-	labels      []string
-	focusIndex  int
-	pluginType  string
-	pluginName  string
-	binaryPath  string
-	editing     bool
-	done        bool
-	cancelled   bool
-	err         error
-	width       int
-	height      int
-	configStart int
+	phase        configPhase
+	pluginList   list.Model
+	spinner      spinner.Model
+	inputs       []textinput.Model
+	labels       []string
+	focusIndex   int
+	pluginType   string
+	pluginName   string
+	binaryPath   string
+	editing      bool
+	done         bool
+	cancelled    bool
+	err          error
+	installErr   error
+	width        int
+	height       int
+	configStart  int
+	needsInstall bool
 }
 
 var (
@@ -149,14 +159,21 @@ var (
 			Bold(true).
 			Foreground(lipgloss.Color("205")).
 			MarginLeft(2)
+
+	spinnerStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
 )
 
 func newConfigureModel(existingName string, existingConfig *plugin.PluginConfig) configureModel {
+	s := spinner.New()
+	s.Spinner = spinner.Dot
+	s.Style = spinnerStyle
+
 	m := configureModel{
 		editing:    existingConfig != nil,
 		pluginName: existingName,
 		width:      80,
 		height:     20,
+		spinner:    s,
 	}
 
 	if existingConfig != nil {
@@ -384,9 +401,33 @@ func toTitleCase(s string) string {
 	return strings.ToUpper(s[:1]) + s[1:]
 }
 
+// installPluginCmd runs the go install command
+func installPluginCmd(pluginType string) tea.Cmd {
+	return func() tea.Msg {
+		var pkg string
+		for _, p := range availablePlugins {
+			if p.Name == pluginType {
+				pkg = p.GoPackage
+				break
+			}
+		}
+		if pkg == "" {
+			return installResultMsg{err: fmt.Errorf("unknown plugin: %s", pluginType)}
+		}
+
+		// #nosec G204 -- Package path is from trusted internal list
+		cmd := exec.Command("go", "install", pkg)
+		err := cmd.Run()
+		return installResultMsg{err: err}
+	}
+}
+
 func (m configureModel) Init() tea.Cmd {
 	if m.phase == phaseSelectPlugin {
 		return nil
+	}
+	if m.phase == phaseInstallPlugin {
+		return tea.Batch(m.spinner.Tick, installPluginCmd(m.pluginType))
 	}
 	return textinput.Blink
 }
@@ -406,6 +447,16 @@ func (m configureModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.initPluginList()
 				return m, nil
 			}
+			if m.phase == phaseInstallPlugin {
+				// Can't cancel during installation, but can go back after error
+				if m.installErr != nil {
+					m.phase = phaseSelectPlugin
+					m.installErr = nil
+					m.initPluginList()
+					return m, nil
+				}
+				return m, nil
+			}
 			m.cancelled = true
 			return m, tea.Quit
 		}
@@ -416,12 +467,34 @@ func (m configureModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if m.phase == phaseSelectPlugin {
 			m.pluginList.SetSize(msg.Width, msg.Height-4)
 		}
+
+	case installResultMsg:
+		if msg.err != nil {
+			m.installErr = msg.err
+			return m, nil
+		}
+		// Installation succeeded, move to configure phase
+		m.binaryPath = getPluginBinaryPath(m.pluginType)
+		m.phase = phaseConfigurePlugin
+		m.initConfigInputs(nil)
+		return m, textinput.Blink
+
+	case spinner.TickMsg:
+		if m.phase == phaseInstallPlugin && m.installErr == nil {
+			var cmd tea.Cmd
+			m.spinner, cmd = m.spinner.Update(msg)
+			return m, cmd
+		}
 	}
 
-	if m.phase == phaseSelectPlugin {
+	switch m.phase {
+	case phaseSelectPlugin:
 		return m.updatePluginSelection(msg)
+	case phaseInstallPlugin:
+		return m.updateInstallPlugin(msg)
+	default:
+		return m.updateConfigInputs(msg)
 	}
-	return m.updateConfigInputs(msg)
 }
 
 func (m configureModel) updatePluginSelection(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -431,6 +504,15 @@ func (m configureModel) updatePluginSelection(msg tea.Msg) (tea.Model, tea.Cmd) 
 		case "enter":
 			if item, ok := m.pluginList.SelectedItem().(listItem); ok {
 				m.pluginType = item.name
+				m.needsInstall = !item.installed
+
+				if m.needsInstall {
+					// Go to install phase
+					m.phase = phaseInstallPlugin
+					return m, tea.Batch(m.spinner.Tick, installPluginCmd(m.pluginType))
+				}
+
+				// Plugin already installed, go directly to configure
 				m.binaryPath = getPluginBinaryPath(item.name)
 				m.phase = phaseConfigurePlugin
 				m.initConfigInputs(nil)
@@ -442,6 +524,28 @@ func (m configureModel) updatePluginSelection(msg tea.Msg) (tea.Model, tea.Cmd) 
 	var cmd tea.Cmd
 	m.pluginList, cmd = m.pluginList.Update(msg)
 	return m, cmd
+}
+
+func (m configureModel) updateInstallPlugin(msg tea.Msg) (tea.Model, tea.Cmd) {
+	// Installation is handled via messages, just update spinner
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		if m.installErr != nil {
+			switch msg.String() {
+			case "enter", "r":
+				// Retry installation
+				m.installErr = nil
+				return m, tea.Batch(m.spinner.Tick, installPluginCmd(m.pluginType))
+			case "s":
+				// Skip installation, continue anyway
+				m.binaryPath = getPluginBinaryPath(m.pluginType)
+				m.phase = phaseConfigurePlugin
+				m.initConfigInputs(nil)
+				return m, textinput.Blink
+			}
+		}
+	}
+	return m, nil
 }
 
 func (m configureModel) updateConfigInputs(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -559,10 +663,14 @@ func (m configureModel) validate() error {
 }
 
 func (m configureModel) View() string {
-	if m.phase == phaseSelectPlugin {
+	switch m.phase {
+	case phaseSelectPlugin:
 		return m.viewPluginSelection()
+	case phaseInstallPlugin:
+		return m.viewInstallPlugin()
+	default:
+		return m.viewConfigInputs()
 	}
-	return m.viewConfigInputs()
 }
 
 func (m configureModel) viewPluginSelection() string {
@@ -570,9 +678,28 @@ func (m configureModel) viewPluginSelection() string {
 
 	b.WriteString(titleStyle.Render("Add Plugin Configuration"))
 	b.WriteString("\n")
-	b.WriteString(subtitleStyle.Render("● = installed, ○ = not installed (will need to install)"))
+	b.WriteString(subtitleStyle.Render("● = installed, ○ = not installed (will be installed automatically)"))
 	b.WriteString("\n\n")
 	b.WriteString(m.pluginList.View())
+
+	return b.String()
+}
+
+func (m configureModel) viewInstallPlugin() string {
+	var b strings.Builder
+
+	b.WriteString(titleStyle.Render(fmt.Sprintf("Installing %s Plugin", toTitleCase(m.pluginType))))
+	b.WriteString("\n\n")
+
+	if m.installErr != nil {
+		b.WriteString(errorStyle.Render(fmt.Sprintf("✗ Installation failed: %v", m.installErr)))
+		b.WriteString("\n\n")
+		b.WriteString(helpStyle.Render("[r] Retry • [s] Skip (configure anyway) • [Esc] Back"))
+	} else {
+		b.WriteString(fmt.Sprintf("%s Installing plugin via 'go install'...\n", m.spinner.View()))
+		b.WriteString("\n")
+		b.WriteString(blurredStyle.Render("This may take a moment while Go downloads and builds the plugin."))
+	}
 
 	return b.String()
 }
@@ -591,9 +718,9 @@ func (m configureModel) viewConfigInputs() string {
 	if !m.editing {
 		installed := isPluginInstalled(m.pluginType)
 		if installed {
-			b.WriteString(successStyle.Render(fmt.Sprintf("✓ Plugin binary found: %s", m.binaryPath)))
+			b.WriteString(successStyle.Render(fmt.Sprintf("✓ Plugin installed: %s", m.binaryPath)))
 		} else {
-			b.WriteString(warningStyle.Render(fmt.Sprintf("⚠ Plugin not installed. Run: roady sync install %s", m.pluginType)))
+			b.WriteString(warningStyle.Render("⚠ Plugin not installed - sync will fail until installed"))
 		}
 		b.WriteString("\n\n")
 	}
@@ -658,8 +785,9 @@ var syncAddCmd = &cobra.Command{
 
 The wizard will guide you through:
   1. Selecting the plugin type (Jira, GitHub, Linear, etc.)
-  2. Entering your configuration name
-  3. Filling in the required credentials and settings
+  2. Automatically installing the plugin if needed
+  3. Entering your configuration name
+  4. Filling in the required credentials and settings
 
 The configuration will be saved to .roady/plugins.yaml.`,
 	Example: `  # Add a new plugin configuration (interactive)
@@ -709,12 +837,6 @@ The configuration will be saved to .roady/plugins.yaml.`,
 		fmt.Printf("  Type: %s\n", result.pluginType)
 		fmt.Printf("  Binary: %s\n", config.Binary)
 		fmt.Printf("  Config: %d fields\n", len(config.Config))
-
-		if !isPluginInstalled(result.pluginType) {
-			fmt.Printf("\n⚠ Plugin not installed. Install with:\n")
-			fmt.Printf("  roady sync install %s\n", result.pluginType)
-		}
-
 		fmt.Printf("\nRun sync with: roady sync --name %s\n", configName)
 
 		return nil
@@ -820,7 +942,8 @@ Available plugins:
   - notion   Notion
   - trello   Trello
 
-The plugin will be installed to your GOPATH/bin directory.`,
+The plugin will be installed to your GOPATH/bin directory.
+Note: Plugins are also installed automatically when using 'roady sync add'.`,
 	Example: `  # Install the Jira plugin
   roady sync install jira
 
@@ -833,7 +956,7 @@ The plugin will be installed to your GOPATH/bin directory.`,
 		if installAll {
 			fmt.Println("Installing all plugins...")
 			for _, p := range availablePlugins {
-				if err := installPlugin(p); err != nil {
+				if err := installPluginSync(p); err != nil {
 					fmt.Printf("✗ Failed to install %s: %v\n", p.Name, err)
 				} else {
 					fmt.Printf("✓ Installed %s\n", p.Name)
@@ -855,6 +978,7 @@ The plugin will be installed to your GOPATH/bin directory.`,
 			fmt.Println("\n● = installed, ○ = not installed")
 			fmt.Println("\nUsage: roady sync install <plugin-type>")
 			fmt.Println("       roady sync install --all")
+			fmt.Println("\nNote: 'roady sync add' will also install plugins automatically.")
 			return nil
 		}
 
@@ -872,7 +996,7 @@ The plugin will be installed to your GOPATH/bin directory.`,
 		}
 
 		fmt.Printf("Installing %s plugin...\n", pluginInfo.Name)
-		if err := installPlugin(*pluginInfo); err != nil {
+		if err := installPluginSync(*pluginInfo); err != nil {
 			return fmt.Errorf("installation failed: %w", err)
 		}
 
@@ -883,7 +1007,7 @@ The plugin will be installed to your GOPATH/bin directory.`,
 	},
 }
 
-func installPlugin(p PluginInfo) error {
+func installPluginSync(p PluginInfo) error {
 	// #nosec G204 -- Package path is from trusted internal list
 	cmd := exec.Command("go", "install", p.GoPackage)
 	cmd.Stdout = os.Stdout
