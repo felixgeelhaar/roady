@@ -36,6 +36,8 @@ var mcpCmd = &cobra.Command{
 			err = server.StartHTTP(mcpAddr)
 		case "ws", "websocket":
 			err = server.StartWebSocket(mcpAddr)
+		case "grpc":
+			err = server.StartGRPC(mcpAddr)
 		default:
 			err = fmt.Errorf("unsupported transport: %s", mcpTransport)
 		}
@@ -44,7 +46,7 @@ var mcpCmd = &cobra.Command{
 }
 
 func init() {
-	mcpCmd.Flags().StringVar(&mcpTransport, "transport", "stdio", "Transport to use (stdio, http, ws)")
-	mcpCmd.Flags().StringVar(&mcpAddr, "addr", ":8080", "Address for http/ws transports")
+	mcpCmd.Flags().StringVar(&mcpTransport, "transport", "stdio", "Transport to use (stdio, http, ws, grpc)")
+	mcpCmd.Flags().StringVar(&mcpAddr, "addr", ":8080", "Address for http/ws/grpc transports")
 	RootCmd.AddCommand(mcpCmd)
 }

@@ -128,7 +128,7 @@ func TestServerHandlersExercise(t *testing.T) {
 		t.Fatalf("detect drift: %v", err)
 	}
 
-	if _, err := server.handleStatus(ctx, struct{}{}); err != nil {
+	if _, err := server.handleStatus(ctx, StatusArgs{}); err != nil {
 		t.Fatalf("status: %v", err)
 	}
 
@@ -195,7 +195,7 @@ func TestServerHandlersExercise(t *testing.T) {
 		t.Fatalf("detect drift after feature: %v", err)
 	}
 
-	if _, err := server.handleStatus(ctx, struct{}{}); err != nil {
+	if _, err := server.handleStatus(ctx, StatusArgs{}); err != nil {
 		t.Fatalf("status after transition: %v", err)
 	}
 
@@ -245,7 +245,7 @@ func TestServerPlanEventsLogged(t *testing.T) {
 		found[ev.Action] = true
 	}
 
-	for _, want := range []string{"plan.generate", "plan.approve"} {
+	for _, want := range []string{"plan.generate", "plan.approved"} {
 		if !found[want] {
 			t.Fatalf("expected event %s, got %v", want, events)
 		}
@@ -263,5 +263,48 @@ func TestInitHandlerCreatesProject(t *testing.T) {
 	}
 	if _, err := os.Stat(filepath.Join(root, ".roady", "spec.yaml")); err != nil {
 		t.Fatalf("spec was not created: %v", err)
+	}
+}
+
+func TestGRPCServerStartsAndStops(t *testing.T) {
+	root := t.TempDir()
+	repo := storage.NewFilesystemRepository(root)
+	if err := repo.Initialize(); err != nil {
+		t.Fatalf("initialize repo: %v", err)
+	}
+
+	specFile := &spec.ProductSpec{
+		ID:    "grpc-test",
+		Title: "gRPC Test Project",
+	}
+	if err := repo.SaveSpec(specFile); err != nil {
+		t.Fatalf("save spec: %v", err)
+	}
+
+	server, err := NewServer(root)
+	if err != nil {
+		t.Fatalf("create server: %v", err)
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	errCh := make(chan error, 1)
+
+	go func() {
+		errCh <- server.ServeGRPC(ctx, ":0") // Use :0 for random available port
+	}()
+
+	// Give server time to start
+	time.Sleep(100 * time.Millisecond)
+
+	// Cancel context to trigger shutdown
+	cancel()
+
+	select {
+	case err := <-errCh:
+		if err != nil && err != context.Canceled {
+			t.Fatalf("unexpected error: %v", err)
+		}
+	case <-time.After(5 * time.Second):
+		t.Fatal("server did not shut down in time")
 	}
 }
