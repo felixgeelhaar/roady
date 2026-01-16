@@ -29,3 +29,9 @@ AGENTS.md
 website/node_modules/
 website/dist/
 website/.astro/
+
+# Playwright MCP screenshots
+.playwright-mcp/
+
+# Claude local settings
+.claude/settings.local.json
