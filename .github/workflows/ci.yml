@@ -20,8 +20,9 @@ jobs:
 
     - name: Build
       run: |
-        go build -v -o roady ./cmd/roady
-        go build -v -o roady-plugin-mock ./cmd/roady-plugin-mock
+        mkdir -p dist
+        go build -v -o dist/roady ./cmd/roady
+        go build -v -o dist/roady-plugin-mock ./cmd/roady-plugin-mock
 
     - name: Test
       run: go test -v -coverprofile=coverage.out ./...
