@@ -8,7 +8,7 @@
     "start": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "deploy": "npm run build && rm -rf ../docs/*.html ../docs/_astro && cp -r dist/* ../docs/",
+    "deploy": "npm run build && rm -rf ../docs/*.html ../docs/_astro && cp -r dist/* ../docs/ && touch ../docs/.nojekyll",
     "astro": "astro"
   },
   "dependencies": {
