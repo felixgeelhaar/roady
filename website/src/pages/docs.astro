@@ -30,6 +30,7 @@ import Footer from '../components/Footer.astro';
           <a href="#drift-commands" class="text-violet-400 hover:text-violet-300 transition-colors">Drift & Debt</a>
           <a href="#status-commands" class="text-violet-400 hover:text-violet-300 transition-colors">Status & Analytics</a>
           <a href="#integration-commands" class="text-violet-400 hover:text-violet-300 transition-colors">Integrations</a>
+          <a href="#plugin-config" class="text-violet-400 hover:text-violet-300 transition-colors">Plugin Config</a>
           <a href="#advanced-commands" class="text-violet-400 hover:text-violet-300 transition-colors">Advanced</a>
         </div>
       </nav>
@@ -553,6 +554,247 @@ import Footer from '../components/Footer.astro';
               <code class="text-sm text-emerald-300 block mt-1">roady deps graph</code>
               <code class="text-sm text-emerald-300 block mt-1">roady deps remove [dep-id]</code>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Plugin Configuration -->
+      <section id="plugin-config" class="mb-16">
+        <h2 class="text-2xl font-bold text-white mb-6 flex items-center">
+          <i data-lucide="key" class="w-6 h-6 mr-3 text-amber-400"></i>
+          Plugin Configuration
+        </h2>
+        <p class="text-gray-400 mb-6">Configure sync plugins with environment variables or config files. Each plugin requires specific credentials to connect to external services.</p>
+
+        <div class="space-y-6">
+          <!-- Jira -->
+          <div class="glass rounded-xl p-6">
+            <div class="flex items-center mb-4">
+              <div class="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center mr-3">
+                <svg class="w-5 h-5 text-blue-400" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M11.53 2c0 2.4 1.97 4.35 4.35 4.35h1.78v1.7c0 2.4 1.94 4.34 4.34 4.35V2.84a.84.84 0 0 0-.84-.84h-9.63zm-5.75 5.75c0 2.4 1.97 4.35 4.35 4.35h1.78v1.7c0 2.4 1.94 4.34 4.34 4.35V8.6a.84.84 0 0 0-.84-.85H5.78zm-5.75 5.75c0 2.4 1.97 4.35 4.35 4.35h1.78v1.7c0 2.4 1.94 4.34 4.34 4.35v-9.56a.84.84 0 0 0-.84-.84H.03z"/>
+                </svg>
+              </div>
+              <h3 class="text-lg font-semibold text-white">Jira</h3>
+            </div>
+            <p class="text-gray-400 text-sm mb-4">Connect to Jira Cloud to sync issues bidirectionally.</p>
+            <h4 class="text-sm font-semibold text-gray-300 mb-2">Required Environment Variables</h4>
+            <table class="w-full text-sm mb-4">
+              <tr class="border-b border-white/10">
+                <td class="py-2 text-violet-300 mono">JIRA_DOMAIN</td>
+                <td class="py-2 text-gray-400">Your Jira instance (e.g., <code class="text-emerald-300">your-company.atlassian.net</code>)</td>
+              </tr>
+              <tr class="border-b border-white/10">
+                <td class="py-2 text-violet-300 mono">JIRA_PROJECT_KEY</td>
+                <td class="py-2 text-gray-400">Project key (e.g., <code class="text-emerald-300">PROJ</code>)</td>
+              </tr>
+              <tr class="border-b border-white/10">
+                <td class="py-2 text-violet-300 mono">JIRA_EMAIL</td>
+                <td class="py-2 text-gray-400">Your Atlassian account email</td>
+              </tr>
+              <tr class="border-b border-white/10">
+                <td class="py-2 text-violet-300 mono">JIRA_API_TOKEN</td>
+                <td class="py-2 text-gray-400">API token from <a href="https://id.atlassian.com/manage-profile/security/api-tokens" target="_blank" class="text-violet-400 hover:text-violet-300">Atlassian API tokens</a></td>
+              </tr>
+            </table>
+            <div class="bg-black/40 rounded-lg p-4">
+              <p class="text-xs text-gray-500 mb-2"># Example setup</p>
+              <code class="text-sm text-emerald-300 block">export JIRA_DOMAIN="mycompany.atlassian.net"</code>
+              <code class="text-sm text-emerald-300 block">export JIRA_PROJECT_KEY="ROAD"</code>
+              <code class="text-sm text-emerald-300 block">export JIRA_EMAIL="you@company.com"</code>
+              <code class="text-sm text-emerald-300 block">export JIRA_API_TOKEN="your-api-token"</code>
+              <code class="text-sm text-emerald-300 block mt-2">roady sync roady-plugin-jira</code>
+            </div>
+          </div>
+
+          <!-- Linear -->
+          <div class="glass rounded-xl p-6">
+            <div class="flex items-center mb-4">
+              <div class="w-10 h-10 bg-indigo-500/20 rounded-lg flex items-center justify-center mr-3">
+                <svg class="w-5 h-5 text-indigo-400" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M3 7.5L12 2l9 5.5v9L12 22l-9-5.5v-9zm9 11.25l6.75-4.125V9.375L12 13.5l-6.75-4.125v5.25L12 18.75z"/>
+                </svg>
+              </div>
+              <h3 class="text-lg font-semibold text-white">Linear</h3>
+            </div>
+            <p class="text-gray-400 text-sm mb-4">Connect to Linear for modern issue tracking sync.</p>
+            <h4 class="text-sm font-semibold text-gray-300 mb-2">Required Environment Variables</h4>
+            <table class="w-full text-sm mb-4">
+              <tr class="border-b border-white/10">
+                <td class="py-2 text-violet-300 mono">LINEAR_API_KEY</td>
+                <td class="py-2 text-gray-400">API key from <a href="https://linear.app/settings/api" target="_blank" class="text-violet-400 hover:text-violet-300">Linear Settings → API</a></td>
+              </tr>
+              <tr class="border-b border-white/10">
+                <td class="py-2 text-violet-300 mono">LINEAR_TEAM_ID</td>
+                <td class="py-2 text-gray-400">Team ID (found in team settings URL)</td>
+              </tr>
+            </table>
+            <div class="bg-black/40 rounded-lg p-4">
+              <p class="text-xs text-gray-500 mb-2"># Example setup</p>
+              <code class="text-sm text-emerald-300 block">export LINEAR_API_KEY="lin_api_xxxxx"</code>
+              <code class="text-sm text-emerald-300 block">export LINEAR_TEAM_ID="TEAM-UUID"</code>
+              <code class="text-sm text-emerald-300 block mt-2">roady sync roady-plugin-linear</code>
+            </div>
+          </div>
+
+          <!-- GitHub -->
+          <div class="glass rounded-xl p-6">
+            <div class="flex items-center mb-4">
+              <div class="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center mr-3">
+                <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+                </svg>
+              </div>
+              <h3 class="text-lg font-semibold text-white">GitHub Issues</h3>
+            </div>
+            <p class="text-gray-400 text-sm mb-4">Sync with GitHub Issues. Auto-creates issues and tracks state changes.</p>
+            <h4 class="text-sm font-semibold text-gray-300 mb-2">Required Environment Variables</h4>
+            <table class="w-full text-sm mb-4">
+              <tr class="border-b border-white/10">
+                <td class="py-2 text-violet-300 mono">GITHUB_TOKEN</td>
+                <td class="py-2 text-gray-400">Personal access token with <code class="text-emerald-300">repo</code> scope from <a href="https://github.com/settings/tokens" target="_blank" class="text-violet-400 hover:text-violet-300">GitHub Settings</a></td>
+              </tr>
+              <tr class="border-b border-white/10">
+                <td class="py-2 text-violet-300 mono">GITHUB_REPO</td>
+                <td class="py-2 text-gray-400">Repository in format <code class="text-emerald-300">owner/repo</code></td>
+              </tr>
+            </table>
+            <div class="bg-black/40 rounded-lg p-4">
+              <p class="text-xs text-gray-500 mb-2"># Example setup</p>
+              <code class="text-sm text-emerald-300 block">export GITHUB_TOKEN="ghp_xxxxx"</code>
+              <code class="text-sm text-emerald-300 block">export GITHUB_REPO="myorg/myproject"</code>
+              <code class="text-sm text-emerald-300 block mt-2">roady sync roady-plugin-github</code>
+            </div>
+          </div>
+
+          <!-- Notion -->
+          <div class="glass rounded-xl p-6">
+            <div class="flex items-center mb-4">
+              <div class="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center mr-3">
+                <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M4.459 4.208c.746.606 1.026.56 2.428.466l13.215-.793c.28 0 .047-.28-.046-.326L17.86 1.968c-.42-.326-.98-.7-2.055-.607L3.01 2.295c-.466.046-.56.28-.374.466zm.793 3.08v13.904c0 .747.373 1.027 1.214.98l14.523-.84c.841-.046.935-.56.935-1.167V6.354c0-.606-.233-.933-.748-.886l-15.177.887c-.56.047-.747.327-.747.933zm14.337.745c.093.42 0 .84-.42.888l-.7.14v10.264c-.608.327-1.168.514-1.635.514-.748 0-.935-.234-1.495-.933l-4.577-7.186v6.952l1.448.327s0 .84-1.168.84l-3.22.186c-.094-.186 0-.653.327-.746l.84-.233V9.854L7.822 9.76c-.094-.42.14-1.026.793-1.073l3.456-.233 4.764 7.279v-6.44l-1.215-.14c-.093-.514.28-.886.747-.933zM2.877 1.076l13.355-.933c1.635-.14 2.055-.047 3.082.7l4.25 2.986c.7.513.933.653.933 1.213v16.378c0 1.026-.373 1.634-1.68 1.726l-15.458.934c-.98.047-1.448-.093-1.962-.747l-3.129-4.06c-.56-.747-.793-1.306-.793-1.96V2.89c0-.84.374-1.54 1.402-1.813z"/>
+                </svg>
+              </div>
+              <h3 class="text-lg font-semibold text-white">Notion</h3>
+            </div>
+            <p class="text-gray-400 text-sm mb-4">Sync with a Notion database. Requires a "Roady ID" text property and "Status" status property.</p>
+            <h4 class="text-sm font-semibold text-gray-300 mb-2">Required Environment Variables</h4>
+            <table class="w-full text-sm mb-4">
+              <tr class="border-b border-white/10">
+                <td class="py-2 text-violet-300 mono">NOTION_TOKEN</td>
+                <td class="py-2 text-gray-400">Integration token from <a href="https://www.notion.so/my-integrations" target="_blank" class="text-violet-400 hover:text-violet-300">Notion Integrations</a></td>
+              </tr>
+              <tr class="border-b border-white/10">
+                <td class="py-2 text-violet-300 mono">NOTION_DATABASE_ID</td>
+                <td class="py-2 text-gray-400">Database ID (32-char string from database URL)</td>
+              </tr>
+            </table>
+            <div class="bg-black/40 rounded-lg p-4">
+              <p class="text-xs text-gray-500 mb-2"># Example setup</p>
+              <code class="text-sm text-emerald-300 block">export NOTION_TOKEN="secret_xxxxx"</code>
+              <code class="text-sm text-emerald-300 block">export NOTION_DATABASE_ID="abc123def456..."</code>
+              <code class="text-sm text-emerald-300 block mt-2">roady sync roady-plugin-notion</code>
+            </div>
+            <div class="mt-4 p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
+              <p class="text-amber-300 text-xs"><strong>Note:</strong> Your database must have a "Name" (title), "Roady ID" (text), and "Status" (status) property.</p>
+            </div>
+          </div>
+
+          <!-- Trello -->
+          <div class="glass rounded-xl p-6">
+            <div class="flex items-center mb-4">
+              <div class="w-10 h-10 bg-sky-500/20 rounded-lg flex items-center justify-center mr-3">
+                <svg class="w-5 h-5 text-sky-400" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M21 0H3C1.343 0 0 1.343 0 3v18c0 1.656 1.343 3 3 3h18c1.656 0 3-1.344 3-3V3c0-1.657-1.344-3-3-3zM10.44 18.18c0 .795-.645 1.44-1.44 1.44H4.56c-.795 0-1.44-.645-1.44-1.44V4.56c0-.795.645-1.44 1.44-1.44H9c.795 0 1.44.645 1.44 1.44v13.62zm10.44-6c0 .794-.645 1.44-1.44 1.44h-4.44c-.795 0-1.44-.646-1.44-1.44V4.56c0-.795.645-1.44 1.44-1.44h4.44c.795 0 1.44.645 1.44 1.44v7.62z"/>
+                </svg>
+              </div>
+              <h3 class="text-lg font-semibold text-white">Trello</h3>
+            </div>
+            <p class="text-gray-400 text-sm mb-4">Sync with Trello boards. Maps lists to task statuses.</p>
+            <h4 class="text-sm font-semibold text-gray-300 mb-2">Required Environment Variables</h4>
+            <table class="w-full text-sm mb-4">
+              <tr class="border-b border-white/10">
+                <td class="py-2 text-violet-300 mono">TRELLO_API_KEY</td>
+                <td class="py-2 text-gray-400">API key from <a href="https://trello.com/app-key" target="_blank" class="text-violet-400 hover:text-violet-300">Trello Power-Ups</a></td>
+              </tr>
+              <tr class="border-b border-white/10">
+                <td class="py-2 text-violet-300 mono">TRELLO_TOKEN</td>
+                <td class="py-2 text-gray-400">Token authorized with your API key</td>
+              </tr>
+              <tr class="border-b border-white/10">
+                <td class="py-2 text-violet-300 mono">TRELLO_BOARD_ID</td>
+                <td class="py-2 text-gray-400">Board ID (from board URL or API)</td>
+              </tr>
+            </table>
+            <h4 class="text-sm font-semibold text-gray-300 mb-2">Optional Environment Variables</h4>
+            <table class="w-full text-sm mb-4">
+              <tr class="border-b border-white/10">
+                <td class="py-2 text-violet-300 mono">TRELLO_TODO_LIST_ID</td>
+                <td class="py-2 text-gray-400">List for new tasks (auto-detected: "To Do", "Backlog")</td>
+              </tr>
+              <tr class="border-b border-white/10">
+                <td class="py-2 text-violet-300 mono">TRELLO_DONE_LIST_ID</td>
+                <td class="py-2 text-gray-400">List for completed tasks (auto-detected: "Done", "Complete")</td>
+              </tr>
+            </table>
+            <div class="bg-black/40 rounded-lg p-4">
+              <p class="text-xs text-gray-500 mb-2"># Example setup</p>
+              <code class="text-sm text-emerald-300 block">export TRELLO_API_KEY="xxxxx"</code>
+              <code class="text-sm text-emerald-300 block">export TRELLO_TOKEN="xxxxx"</code>
+              <code class="text-sm text-emerald-300 block">export TRELLO_BOARD_ID="abc123"</code>
+              <code class="text-sm text-emerald-300 block mt-2">roady sync roady-plugin-trello</code>
+            </div>
+          </div>
+
+          <!-- Asana -->
+          <div class="glass rounded-xl p-6">
+            <div class="flex items-center mb-4">
+              <div class="w-10 h-10 bg-rose-500/20 rounded-lg flex items-center justify-center mr-3">
+                <svg class="w-5 h-5 text-rose-400" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M18.78 12.653c-2.587 0-4.685 2.098-4.685 4.686 0 2.587 2.098 4.685 4.685 4.685 2.588 0 4.686-2.098 4.686-4.685 0-2.588-2.098-4.686-4.686-4.686zm-13.56 0c-2.587 0-4.686 2.098-4.686 4.686 0 2.587 2.099 4.685 4.686 4.685 2.588 0 4.686-2.098 4.686-4.685 0-2.588-2.098-4.686-4.686-4.686zm11.466-4.676c0 2.588-2.098 4.686-4.686 4.686-2.587 0-4.685-2.098-4.685-4.686C7.315 5.39 9.413 3.29 12 3.29c2.588 0 4.686 2.099 4.686 4.687z"/>
+                </svg>
+              </div>
+              <h3 class="text-lg font-semibold text-white">Asana</h3>
+            </div>
+            <p class="text-gray-400 text-sm mb-4">Sync with Asana projects. Uses task completion status and assignees.</p>
+            <h4 class="text-sm font-semibold text-gray-300 mb-2">Required Environment Variables</h4>
+            <table class="w-full text-sm mb-4">
+              <tr class="border-b border-white/10">
+                <td class="py-2 text-violet-300 mono">ASANA_TOKEN</td>
+                <td class="py-2 text-gray-400">Personal access token from <a href="https://app.asana.com/0/developer-console" target="_blank" class="text-violet-400 hover:text-violet-300">Asana Developer Console</a></td>
+              </tr>
+              <tr class="border-b border-white/10">
+                <td class="py-2 text-violet-300 mono">ASANA_PROJECT_ID</td>
+                <td class="py-2 text-gray-400">Project GID (from project URL)</td>
+              </tr>
+            </table>
+            <div class="bg-black/40 rounded-lg p-4">
+              <p class="text-xs text-gray-500 mb-2"># Example setup</p>
+              <code class="text-sm text-emerald-300 block">export ASANA_TOKEN="1/xxxxx:xxxxx"</code>
+              <code class="text-sm text-emerald-300 block">export ASANA_PROJECT_ID="1234567890"</code>
+              <code class="text-sm text-emerald-300 block mt-2">roady sync roady-plugin-asana</code>
+            </div>
+          </div>
+
+          <!-- Building Plugins -->
+          <div class="glass rounded-xl p-6 border-violet-500/30">
+            <div class="flex items-center mb-4">
+              <div class="w-10 h-10 bg-violet-500/20 rounded-lg flex items-center justify-center mr-3">
+                <i data-lucide="code-2" class="w-5 h-5 text-violet-400"></i>
+              </div>
+              <h3 class="text-lg font-semibold text-white">Building Plugins</h3>
+            </div>
+            <p class="text-gray-400 text-sm mb-4">Build official plugins from source or create your own custom plugins.</p>
+            <div class="bg-black/40 rounded-lg p-4 mb-4">
+              <p class="text-xs text-gray-500 mb-2"># Build all official plugins</p>
+              <code class="text-sm text-emerald-300 block">go build -o roady-plugin-jira ./cmd/roady-plugin-jira</code>
+              <code class="text-sm text-emerald-300 block">go build -o roady-plugin-linear ./cmd/roady-plugin-linear</code>
+              <code class="text-sm text-emerald-300 block">go build -o roady-plugin-github ./cmd/roady-plugin-github</code>
+              <code class="text-sm text-emerald-300 block">go build -o roady-plugin-notion ./cmd/roady-plugin-notion</code>
+              <code class="text-sm text-emerald-300 block">go build -o roady-plugin-trello ./cmd/roady-plugin-trello</code>
+              <code class="text-sm text-emerald-300 block">go build -o roady-plugin-asana ./cmd/roady-plugin-asana</code>
+            </div>
+            <p class="text-gray-400 text-sm">Plugins use HashiCorp's go-plugin over gRPC. Implement the <code class="text-violet-300">Syncer</code> interface to create custom integrations.</p>
           </div>
         </div>
       </section>
