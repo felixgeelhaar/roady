@@ -2,8 +2,13 @@ package cli
 
 import (
 	"fmt"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"runtime"
 	"strings"
 
+	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -11,12 +16,52 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// Plugin templates with their required configuration fields
-var pluginTemplates = map[string][]string{
-	"jira":   {"domain", "project_key", "email", "api_token"},
-	"github": {"owner", "repo", "token"},
-	"linear": {"api_key", "team_id"},
-	"custom": {}, // No predefined fields
+// PluginInfo describes an available plugin
+type PluginInfo struct {
+	Name        string
+	Description string
+	ConfigKeys  []string
+	GoPackage   string // for go install
+}
+
+// Available plugins
+var availablePlugins = []PluginInfo{
+	{
+		Name:        "jira",
+		Description: "Atlassian Jira - Issue tracking and project management",
+		ConfigKeys:  []string{"domain", "project_key", "email", "api_token"},
+		GoPackage:   "github.com/felixgeelhaar/roady/cmd/roady-plugin-jira@latest",
+	},
+	{
+		Name:        "github",
+		Description: "GitHub Issues - Track issues and pull requests",
+		ConfigKeys:  []string{"owner", "repo", "token"},
+		GoPackage:   "github.com/felixgeelhaar/roady/cmd/roady-plugin-github@latest",
+	},
+	{
+		Name:        "linear",
+		Description: "Linear - Modern issue tracking for software teams",
+		ConfigKeys:  []string{"api_key", "team_id"},
+		GoPackage:   "github.com/felixgeelhaar/roady/cmd/roady-plugin-linear@latest",
+	},
+	{
+		Name:        "asana",
+		Description: "Asana - Work management and team collaboration",
+		ConfigKeys:  []string{"token", "workspace_id", "project_id"},
+		GoPackage:   "github.com/felixgeelhaar/roady/cmd/roady-plugin-asana@latest",
+	},
+	{
+		Name:        "notion",
+		Description: "Notion - All-in-one workspace for notes and tasks",
+		ConfigKeys:  []string{"token", "database_id"},
+		GoPackage:   "github.com/felixgeelhaar/roady/cmd/roady-plugin-notion@latest",
+	},
+	{
+		Name:        "trello",
+		Description: "Trello - Visual project management with boards",
+		ConfigKeys:  []string{"api_key", "token", "board_id"},
+		GoPackage:   "github.com/felixgeelhaar/roady/cmd/roady-plugin-trello@latest",
+	},
 }
 
 // Sensitive field names that should be masked
@@ -28,41 +73,62 @@ var sensitiveFields = map[string]bool{
 	"secret":    true,
 }
 
+// listItem implements list.Item for plugin selection
+type listItem struct {
+	name, desc string
+	installed  bool
+}
+
+func (i listItem) Title() string {
+	status := "○"
+	if i.installed {
+		status = "●"
+	}
+	return fmt.Sprintf("%s %s", status, i.name)
+}
+func (i listItem) Description() string { return i.desc }
+func (i listItem) FilterValue() string { return i.name }
+
+// Phase of the configuration wizard
+type configPhase int
+
+const (
+	phaseSelectPlugin configPhase = iota
+	phaseConfigurePlugin
+)
+
 type configureModel struct {
+	phase       configPhase
+	pluginList  list.Model
 	inputs      []textinput.Model
 	labels      []string
 	focusIndex  int
 	pluginType  string
 	pluginName  string
-	editing     bool // true if editing existing config
+	binaryPath  string
+	editing     bool
 	done        bool
 	cancelled   bool
 	err         error
 	width       int
-	configStart int // index where config fields start
+	height      int
+	configStart int
 }
 
 var (
 	focusedStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
 	blurredStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
-	cursorStyle  = focusedStyle
 	noStyle      = lipgloss.NewStyle()
-
-	focusedButton = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("205")).
-			Background(lipgloss.Color("236")).
-			Padding(0, 2)
-
-	blurredButton = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("240")).
-			Background(lipgloss.Color("235")).
-			Padding(0, 2)
 
 	titleStyle = lipgloss.NewStyle().
 			Bold(true).
 			Foreground(lipgloss.Color("#FAFAFA")).
 			Background(lipgloss.Color("#7D56F4")).
 			Padding(0, 1).
+			MarginBottom(1)
+
+	subtitleStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("241")).
 			MarginBottom(1)
 
 	helpStyle = lipgloss.NewStyle().
@@ -72,66 +138,113 @@ var (
 	errorStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("196")).
 			MarginTop(1)
+
+	successStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("42"))
+
+	warningStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("214"))
+
+	listTitleStyle = lipgloss.NewStyle().
+			Bold(true).
+			Foreground(lipgloss.Color("205")).
+			MarginLeft(2)
 )
 
 func newConfigureModel(existingName string, existingConfig *plugin.PluginConfig) configureModel {
 	m := configureModel{
 		editing:    existingConfig != nil,
 		pluginName: existingName,
-		width:      60,
+		width:      80,
+		height:     20,
 	}
 
-	// Determine plugin type from existing config or name
 	if existingConfig != nil {
+		// Skip to configure phase for editing
+		m.phase = phaseConfigurePlugin
 		m.pluginType = detectPluginType(existingConfig.Binary)
+		m.binaryPath = existingConfig.Binary
+		m.initConfigInputs(existingConfig)
+	} else {
+		// Start with plugin selection
+		m.phase = phaseSelectPlugin
+		m.initPluginList()
 	}
 
-	// Create base inputs: name and binary
+	return m
+}
+
+func (m *configureModel) initPluginList() {
+	items := make([]list.Item, len(availablePlugins))
+	for i, p := range availablePlugins {
+		installed := isPluginInstalled(p.Name)
+		items[i] = listItem{
+			name:      p.Name,
+			desc:      p.Description,
+			installed: installed,
+		}
+	}
+
+	delegate := list.NewDefaultDelegate()
+	delegate.ShowDescription = true
+	delegate.Styles.SelectedTitle = delegate.Styles.SelectedTitle.
+		Foreground(lipgloss.Color("205")).
+		BorderLeftForeground(lipgloss.Color("205"))
+	delegate.Styles.SelectedDesc = delegate.Styles.SelectedDesc.
+		Foreground(lipgloss.Color("241"))
+
+	l := list.New(items, delegate, m.width, m.height-4)
+	l.Title = "Select Plugin Type"
+	l.Styles.Title = listTitleStyle
+	l.SetShowStatusBar(false)
+	l.SetShowHelp(true)
+	l.SetFilteringEnabled(true)
+
+	m.pluginList = l
+}
+
+func (m *configureModel) initConfigInputs(existingConfig *plugin.PluginConfig) {
 	var inputs []textinput.Model
 	var labels []string
 
 	// Plugin name input
 	nameInput := textinput.New()
-	nameInput.Placeholder = "my-jira-prod"
+	nameInput.Placeholder = fmt.Sprintf("my-%s-prod", m.pluginType)
 	nameInput.CharLimit = 50
 	nameInput.Width = 40
-	if existingName != "" {
-		nameInput.SetValue(existingName)
+	if m.pluginName != "" {
+		nameInput.SetValue(m.pluginName)
 	}
 	inputs = append(inputs, nameInput)
-	labels = append(labels, "Plugin Name")
-
-	// Binary path input
-	binaryInput := textinput.New()
-	binaryInput.Placeholder = "./roady-plugin-jira"
-	binaryInput.CharLimit = 200
-	binaryInput.Width = 40
-	if existingConfig != nil {
-		binaryInput.SetValue(existingConfig.Binary)
-	}
-	inputs = append(inputs, binaryInput)
-	labels = append(labels, "Binary Path")
+	labels = append(labels, "Configuration Name")
 
 	m.configStart = len(inputs)
 
-	// Add config fields based on plugin type or existing config
-	configFields := []string{}
-	if existingConfig != nil && len(existingConfig.Config) > 0 {
-		// Use existing config fields
-		for k := range existingConfig.Config {
-			configFields = append(configFields, k)
+	// Get config fields from plugin info
+	var configFields []string
+	for _, p := range availablePlugins {
+		if p.Name == m.pluginType {
+			configFields = p.ConfigKeys
+			break
 		}
-	} else if m.pluginType != "" && m.pluginType != "custom" {
-		// Use template fields
-		configFields = pluginTemplates[m.pluginType]
-	} else {
-		// Default to common fields
-		configFields = []string{"domain", "token"}
+	}
+
+	// If editing, merge with existing config fields
+	if existingConfig != nil && len(existingConfig.Config) > 0 {
+		existingFields := make(map[string]bool)
+		for _, f := range configFields {
+			existingFields[f] = true
+		}
+		for k := range existingConfig.Config {
+			if !existingFields[k] {
+				configFields = append(configFields, k)
+			}
+		}
 	}
 
 	for _, field := range configFields {
 		input := textinput.New()
-		input.Placeholder = fmt.Sprintf("Enter %s", field)
+		input.Placeholder = getPlaceholder(field)
 		input.CharLimit = 200
 		input.Width = 40
 
@@ -158,26 +271,103 @@ func newConfigureModel(existingName string, existingConfig *plugin.PluginConfig)
 
 	m.inputs = inputs
 	m.labels = labels
+}
 
-	return m
+func getPlaceholder(field string) string {
+	placeholders := map[string]string{
+		"domain":       "https://company.atlassian.net",
+		"project_key":  "PROJ",
+		"email":        "user@example.com",
+		"api_token":    "your-api-token",
+		"token":        "your-token",
+		"api_key":      "your-api-key",
+		"owner":        "organization-or-username",
+		"repo":         "repository-name",
+		"team_id":      "TEAM-123",
+		"workspace_id": "workspace-id",
+		"project_id":   "project-id",
+		"database_id":  "notion-database-id",
+		"board_id":     "trello-board-id",
+	}
+	if p, ok := placeholders[field]; ok {
+		return p
+	}
+	return fmt.Sprintf("Enter %s", field)
+}
+
+func isPluginInstalled(pluginType string) bool {
+	binaryName := fmt.Sprintf("roady-plugin-%s", pluginType)
+
+	// Check in PATH
+	if _, err := exec.LookPath(binaryName); err == nil {
+		return true
+	}
+
+	// Check in GOPATH/bin
+	gopath := os.Getenv("GOPATH")
+	if gopath == "" {
+		home, _ := os.UserHomeDir()
+		gopath = filepath.Join(home, "go")
+	}
+	binaryPath := filepath.Join(gopath, "bin", binaryName)
+	if runtime.GOOS == "windows" {
+		binaryPath += ".exe"
+	}
+	if _, err := os.Stat(binaryPath); err == nil {
+		return true
+	}
+
+	// Check in current directory
+	if _, err := os.Stat("./" + binaryName); err == nil {
+		return true
+	}
+
+	return false
+}
+
+func getPluginBinaryPath(pluginType string) string {
+	binaryName := fmt.Sprintf("roady-plugin-%s", pluginType)
+
+	// Check in PATH first
+	if path, err := exec.LookPath(binaryName); err == nil {
+		return path
+	}
+
+	// Check in GOPATH/bin
+	gopath := os.Getenv("GOPATH")
+	if gopath == "" {
+		home, _ := os.UserHomeDir()
+		gopath = filepath.Join(home, "go")
+	}
+	binaryPath := filepath.Join(gopath, "bin", binaryName)
+	if runtime.GOOS == "windows" {
+		binaryPath += ".exe"
+	}
+	if _, err := os.Stat(binaryPath); err == nil {
+		return binaryPath
+	}
+
+	// Check in current directory
+	localPath := "./" + binaryName
+	if _, err := os.Stat(localPath); err == nil {
+		return localPath
+	}
+
+	// Return expected path even if not installed
+	return binaryPath
 }
 
 func detectPluginType(binary string) string {
 	lower := strings.ToLower(binary)
-	if strings.Contains(lower, "jira") {
-		return "jira"
-	}
-	if strings.Contains(lower, "github") {
-		return "github"
-	}
-	if strings.Contains(lower, "linear") {
-		return "linear"
+	for _, p := range availablePlugins {
+		if strings.Contains(lower, p.Name) {
+			return p.Name
+		}
 	}
 	return "custom"
 }
 
 func formatLabel(field string) string {
-	// Convert snake_case to Title Case
 	parts := strings.Split(field, "_")
 	for i, p := range parts {
 		if len(p) > 0 {
@@ -187,7 +377,17 @@ func formatLabel(field string) string {
 	return strings.Join(parts, " ")
 }
 
+func toTitleCase(s string) string {
+	if len(s) == 0 {
+		return s
+	}
+	return strings.ToUpper(s[:1]) + s[1:]
+}
+
 func (m configureModel) Init() tea.Cmd {
+	if m.phase == phaseSelectPlugin {
+		return nil
+	}
 	return textinput.Blink
 }
 
@@ -195,10 +395,59 @@ func (m configureModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
-		case "ctrl+c", "esc":
+		case "ctrl+c":
 			m.cancelled = true
 			return m, tea.Quit
 
+		case "esc":
+			if m.phase == phaseConfigurePlugin && !m.editing {
+				// Go back to plugin selection
+				m.phase = phaseSelectPlugin
+				m.initPluginList()
+				return m, nil
+			}
+			m.cancelled = true
+			return m, tea.Quit
+		}
+
+	case tea.WindowSizeMsg:
+		m.width = msg.Width
+		m.height = msg.Height
+		if m.phase == phaseSelectPlugin {
+			m.pluginList.SetSize(msg.Width, msg.Height-4)
+		}
+	}
+
+	if m.phase == phaseSelectPlugin {
+		return m.updatePluginSelection(msg)
+	}
+	return m.updateConfigInputs(msg)
+}
+
+func (m configureModel) updatePluginSelection(msg tea.Msg) (tea.Model, tea.Cmd) {
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		switch msg.String() {
+		case "enter":
+			if item, ok := m.pluginList.SelectedItem().(listItem); ok {
+				m.pluginType = item.name
+				m.binaryPath = getPluginBinaryPath(item.name)
+				m.phase = phaseConfigurePlugin
+				m.initConfigInputs(nil)
+				return m, textinput.Blink
+			}
+		}
+	}
+
+	var cmd tea.Cmd
+	m.pluginList, cmd = m.pluginList.Update(msg)
+	return m, cmd
+}
+
+func (m configureModel) updateConfigInputs(msg tea.Msg) (tea.Model, tea.Cmd) {
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		switch msg.String() {
 		case "tab", "down":
 			m.focusIndex++
 			if m.focusIndex >= len(m.inputs) {
@@ -214,9 +463,7 @@ func (m configureModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, m.updateFocus()
 
 		case "enter":
-			// If on last field or pressing enter, try to save
-			if m.focusIndex == len(m.inputs)-1 || msg.String() == "ctrl+s" {
-				// Validate
+			if m.focusIndex == len(m.inputs)-1 {
 				if err := m.validate(); err != nil {
 					m.err = err
 					return m, nil
@@ -224,30 +471,31 @@ func (m configureModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.done = true
 				return m, tea.Quit
 			}
-			// Otherwise move to next field
 			m.focusIndex++
 			if m.focusIndex >= len(m.inputs) {
 				m.focusIndex = 0
 			}
 			return m, m.updateFocus()
 
+		case "ctrl+s":
+			if err := m.validate(); err != nil {
+				m.err = err
+				return m, nil
+			}
+			m.done = true
+			return m, tea.Quit
+
 		case "ctrl+a":
-			// Add a new config field
 			return m, m.addConfigField()
 
 		case "ctrl+d":
-			// Delete current config field (if it's a config field, not name/binary)
 			if m.focusIndex >= m.configStart && len(m.inputs) > m.configStart+1 {
 				return m, m.deleteCurrentField()
 			}
 		}
-
-	case tea.WindowSizeMsg:
-		m.width = msg.Width
 	}
 
-	// Update current input
-	cmd := m.updateInputs(msg)
+	cmd := m.updateInputsMsg(msg)
 	return m, cmd
 }
 
@@ -267,7 +515,7 @@ func (m *configureModel) updateFocus() tea.Cmd {
 	return tea.Batch(cmds...)
 }
 
-func (m *configureModel) updateInputs(msg tea.Msg) tea.Cmd {
+func (m *configureModel) updateInputsMsg(msg tea.Msg) tea.Cmd {
 	cmds := make([]tea.Cmd, len(m.inputs))
 	for i := range m.inputs {
 		m.inputs[i], cmds[i] = m.inputs[i].Update(msg)
@@ -293,7 +541,6 @@ func (m *configureModel) deleteCurrentField() tea.Cmd {
 		return nil
 	}
 
-	// Remove current field
 	m.inputs = append(m.inputs[:m.focusIndex], m.inputs[m.focusIndex+1:]...)
 	m.labels = append(m.labels[:m.focusIndex], m.labels[m.focusIndex+1:]...)
 
@@ -306,23 +553,50 @@ func (m *configureModel) deleteCurrentField() tea.Cmd {
 
 func (m configureModel) validate() error {
 	if strings.TrimSpace(m.inputs[0].Value()) == "" {
-		return fmt.Errorf("plugin name is required")
-	}
-	if strings.TrimSpace(m.inputs[1].Value()) == "" {
-		return fmt.Errorf("binary path is required")
+		return fmt.Errorf("configuration name is required")
 	}
 	return nil
 }
 
 func (m configureModel) View() string {
+	if m.phase == phaseSelectPlugin {
+		return m.viewPluginSelection()
+	}
+	return m.viewConfigInputs()
+}
+
+func (m configureModel) viewPluginSelection() string {
 	var b strings.Builder
 
-	title := "Add Plugin Configuration"
+	b.WriteString(titleStyle.Render("Add Plugin Configuration"))
+	b.WriteString("\n")
+	b.WriteString(subtitleStyle.Render("● = installed, ○ = not installed (will need to install)"))
+	b.WriteString("\n\n")
+	b.WriteString(m.pluginList.View())
+
+	return b.String()
+}
+
+func (m configureModel) viewConfigInputs() string {
+	var b strings.Builder
+
+	title := fmt.Sprintf("Configure %s Plugin", toTitleCase(m.pluginType))
 	if m.editing {
-		title = "Edit Plugin Configuration"
+		title = fmt.Sprintf("Edit %s Configuration", m.pluginName)
 	}
 	b.WriteString(titleStyle.Render(title))
 	b.WriteString("\n\n")
+
+	// Show installation status
+	if !m.editing {
+		installed := isPluginInstalled(m.pluginType)
+		if installed {
+			b.WriteString(successStyle.Render(fmt.Sprintf("✓ Plugin binary found: %s", m.binaryPath)))
+		} else {
+			b.WriteString(warningStyle.Render(fmt.Sprintf("⚠ Plugin not installed. Run: roady sync install %s", m.pluginType)))
+		}
+		b.WriteString("\n\n")
+	}
 
 	for i, input := range m.inputs {
 		label := m.labels[i]
@@ -342,7 +616,7 @@ func (m configureModel) View() string {
 		b.WriteString("\n")
 	}
 
-	help := "[Tab/↓] Next • [Shift+Tab/↑] Previous • [Enter] Save • [Ctrl+A] Add Field • [Ctrl+D] Delete Field • [Esc] Cancel"
+	help := "[Tab/↓] Next • [Shift+Tab/↑] Prev • [Enter/Ctrl+S] Save • [Ctrl+A] Add Field • [Esc] Back"
 	b.WriteString(helpStyle.Render(help))
 
 	return b.String()
@@ -350,17 +624,14 @@ func (m configureModel) View() string {
 
 func (m configureModel) getConfig() (string, plugin.PluginConfig) {
 	name := strings.TrimSpace(m.inputs[0].Value())
-	binary := strings.TrimSpace(m.inputs[1].Value())
 
 	config := make(map[string]string)
 	for i := m.configStart; i < len(m.inputs); i++ {
 		label := m.labels[i]
 		value := strings.TrimSpace(m.inputs[i].Value())
 
-		// Convert label back to snake_case for config key
 		key := strings.ToLower(strings.ReplaceAll(label, " ", "_"))
 
-		// Handle "New Field" entries with field_name=value format
 		if label == "New Field" && strings.Contains(value, "=") {
 			parts := strings.SplitN(value, "=", 2)
 			key = strings.TrimSpace(parts[0])
@@ -373,23 +644,25 @@ func (m configureModel) getConfig() (string, plugin.PluginConfig) {
 	}
 
 	return name, plugin.PluginConfig{
-		Binary: binary,
+		Binary: m.binaryPath,
 		Config: config,
 	}
 }
+
+// --- CLI Commands ---
 
 var syncAddCmd = &cobra.Command{
 	Use:   "add [name]",
 	Short: "Add a new plugin configuration interactively",
 	Long: `Add a new plugin configuration using an interactive TUI.
 
-The TUI will guide you through setting up:
-  - Plugin name (identifier for this configuration)
-  - Binary path (path to the plugin executable)
-  - Configuration values (API tokens, domains, etc.)
+The wizard will guide you through:
+  1. Selecting the plugin type (Jira, GitHub, Linear, etc.)
+  2. Entering your configuration name
+  3. Filling in the required credentials and settings
 
 The configuration will be saved to .roady/plugins.yaml.`,
-	Example: `  # Add a new plugin configuration
+	Example: `  # Add a new plugin configuration (interactive)
   roady sync add
 
   # Add with a preset name
@@ -404,15 +677,13 @@ The configuration will be saved to .roady/plugins.yaml.`,
 		var name string
 		if len(args) > 0 {
 			name = args[0]
-
-			// Check if already exists
 			if _, err := services.Sync.GetPluginConfig(name); err == nil {
 				return fmt.Errorf("plugin '%s' already exists. Use 'roady sync edit %s' to modify it", name, name)
 			}
 		}
 
 		m := newConfigureModel(name, nil)
-		p := tea.NewProgram(m)
+		p := tea.NewProgram(m, tea.WithAltScreen())
 
 		finalModel, err := p.Run()
 		if err != nil {
@@ -435,9 +706,16 @@ The configuration will be saved to .roady/plugins.yaml.`,
 		}
 
 		fmt.Printf("✓ Plugin '%s' configured successfully.\n", configName)
+		fmt.Printf("  Type: %s\n", result.pluginType)
 		fmt.Printf("  Binary: %s\n", config.Binary)
 		fmt.Printf("  Config: %d fields\n", len(config.Config))
-		fmt.Printf("\nRun with: roady sync --name %s\n", configName)
+
+		if !isPluginInstalled(result.pluginType) {
+			fmt.Printf("\n⚠ Plugin not installed. Install with:\n")
+			fmt.Printf("  roady sync install %s\n", result.pluginType)
+		}
+
+		fmt.Printf("\nRun sync with: roady sync --name %s\n", configName)
 
 		return nil
 	},
@@ -464,7 +742,7 @@ All existing values will be pre-filled for editing.`,
 		}
 
 		m := newConfigureModel(name, existingConfig)
-		p := tea.NewProgram(m)
+		p := tea.NewProgram(m, tea.WithAltScreen())
 
 		finalModel, err := p.Run()
 		if err != nil {
@@ -483,11 +761,10 @@ All existing values will be pre-filled for editing.`,
 
 		newName, config := result.getConfig()
 
-		// If name changed, remove old config
 		if newName != name {
-			// We need to add RemovePluginConfig to the service
-			// For now, just save under new name
-			fmt.Printf("Note: Plugin renamed from '%s' to '%s'\n", name, newName)
+			repo := services.Workspace.Repo
+			_ = repo.RemovePluginConfig(name)
+			fmt.Printf("Note: Configuration renamed from '%s' to '%s'\n", name, newName)
 		}
 
 		if err := services.Sync.SetPluginConfig(newName, config); err != nil {
@@ -516,12 +793,10 @@ var syncRemoveCmd = &cobra.Command{
 
 		name := args[0]
 
-		// Check if exists
 		if _, err := services.Sync.GetPluginConfig(name); err != nil {
 			return fmt.Errorf("plugin '%s' not found", name)
 		}
 
-		// Use the repository directly for removal
 		repo := services.Workspace.Repo
 		if err := repo.RemovePluginConfig(name); err != nil {
 			return fmt.Errorf("failed to remove plugin: %w", err)
@@ -532,8 +807,95 @@ var syncRemoveCmd = &cobra.Command{
 	},
 }
 
+var syncInstallCmd = &cobra.Command{
+	Use:   "install <plugin-type>",
+	Short: "Install a sync plugin",
+	Long: `Install a sync plugin binary using 'go install'.
+
+Available plugins:
+  - jira     Atlassian Jira
+  - github   GitHub Issues
+  - linear   Linear
+  - asana    Asana
+  - notion   Notion
+  - trello   Trello
+
+The plugin will be installed to your GOPATH/bin directory.`,
+	Example: `  # Install the Jira plugin
+  roady sync install jira
+
+  # Install all available plugins
+  roady sync install --all`,
+	Args: cobra.MaximumNArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		installAll, _ := cmd.Flags().GetBool("all")
+
+		if installAll {
+			fmt.Println("Installing all plugins...")
+			for _, p := range availablePlugins {
+				if err := installPlugin(p); err != nil {
+					fmt.Printf("✗ Failed to install %s: %v\n", p.Name, err)
+				} else {
+					fmt.Printf("✓ Installed %s\n", p.Name)
+				}
+			}
+			return nil
+		}
+
+		if len(args) == 0 {
+			// Show available plugins
+			fmt.Println("Available plugins:")
+			for _, p := range availablePlugins {
+				status := "○"
+				if isPluginInstalled(p.Name) {
+					status = "●"
+				}
+				fmt.Printf("  %s %-10s %s\n", status, p.Name, p.Description)
+			}
+			fmt.Println("\n● = installed, ○ = not installed")
+			fmt.Println("\nUsage: roady sync install <plugin-type>")
+			fmt.Println("       roady sync install --all")
+			return nil
+		}
+
+		pluginType := strings.ToLower(args[0])
+		var pluginInfo *PluginInfo
+		for _, p := range availablePlugins {
+			if p.Name == pluginType {
+				pluginInfo = &p
+				break
+			}
+		}
+
+		if pluginInfo == nil {
+			return fmt.Errorf("unknown plugin type: %s", pluginType)
+		}
+
+		fmt.Printf("Installing %s plugin...\n", pluginInfo.Name)
+		if err := installPlugin(*pluginInfo); err != nil {
+			return fmt.Errorf("installation failed: %w", err)
+		}
+
+		fmt.Printf("✓ Plugin '%s' installed successfully.\n", pluginInfo.Name)
+		fmt.Printf("\nConfigure with: roady sync add\n")
+
+		return nil
+	},
+}
+
+func installPlugin(p PluginInfo) error {
+	// #nosec G204 -- Package path is from trusted internal list
+	cmd := exec.Command("go", "install", p.GoPackage)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	return cmd.Run()
+}
+
 func init() {
+	syncInstallCmd.Flags().Bool("all", false, "Install all available plugins")
+
 	syncCmd.AddCommand(syncAddCmd)
 	syncCmd.AddCommand(syncEditCmd)
 	syncCmd.AddCommand(syncRemoveCmd)
+	syncCmd.AddCommand(syncInstallCmd)
 }

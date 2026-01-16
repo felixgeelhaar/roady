@@ -50,22 +50,39 @@ func TestFormatLabel(t *testing.T) {
 	}
 }
 
+func TestToTitleCase(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{"jira", "Jira"},
+		{"github", "Github"},
+		{"linear", "Linear"},
+		{"", ""},
+		{"ALREADY", "ALREADY"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.input, func(t *testing.T) {
+			result := toTitleCase(tt.input)
+			if result != tt.expected {
+				t.Errorf("toTitleCase(%q) = %q, want %q", tt.input, result, tt.expected)
+			}
+		})
+	}
+}
+
 func TestNewConfigureModelEmpty(t *testing.T) {
 	m := newConfigureModel("", nil)
 
-	// Should have at least name and binary inputs
-	if len(m.inputs) < 2 {
-		t.Errorf("expected at least 2 inputs, got %d", len(m.inputs))
+	// Should start in plugin selection phase
+	if m.phase != phaseSelectPlugin {
+		t.Errorf("expected phase to be phaseSelectPlugin, got %d", m.phase)
 	}
 
 	// Should not be in editing mode
 	if m.editing {
 		t.Error("expected editing to be false for new config")
-	}
-
-	// Config fields should start after name and binary
-	if m.configStart != 2 {
-		t.Errorf("expected configStart to be 2, got %d", m.configStart)
 	}
 }
 
@@ -85,14 +102,14 @@ func TestNewConfigureModelWithExisting(t *testing.T) {
 		t.Error("expected editing to be true for existing config")
 	}
 
+	// Should skip to configure phase
+	if m.phase != phaseConfigurePlugin {
+		t.Errorf("expected phase to be phaseConfigurePlugin, got %d", m.phase)
+	}
+
 	// Should have name preset
 	if m.inputs[0].Value() != "test-jira" {
 		t.Errorf("expected name to be 'test-jira', got %q", m.inputs[0].Value())
-	}
-
-	// Should have binary preset
-	if m.inputs[1].Value() != "./roady-plugin-jira" {
-		t.Errorf("expected binary to be './roady-plugin-jira', got %q", m.inputs[1].Value())
 	}
 
 	// Should detect jira plugin type
@@ -102,28 +119,22 @@ func TestNewConfigureModelWithExisting(t *testing.T) {
 }
 
 func TestConfigureModelValidate(t *testing.T) {
+	existing := &plugin.PluginConfig{
+		Binary: "./roady-plugin-jira",
+		Config: map[string]string{},
+	}
+
 	// Test empty name
-	m := newConfigureModel("", nil)
+	m := newConfigureModel("", existing)
 	m.inputs[0].SetValue("")
-	m.inputs[1].SetValue("./plugin")
 
 	err := m.validate()
 	if err == nil {
 		t.Error("expected error for empty name")
 	}
 
-	// Test empty binary
-	m.inputs[0].SetValue("test")
-	m.inputs[1].SetValue("")
-
-	err = m.validate()
-	if err == nil {
-		t.Error("expected error for empty binary")
-	}
-
 	// Test valid config
 	m.inputs[0].SetValue("test")
-	m.inputs[1].SetValue("./plugin")
 
 	err = m.validate()
 	if err != nil {
@@ -167,21 +178,72 @@ func TestSensitiveFields(t *testing.T) {
 	}
 }
 
-func TestPluginTemplates(t *testing.T) {
-	// Verify templates exist for known plugins
-	knownPlugins := []string{"jira", "github", "linear", "custom"}
+func TestAvailablePlugins(t *testing.T) {
+	// Verify plugins exist
+	knownPlugins := []string{"jira", "github", "linear", "asana", "notion", "trello"}
 
-	for _, p := range knownPlugins {
-		if _, ok := pluginTemplates[p]; !ok {
-			t.Errorf("missing template for plugin %q", p)
+	for _, name := range knownPlugins {
+		found := false
+		for _, p := range availablePlugins {
+			if p.Name == name {
+				found = true
+				// Verify has config keys
+				if len(p.ConfigKeys) == 0 {
+					t.Errorf("plugin %q has no config keys", name)
+				}
+				// Verify has go package
+				if p.GoPackage == "" {
+					t.Errorf("plugin %q has no go package", name)
+				}
+				break
+			}
+		}
+		if !found {
+			t.Errorf("missing plugin %q", name)
 		}
 	}
+}
 
-	// Verify jira template has expected fields
-	jiraFields := pluginTemplates["jira"]
-	expectedFields := []string{"domain", "project_key", "email", "api_token"}
-
-	if len(jiraFields) != len(expectedFields) {
-		t.Errorf("jira template has %d fields, expected %d", len(jiraFields), len(expectedFields))
+func TestGetPlaceholder(t *testing.T) {
+	tests := []struct {
+		field    string
+		expected string
+	}{
+		{"domain", "https://company.atlassian.net"},
+		{"api_token", "your-api-token"},
+		{"unknown_field", "Enter unknown_field"},
 	}
+
+	for _, tt := range tests {
+		t.Run(tt.field, func(t *testing.T) {
+			result := getPlaceholder(tt.field)
+			if result != tt.expected {
+				t.Errorf("getPlaceholder(%q) = %q, want %q", tt.field, result, tt.expected)
+			}
+		})
+	}
+}
+
+func TestGetPluginBinaryPath(t *testing.T) {
+	// This test just verifies the function returns a non-empty path
+	path := getPluginBinaryPath("jira")
+	if path == "" {
+		t.Error("expected non-empty path")
+	}
+	if !contains(path, "roady-plugin-jira") {
+		t.Errorf("expected path to contain 'roady-plugin-jira', got %q", path)
+	}
+}
+
+func contains(s, substr string) bool {
+	return len(s) >= len(substr) && (s == substr || len(s) > 0 && containsHelper(s, substr))
+}
+
+func containsHelper(s, substr string) bool {
+	for i := 0; i <= len(s)-len(substr); i++ {
+		if s[i:i+len(substr)] == substr {
+			return true
+		}
+	}
+	return false
 }
