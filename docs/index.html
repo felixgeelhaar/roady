@@ -1,371 +1,75 @@
-<!DOCTYPE html>
-<html lang="en" class="scroll-smooth">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Roady | The Planning-First System of Record</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <style>
-        body { font-family: 'Inter', sans-serif; }
-        .mono { font-family: 'JetBrains Mono', monospace; }
-        .gradient-text {
-            background: linear-gradient(135deg, #7D56F4 0%, #42FFB4 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        .glass {
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-    </style>
-</head>
-<body class="bg-[#0B0E14] text-gray-300 selection:bg-violet-500/30">
-
-    <!-- Navigation -->
-    <nav class="fixed w-full z-50 glass border-b border-white/5">
-        <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-            <div class="flex items-center space-x-3">
-                <img src="logo.svg" class="w-8 h-8" alt="Roady Logo">
-                <span class="text-white font-bold text-xl tracking-tight">Roady</span>
-            </div>
-            <div class="hidden md:flex items-center space-x-8 text-sm font-medium uppercase tracking-wider">
-                <a href="#features" class="hover:text-violet-400 transition-colors">Features</a>
-                <a href="#commands" class="hover:text-violet-400 transition-colors">Commands</a>
-                <a href="#automation" class="hover:text-violet-400 transition-colors">Automation</a>
-                <a href="https://github.com/felixgeelhaar/roady" class="text-white bg-violet-600 px-4 py-2 rounded-full hover:bg-violet-500 transition-all">GitHub</a>
-            </div>
-        </div>
-    </nav>
-
-    <!-- Hero Section -->
-    <section class="relative pt-32 pb-20 overflow-hidden">
-        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-violet-600/10 blur-[120px] rounded-full -z-10"></div>
-        <div class="max-w-7xl mx-auto px-6 text-center">
-            <h1 class="text-5xl md:text-7xl font-extrabold text-white mb-6 leading-tight">
-                Your Project's <br><span class="gradient-text">Memory Layer.</span>
-            </h1>
-            <p class="text-xl md:text-2xl text-gray-400 max-w-2xl mx-auto mb-10">
-                Roady is a deterministic planning system that turns intent into specs, plans, and drift-aware roadmaps for humans and AI agents.
-            </p>
-            <div class="flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-6">
-                <div class="bg-[#161B22] p-1 rounded-2xl border border-white/10 flex items-center shadow-2xl">
-                    <code class="mono px-4 py-2 text-violet-400">brew install felixgeelhaar/tap/roady</code>
-                    <button class="p-2 hover:bg-white/5 rounded-xl transition-colors" onclick="navigator.clipboard.writeText('brew install felixgeelhaar/tap/roady')">
-                        <i data-lucide="copy" class="w-5 h-5 text-gray-500"></i>
-                    </button>
-                </div>
-                <a href="#commands" class="text-gray-300 hover:text-white flex items-center space-x-2 transition-colors">
-                    <span>Explore the CLI</span>
-                    <i data-lucide="arrow-right" class="w-4 h-4"></i>
-                </a>
-            </div>
-        </div>
-    </section>
-
-    <!-- Definition Section -->
-    <section class="py-16 border-t border-white/5 bg-[#0D1117]">
-        <div class="max-w-5xl mx-auto px-6">
-            <div class="grid md:grid-cols-2 gap-12">
-                <div>
-                    <h3 class="text-xl font-bold text-white mb-4 flex items-center"><i data-lucide="check-circle" class="w-5 h-5 text-emerald-400 mr-2"></i> What Roady Is</h3>
-                    <ul class="space-y-3 text-gray-400">
-                        <li class="flex items-start"><span class="text-violet-400 mr-2">•</span> A planning memory and source of truth</li>
-                        <li class="flex items-start"><span class="text-violet-400 mr-2">•</span> A spec & plan generator</li>
-                        <li class="flex items-start"><span class="text-violet-400 mr-2">•</span> A drift detection engine</li>
-                        <li class="flex items-start"><span class="text-violet-400 mr-2">•</span> A CLI and MCP-first tool</li>
-                    </ul>
-                </div>
-                <div>
-                    <h3 class="text-xl font-bold text-white mb-4 flex items-center"><i data-lucide="x-circle" class="w-5 h-5 text-red-400 mr-2"></i> What Roady Is Not</h3>
-                    <ul class="space-y-3 text-gray-400">
-                        <li class="flex items-start"><span class="text-red-400/50 mr-2">•</span> A task runner or build tool</li>
-                        <li class="flex items-start"><span class="text-red-400/50 mr-2">•</span> A replacement for Jira / GitHub Issues</li>
-                        <li class="flex items-start"><span class="text-red-400/50 mr-2">•</span> An AI agent that executes code</li>
-                        <li class="flex items-start"><span class="text-red-400/50 mr-2">•</span> A project management UI</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Core Loop Section -->
-    <section id="features" class="py-24 border-t border-white/5">
-        <div class="max-w-7xl mx-auto px-6">
-            <div class="text-center mb-16">
-                <h2 class="text-3xl font-bold text-white mb-4">The Continuous Planning Loop</h2>
-                <p class="text-gray-400">Roady works without AI. AI simply accelerates the loop.</p>
-            </div>
-            
-            <!-- ASCII Flow / Visualization -->
-            <div class="max-w-3xl mx-auto mb-20 p-8 glass rounded-2xl flex flex-col items-center justify-center font-mono text-sm md:text-base text-violet-300 bg-black/40">
-                <div class="flex flex-col items-center space-y-2">
-                    <span class="px-4 py-2 border border-violet-500/30 rounded bg-violet-500/10 text-white">Docs / Intent</span>
-                    <i data-lucide="arrow-down" class="w-4 h-4 text-gray-500"></i>
-                    <span class="px-4 py-2 border border-emerald-500/30 rounded bg-emerald-500/10 text-white font-bold">roady spec</span>
-                    <i data-lucide="arrow-down" class="w-4 h-4 text-gray-500"></i>
-                    <span class="px-4 py-2 border border-emerald-500/30 rounded bg-emerald-500/10 text-white font-bold">roady plan</span>
-                    <i data-lucide="arrow-down" class="w-4 h-4 text-gray-500"></i>
-                    <span class="px-4 py-2 text-gray-500 italic">[ Execution happens elsewhere ]</span>
-                    <i data-lucide="arrow-down" class="w-4 h-4 text-gray-500"></i>
-                    <span class="px-4 py-2 border border-orange-500/30 rounded bg-orange-500/10 text-white font-bold">roady drift</span>
-                </div>
-            </div>
-
-            <div class="grid md:grid-cols-3 gap-8">
-                <!-- Step 1 -->
-                <div class="glass p-8 rounded-3xl relative group hover:border-violet-500/50 transition-all">
-                    <div class="w-12 h-12 bg-violet-500/20 rounded-2xl flex items-center justify-center mb-6 text-violet-400">
-                        <i data-lucide="file-text"></i>
-                    </div>
-                    <h3 class="text-xl font-bold text-white mb-3">1. Establish Intent</h3>
-                    <p class="text-sm leading-relaxed text-gray-400">
-                        Analyze your documentation tree. Roady extracts functional features and requirements deterministically.
-                    </p>
-                    <div class="mt-6 mono text-xs text-violet-300 bg-black/40 p-3 rounded-lg">
-                        $ roady spec analyze docs/
-                    </div>
-                </div>
-                <!-- Step 2 -->
-                <div class="glass p-8 rounded-3xl relative group hover:border-violet-500/50 transition-all">
-                    <div class="w-12 h-12 bg-emerald-500/20 rounded-2xl flex items-center justify-center mb-6 text-emerald-400">
-                        <i data-lucide="git-branch"></i>
-                    </div>
-                    <h3 class="text-xl font-bold text-white mb-3">2. Derive Action</h3>
-                    <p class="text-sm leading-relaxed text-gray-400">
-                        Decompose features into atomic engineering tasks. Use AI to accelerate this, or write plans manually.
-                    </p>
-                    <div class="mt-6 mono text-xs text-emerald-300 bg-black/40 p-3 rounded-lg">
-                        $ roady plan generate
-                    </div>
-                </div>
-                <!-- Step 3 -->
-                <div class="glass p-8 rounded-3xl relative group hover:border-violet-500/50 transition-all">
-                    <div class="w-12 h-12 bg-orange-500/20 rounded-2xl flex items-center justify-center mb-6 text-orange-400">
-                        <i data-lucide="radar"></i>
-                    </div>
-                    <h3 class="text-xl font-bold text-white mb-3">3. Detect Drift</h3>
-                    <p class="text-sm leading-relaxed text-gray-400">
-                        Roady monitors your code and state. If your implementation diverges from your plan, you'll know instantly.
-                    </p>
-                    <div class="mt-6 mono text-xs text-orange-300 bg-black/40 p-3 rounded-lg">
-                        $ roady drift detect
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Why Roady Section -->
-    <section class="py-24 bg-[#0B0E14]">
-        <div class="max-w-4xl mx-auto px-6 text-center">
-            <h2 class="text-3xl font-bold text-white mb-12">Why Roady?</h2>
-            <div class="grid md:grid-cols-3 gap-8 text-left">
-                <div class="p-6 border border-white/5 rounded-2xl">
-                    <h4 class="text-white font-bold mb-2">AI Tools Forget</h4>
-                    <p class="text-sm text-gray-400">Context windows are finite. Roady provides a persistent, structured memory that doesn't expire.</p>
-                </div>
-                <div class="p-6 border border-white/5 rounded-2xl">
-                    <h4 class="text-white font-bold mb-2">Humans Re-plan</h4>
-                    <p class="text-sm text-gray-400">Stop answering "what's next?". Roady answers it deterministically based on the approved spec.</p>
-                </div>
-                <div class="p-6 border border-white/5 rounded-2xl">
-                    <h4 class="text-white font-bold mb-2">Drift is Silent</h4>
-                    <p class="text-sm text-gray-400">Without Roady, specs and code drift apart unnoticed. Roady makes drift noisy and actionable.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Why Roady Section -->
-    <section class="py-24 bg-[#0B0E14]">
-        <div class="max-w-4xl mx-auto px-6 text-center">
-            <h2 class="text-3xl font-bold text-white mb-12">Why Roady?</h2>
-            <div class="grid md:grid-cols-3 gap-8 text-left">
-                <div class="p-6 border border-white/5 rounded-2xl">
-                    <h4 class="text-white font-bold mb-2">AI Tools Forget</h4>
-                    <p class="text-sm text-gray-400">Context windows are finite. Roady provides a persistent, structured memory that doesn't expire.</p>
-                </div>
-                <div class="p-6 border border-white/5 rounded-2xl">
-                    <h4 class="text-white font-bold mb-2">Humans Re-plan</h4>
-                    <p class="text-sm text-gray-400">Stop answering "what's next?". Roady answers it deterministically based on the approved spec.</p>
-                </div>
-                <div class="p-6 border border-white/5 rounded-2xl">
-                    <h4 class="text-white font-bold mb-2">Drift is Silent</h4>
-                    <p class="text-sm text-gray-400">Without Roady, specs and code drift apart unnoticed. Roady makes drift noisy and actionable.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Command Reference -->
-    <section id="commands" class="py-24">
-        <div class="max-w-5xl mx-auto px-6">
-            <h2 class="text-4xl font-bold text-white mb-12 text-center">CLI Interface</h2>
-            
-            <div class="space-y-6">
-                <!-- Group: Setup -->
-                <div class="glass rounded-2xl overflow-hidden border-white/5 hover:border-white/10 transition-all">
-                    <div class="bg-white/5 px-6 py-4 flex items-center justify-between">
-                        <span class="text-white font-semibold">Workspace Setup</span>
-                        <span class="text-xs uppercase text-gray-500 tracking-widest">Initialization</span>
-                    </div>
-                    <div class="p-6 grid gap-4">
-                        <div class="flex items-start justify-between border-b border-white/5 pb-4">
-                            <div>
-                                <code class="text-violet-400 mono font-bold">roady init [name]</code>
-                                <p class="text-sm text-gray-400 mt-1">Bootstraps a new Roady workspace in the current directory.</p>
-                            </div>
-                        </div>
-                        <div class="flex items-start justify-between">
-                            <div>
-                                <code class="text-violet-400 mono font-bold">roady discover [root]</code>
-                                <p class="text-sm text-gray-400 mt-1">Recursively finds all Roady projects in a directory tree.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Group: Execution -->
-                <div class="glass rounded-2xl overflow-hidden border-white/5 hover:border-white/10 transition-all">
-                    <div class="bg-white/5 px-6 py-4 flex items-center justify-between">
-                        <span class="text-white font-semibold">Execution Control</span>
-                        <span class="text-xs uppercase text-gray-500 tracking-widest">Life Cycle</span>
-                    </div>
-                    <div class="p-6 grid gap-4">
-                        <div class="flex items-start justify-between border-b border-white/5 pb-4">
-                            <div>
-                                <code class="text-emerald-400 mono font-bold">roady task start [id]</code>
-                                <p class="text-sm text-gray-400 mt-1">Begins work on a task and records the owner.</p>
-                            </div>
-                        </div>
-                        <div class="flex items-start justify-between border-b border-white/5 pb-4">
-                            <div>
-                                <code class="text-emerald-400 mono font-bold">roady task complete [id]</code>
-                                <p class="text-sm text-gray-400 mt-1">Marks task as done and accepts implementation evidence.</p>
-                            </div>
-                        </div>
-                        <div class="flex items-start justify-between">
-                            <div>
-                                <code class="text-emerald-400 mono font-bold">roady task verify [id]</code>
-                                <p class="text-sm text-gray-400 mt-1">The final state. Locks the task with verified proof.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Group: Governance -->
-                <div class="glass rounded-2xl overflow-hidden border-white/5 hover:border-white/10 transition-all">
-                    <div class="bg-white/5 px-6 py-4 flex items-center justify-between">
-                        <span class="text-white font-semibold">Organizational Intelligence</span>
-                        <span class="text-xs uppercase text-gray-500 tracking-widest">Governance</span>
-                    </div>
-                    <div class="p-6 grid gap-4">
-                        <div class="flex items-start justify-between border-b border-white/5 pb-4">
-                            <div>
-                                <code class="text-amber-400 mono font-bold">roady audit verify</code>
-                                <p class="text-sm text-gray-400 mt-1">Verifies the cryptographic hash chain of your audit trail.</p>
-                            </div>
-                        </div>
-                        <div class="flex items-start justify-between border-b border-white/5 pb-4">
-                            <div>
-                                <code class="text-amber-400 mono font-bold">roady forecast</code>
-                                <p class="text-sm text-gray-400 mt-1">Predicts completion dates using historical velocity data.</p>
-                            </div>
-                        </div>
-                        <div class="flex items-start justify-between">
-                            <div>
-                                <code class="text-amber-400 mono font-bold">roady usage</code>
-                                <p class="text-sm text-gray-400 mt-1">Detailed breakdown of AI token consumption and command telemetry.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Automation Section -->
-    <section id="automation" class="py-24 bg-gradient-to-b from-transparent to-violet-900/10">
-        <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center space-y-12 md:space-y-0 md:space-x-20">
-            <div class="md:w-1/2">
-                <h2 class="text-4xl font-bold text-white mb-6">Built for Continuous Planning</h2>
-                <div class="space-y-8 text-gray-400">
-                    <div class="flex items-start space-x-4">
-                        <div class="w-8 h-8 bg-violet-500/20 rounded-lg flex-shrink-0 flex items-center justify-center text-violet-400 mt-1">
-                            <i data-lucide="eye" class="w-5 h-5"></i>
-                        </div>
-                        <div>
-                            <h4 class="text-white font-semibold mb-1">roady watch</h4>
-                            <p class="text-sm">A background sentinel that reacts to document changes, instantly updating your specification and checking for plan drift.</p>
-                        </div>
-                    </div>
-                    <div class="flex items-start space-x-4">
-                        <div class="w-8 h-8 bg-violet-500/20 rounded-lg flex-shrink-0 flex items-center justify-center text-violet-400 mt-1">
-                            <i data-lucide="git-commit" class="w-5 h-5"></i>
-                        </div>
-                        <div>
-                            <h4 class="text-white font-semibold mb-1">Git Sync Loop</h4>
-                            <p class="text-sm">Roady parses your commit history for [roady:task-id] markers to automate status transitions.</p>
-                        </div>
-                    </div>
-                    <div class="flex items-start space-x-4">
-                        <div class="w-8 h-8 bg-violet-500/20 rounded-lg flex-shrink-0 flex items-center justify-center text-violet-400 mt-1">
-                            <i data-lucide="shield-check" class="w-5 h-5"></i>
-                        </div>
-                        <div>
-                            <h4 class="text-white font-semibold mb-1">Policy-Driven AI</h4>
-                            <p class="text-sm">Guard agentic spending with hard token limits and vendor-agnostic routing (OpenAI, Anthropic, Gemini, Ollama).</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="md:w-1/2 glass rounded-3xl p-2 shadow-2xl overflow-hidden">
-                <div class="bg-[#0B0E14] rounded-2xl p-6 mono text-xs leading-relaxed overflow-x-auto">
-                    <div class="flex space-x-2 mb-4">
-                        <div class="w-3 h-3 bg-white/10 rounded-full"></div>
-                        <div class="w-3 h-3 bg-white/10 rounded-full"></div>
-                        <div class="w-3 h-3 bg-white/10 rounded-full"></div>
-                    </div>
-                    <span class="text-gray-500">$ roady status</span><br>
-                    <span class="text-white">Project: Roady Core (v0.1.0)</span><br>
-                    <span class="text-gray-400">- Verified:    10</span><br>
-                    <span class="text-gray-400">- Pending:     35</span><br>
-                    <br>
-                    <span class="text-emerald-400">Overall Progress: 22.2%</span><br>
-                    <br>
-                    <span class="text-violet-400">Task Overview</span><br>
-                    <span class="text-gray-500">[verified] Implement Spec Lifecycle</span><br>
-                    <span class="text-gray-500">[in_progress] Design MCP Interface</span><br>
-                    <span class="text-gray-500">[pending] Cross-repo Discovery</span>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Footer -->
-    <footer class="py-12 border-t border-white/5">
-        <div class="max-w-7xl mx-auto px-6 text-center">
-            <div class="flex items-center justify-center space-x-3 mb-6">
-                <img src="logo.svg" class="w-6 h-6 grayscale opacity-50" alt="Logo">
-                <span class="text-gray-500 font-bold uppercase tracking-widest text-sm">Roady</span>
-            </div>
-            <p class="text-gray-500 text-sm mb-4">
-                Roady is designed to scale from solo developers to teams. Team-level capabilities will build on top of the same core artifacts.
-            </p>
-            <p class="text-gray-600 text-sm">
-                Built for high-integrity software teams. MIT Licensed.<br>
-                &copy; 2026 Felix Geelhaar
-            </p>
-        </div>
-    </footer>
-
-    <script>
-        lucide.createIcons();
-    </script>
-</body>
-</html>
+<!DOCTYPE html><html lang="en"> <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="description" content="A deterministic planning system that turns intent into specs, plans, and drift-aware roadmaps for humans and AI agents."><meta name="theme-color" content="#0B0E14"><!-- Open Graph --><meta property="og:title" content="Roady | The Planning-First System of Record"><meta property="og:description" content="A deterministic planning system that turns intent into specs, plans, and drift-aware roadmaps for humans and AI agents."><meta property="og:type" content="website"><title>Roady | The Planning-First System of Record</title><!-- Fonts --><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"><!-- Favicon --><link rel="icon" type="image/svg+xml" href="/roady/logo.svg"><link rel="stylesheet" href="/roady/_astro/index.CxsmQFh_.css"></head> <body class="selection:bg-violet-500/30">  <style>astro-island,astro-slot,astro-static-slot{display:contents}</style><script>(()=>{var e=async t=>{await(await t())()};(self.Astro||(self.Astro={})).load=e;window.dispatchEvent(new Event("astro:load"));})();</script><script>(()=>{var A=Object.defineProperty;var g=(i,o,a)=>o in i?A(i,o,{enumerable:!0,configurable:!0,writable:!0,value:a}):i[o]=a;var d=(i,o,a)=>g(i,typeof o!="symbol"?o+"":o,a);{let i={0:t=>m(t),1:t=>a(t),2:t=>new RegExp(t),3:t=>new Date(t),4:t=>new Map(a(t)),5:t=>new Set(a(t)),6:t=>BigInt(t),7:t=>new URL(t),8:t=>new Uint8Array(t),9:t=>new Uint16Array(t),10:t=>new Uint32Array(t),11:t=>1/0*t},o=t=>{let[l,e]=t;return l in i?i[l](e):void 0},a=t=>t.map(o),m=t=>typeof t!="object"||t===null?t:Object.fromEntries(Object.entries(t).map(([l,e])=>[l,o(e)]));class y extends HTMLElement{constructor(){super(...arguments);d(this,"Component");d(this,"hydrator");d(this,"hydrate",async()=>{var b;if(!this.hydrator||!this.isConnected)return;let e=(b=this.parentElement)==null?void 0:b.closest("astro-island[ssr]");if(e){e.addEventListener("astro:hydrate",this.hydrate,{once:!0});return}let c=this.querySelectorAll("astro-slot"),n={},h=this.querySelectorAll("template[data-astro-template]");for(let r of h){let s=r.closest(this.tagName);s!=null&&s.isSameNode(this)&&(n[r.getAttribute("data-astro-template")||"default"]=r.innerHTML,r.remove())}for(let r of c){let s=r.closest(this.tagName);s!=null&&s.isSameNode(this)&&(n[r.getAttribute("name")||"default"]=r.innerHTML)}let p;try{p=this.hasAttribute("props")?m(JSON.parse(this.getAttribute("props"))):{}}catch(r){let s=this.getAttribute("component-url")||"<unknown>",v=this.getAttribute("component-export");throw v&&(s+=` (export ${v})`),console.error(`[hydrate] Error parsing props for component ${s}`,this.getAttribute("props"),r),r}let u;await this.hydrator(this)(this.Component,p,n,{client:this.getAttribute("client")}),this.removeAttribute("ssr"),this.dispatchEvent(new CustomEvent("astro:hydrate"))});d(this,"unmount",()=>{this.isConnected||this.dispatchEvent(new CustomEvent("astro:unmount"))})}disconnectedCallback(){document.removeEventListener("astro:after-swap",this.unmount),document.addEventListener("astro:after-swap",this.unmount,{once:!0})}connectedCallback(){if(!this.hasAttribute("await-children")||document.readyState==="interactive"||document.readyState==="complete")this.childrenConnectedCallback();else{let e=()=>{document.removeEventListener("DOMContentLoaded",e),c.disconnect(),this.childrenConnectedCallback()},c=new MutationObserver(()=>{var n;((n=this.lastChild)==null?void 0:n.nodeType)===Node.COMMENT_NODE&&this.lastChild.nodeValue==="astro:end"&&(this.lastChild.remove(),e())});c.observe(this,{childList:!0}),document.addEventListener("DOMContentLoaded",e)}}async childrenConnectedCallback(){let e=this.getAttribute("before-hydration-url");e&&await import(e),this.start()}async start(){let e=JSON.parse(this.getAttribute("opts")),c=this.getAttribute("client");if(Astro[c]===void 0){window.addEventListener(`astro:${c}`,()=>this.start(),{once:!0});return}try{await Astro[c](async()=>{let n=this.getAttribute("renderer-url"),[h,{default:p}]=await Promise.all([import(this.getAttribute("component-url")),n?import(n):()=>()=>{}]),u=this.getAttribute("component-export")||"default";if(!u.includes("."))this.Component=h[u];else{this.Component=h;for(let f of u.split("."))this.Component=this.Component[f]}return this.hydrator=p,this.hydrate},e,this)}catch(n){console.error(`[astro-island] Error hydrating ${this.getAttribute("component-url")}`,n)}}attributeChangedCallback(){this.hydrate()}}d(y,"observedAttributes",["props"]),customElements.get("astro-island")||customElements.define("astro-island",y)}})();</script><astro-island uid="1SmJwD" prefix="s0" component-url="/roady/_astro/Navigation.B9j7NTEw.js" component-export="default" renderer-url="/roady/_astro/client.DD9Xv6Rb.js" props="{}" ssr client="load" opts="{&quot;name&quot;:&quot;Navigation&quot;,&quot;value&quot;:true}" await-children><nav class="fixed w-full z-50 transition-all duration-300 bg-transparent"><div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between"><a href="#" class="flex items-center space-x-3"><img src="/roady/logo.svg" class="w-8 h-8" alt="Roady Logo"><span class="text-white font-bold text-xl tracking-tight">Roady</span></a><div class="hidden md:flex items-center space-x-8 text-sm font-medium uppercase tracking-wider"><!--[--><a href="#features" class="text-gray-400 hover:text-violet-400 transition-colors">Features</a><a href="#commands" class="text-gray-400 hover:text-violet-400 transition-colors">Commands</a><a href="#mcp" class="text-gray-400 hover:text-violet-400 transition-colors">MCP</a><a href="#automation" class="text-gray-400 hover:text-violet-400 transition-colors">Automation</a><!--]--><a href="https://github.com/felixgeelhaar/roady" target="_blank" rel="noopener noreferrer" class="text-white bg-violet-600 px-4 py-2 rounded-full hover:bg-violet-500 transition-all"> GitHub </a></div><button class="md:hidden p-2 text-gray-400 hover:text-white transition-colors" aria-label="Toggle menu"><i data-lucide="menu" class="w-6 h-6"></i></button></div><div class="md:hidden glass border-t border-white/5" style="display:none;"><div class="px-6 py-4 space-y-4"><!--[--><a href="#features" class="block text-gray-400 hover:text-violet-400 transition-colors uppercase text-sm tracking-wider">Features</a><a href="#commands" class="block text-gray-400 hover:text-violet-400 transition-colors uppercase text-sm tracking-wider">Commands</a><a href="#mcp" class="block text-gray-400 hover:text-violet-400 transition-colors uppercase text-sm tracking-wider">MCP</a><a href="#automation" class="block text-gray-400 hover:text-violet-400 transition-colors uppercase text-sm tracking-wider">Automation</a><!--]--><a href="https://github.com/felixgeelhaar/roady" target="_blank" rel="noopener noreferrer" class="block text-center text-white bg-violet-600 px-4 py-2 rounded-full hover:bg-violet-500 transition-all"> GitHub </a></div></div></nav><!--astro:end--></astro-island> <astro-island uid="2sjND9" prefix="s1" component-url="/roady/_astro/HeroSection.DDVqAxuT.js" component-export="default" renderer-url="/roady/_astro/client.DD9Xv6Rb.js" props="{}" ssr client="load" opts="{&quot;name&quot;:&quot;HeroSection&quot;,&quot;value&quot;:true}" await-children><section class="relative pt-32 pb-20 overflow-hidden"><div class="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-violet-600/10 blur-[120px] rounded-full -z-10"></div><div class="max-w-7xl mx-auto px-6 text-center"><h1 class="text-5xl md:text-7xl font-extrabold text-white mb-6 leading-tight"> Your Project&#39;s <br><span class="gradient-text">Memory Layer.</span></h1><p class="text-xl md:text-2xl text-gray-400 max-w-2xl mx-auto mb-10"> A planning-first system of record that turns intent into specs, plans, and drift-aware roadmaps for humans and AI agents. </p><div class="max-w-xl mx-auto mb-8"><div class="flex justify-center mb-4 space-x-2"><!--[--><button class="bg-violet-600 text-white px-4 py-2 text-sm font-medium rounded-lg transition-all">Homebrew</button><button class="text-gray-400 hover:text-white hover:bg-white/5 px-4 py-2 text-sm font-medium rounded-lg transition-all">Go Install</button><button class="text-gray-400 hover:text-white hover:bg-white/5 px-4 py-2 text-sm font-medium rounded-lg transition-all">From Source</button><!--]--></div><div class="bg-[#161B22] p-1 rounded-2xl border border-white/10 flex items-center shadow-2xl"><code class="mono px-4 py-3 text-violet-400 text-sm flex-1 overflow-x-auto whitespace-nowrap">brew install felixgeelhaar/tap/roady</code><button class="p-3 hover:bg-white/5 rounded-xl transition-colors flex-shrink-0" title="Copy to clipboard"><i data-lucide="copy" class="text-gray-500 w-5 h-5"></i></button></div></div><div class="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-6"><a href="#commands" class="text-gray-300 hover:text-white flex items-center space-x-2 transition-colors"><span>Explore the CLI</span><i data-lucide="arrow-right" class="w-4 h-4"></i></a><a href="#mcp" class="text-gray-300 hover:text-white flex items-center space-x-2 transition-colors"><span>MCP Integration</span><i data-lucide="arrow-right" class="w-4 h-4"></i></a></div></div></section><!--astro:end--></astro-island> <section class="py-16 border-t border-white/5 bg-[#0D1117]"> <div class="max-w-5xl mx-auto px-6"> <div class="grid md:grid-cols-2 gap-12"> <div> <h3 class="text-xl font-bold text-white mb-4 flex items-center"> <i data-lucide="check-circle" class="w-5 h-5 text-emerald-400 mr-2"></i>
+What Roady Is
+</h3> <ul class="space-y-3 text-gray-400"> <li class="flex items-start"> <span class="text-violet-400 mr-2">&bull;</span>
+A planning memory and source of truth
+</li> <li class="flex items-start"> <span class="text-violet-400 mr-2">&bull;</span>
+A spec & plan generator with AI acceleration
+</li> <li class="flex items-start"> <span class="text-violet-400 mr-2">&bull;</span>
+A drift detection and debt analysis engine
+</li> <li class="flex items-start"> <span class="text-violet-400 mr-2">&bull;</span>
+A CLI and MCP-first tool for AI agents
+</li> </ul> </div> <div> <h3 class="text-xl font-bold text-white mb-4 flex items-center"> <i data-lucide="x-circle" class="w-5 h-5 text-red-400 mr-2"></i>
+What Roady Is Not
+</h3> <ul class="space-y-3 text-gray-400"> <li class="flex items-start"> <span class="text-red-400/50 mr-2">&bull;</span>
+A task runner or build tool
+</li> <li class="flex items-start"> <span class="text-red-400/50 mr-2">&bull;</span>
+A replacement for Jira / GitHub Issues
+</li> <li class="flex items-start"> <span class="text-red-400/50 mr-2">&bull;</span>
+An AI agent that executes code
+</li> <li class="flex items-start"> <span class="text-red-400/50 mr-2">&bull;</span>
+A project management UI
+</li> </ul> </div> </div> </div> </section> <section id="features" class="py-24 border-t border-white/5"> <div class="max-w-7xl mx-auto px-6"> <div class="text-center mb-16"> <h2 class="text-3xl font-bold text-white mb-4">The Continuous Planning Loop</h2> <p class="text-gray-400">Roady works without AI. AI simply accelerates the loop.</p> </div> <!-- Flow Visualization --> <div class="max-w-3xl mx-auto mb-20 p-8 glass rounded-2xl flex flex-col items-center justify-center font-mono text-sm md:text-base text-violet-300 bg-black/40"> <div class="flex flex-col items-center space-y-2"> <span class="px-4 py-2 border border-violet-500/30 rounded bg-violet-500/10 text-white">Docs / Intent</span> <i data-lucide="arrow-down" class="w-4 h-4 text-gray-500"></i> <span class="px-4 py-2 border border-emerald-500/30 rounded bg-emerald-500/10 text-white font-bold">roady spec</span> <i data-lucide="arrow-down" class="w-4 h-4 text-gray-500"></i> <span class="px-4 py-2 border border-emerald-500/30 rounded bg-emerald-500/10 text-white font-bold">roady plan</span> <i data-lucide="arrow-down" class="w-4 h-4 text-gray-500"></i> <span class="px-4 py-2 text-gray-500 italic">[ Execution happens elsewhere ]</span> <i data-lucide="arrow-down" class="w-4 h-4 text-gray-500"></i> <span class="px-4 py-2 border border-orange-500/30 rounded bg-orange-500/10 text-white font-bold">roady drift</span> </div> </div> <div class="grid md:grid-cols-3 gap-8"> <!-- Step 1: Establish Intent --> <div class="glass p-8 rounded-3xl relative group hover:border-violet-500/50 transition-all"> <div class="w-12 h-12 bg-violet-500/20 rounded-2xl flex items-center justify-center mb-6 text-violet-400"> <i data-lucide="file-text"></i> </div> <h3 class="text-xl font-bold text-white mb-3">1. Establish Intent</h3> <p class="text-sm leading-relaxed text-gray-400">
+Analyze your documentation tree. Roady extracts functional features and requirements deterministically.
+</p> <div class="mt-6 mono text-xs text-violet-300 bg-black/40 p-3 rounded-lg">
+$ roady spec analyze docs/
+</div> </div> <!-- Step 2: Derive Action --> <div class="glass p-8 rounded-3xl relative group hover:border-violet-500/50 transition-all"> <div class="w-12 h-12 bg-emerald-500/20 rounded-2xl flex items-center justify-center mb-6 text-emerald-400"> <i data-lucide="git-branch"></i> </div> <h3 class="text-xl font-bold text-white mb-3">2. Derive Action</h3> <p class="text-sm leading-relaxed text-gray-400">
+Decompose features into atomic engineering tasks. Use AI to accelerate this, or write plans manually.
+</p> <div class="mt-6 mono text-xs text-emerald-300 bg-black/40 p-3 rounded-lg">
+$ roady plan generate --ai
+</div> </div> <!-- Step 3: Detect Drift --> <div class="glass p-8 rounded-3xl relative group hover:border-violet-500/50 transition-all"> <div class="w-12 h-12 bg-orange-500/20 rounded-2xl flex items-center justify-center mb-6 text-orange-400"> <i data-lucide="radar"></i> </div> <h3 class="text-xl font-bold text-white mb-3">3. Detect Drift</h3> <p class="text-sm leading-relaxed text-gray-400">
+Roady monitors your code and state. If your implementation diverges from your plan, you'll know instantly.
+</p> <div class="mt-6 mono text-xs text-orange-300 bg-black/40 p-3 rounded-lg">
+$ roady drift detect
+</div> </div> </div> </div> </section> <!-- Why Roady Section --> <section class="py-24 bg-[#0B0E14]"> <div class="max-w-4xl mx-auto px-6 text-center"> <h2 class="text-3xl font-bold text-white mb-12">Why Roady?</h2> <div class="grid md:grid-cols-3 gap-8 text-left"> <div class="p-6 border border-white/5 rounded-2xl hover:border-violet-500/30 transition-all"> <h4 class="text-white font-bold mb-2">AI Tools Forget</h4> <p class="text-sm text-gray-400">
+Context windows are finite. Roady provides a persistent, structured memory that doesn't expire.
+</p> </div> <div class="p-6 border border-white/5 rounded-2xl hover:border-violet-500/30 transition-all"> <h4 class="text-white font-bold mb-2">Humans Re-plan</h4> <p class="text-sm text-gray-400">
+Stop answering "what's next?". Roady answers it deterministically based on the approved spec.
+</p> </div> <div class="p-6 border border-white/5 rounded-2xl hover:border-violet-500/30 transition-all"> <h4 class="text-white font-bold mb-2">Drift is Silent</h4> <p class="text-sm text-gray-400">
+Without Roady, specs and code drift apart unnoticed. Roady makes drift noisy and actionable.
+</p> </div> </div> </div> </section> <section id="commands" class="py-24"> <div class="max-w-5xl mx-auto px-6"> <h2 class="text-4xl font-bold text-white mb-12 text-center">CLI Interface</h2> <div class="space-y-6"> <!-- Group: Setup --> <div class="glass rounded-2xl overflow-hidden border-white/5 hover:border-white/10 transition-all"> <div class="bg-white/5 px-6 py-4 flex items-center justify-between"> <span class="text-white font-semibold">Workspace Setup</span> <span class="text-xs uppercase text-gray-500 tracking-widest">Initialization</span> </div> <div class="p-6 grid gap-4"> <div class="flex items-start justify-between border-b border-white/5 pb-4"> <div> <code class="text-violet-400 mono font-bold">roady init [name]</code> <p class="text-sm text-gray-400 mt-1">Bootstraps a new Roady workspace in the current directory.</p> </div> </div> <div class="flex items-start justify-between"> <div> <code class="text-violet-400 mono font-bold">roady discover [root]</code> <p class="text-sm text-gray-400 mt-1">Recursively finds all Roady projects in a directory tree.</p> </div> </div> </div> </div> <!-- Group: Status & Analytics --> <div class="glass rounded-2xl overflow-hidden border-white/5 hover:border-white/10 transition-all"> <div class="bg-white/5 px-6 py-4 flex items-center justify-between"> <span class="text-white font-semibold">Status & Analytics</span> <span class="text-xs uppercase text-gray-500 tracking-widest">Visibility</span> </div> <div class="p-6 grid gap-4"> <div class="flex items-start justify-between border-b border-white/5 pb-4"> <div> <code class="text-cyan-400 mono font-bold">roady status [flags]</code> <p class="text-sm text-gray-400 mt-1">Project overview with task filtering support.</p> <div class="mt-2 flex flex-wrap gap-2"> <span class="text-xs px-2 py-1 bg-white/5 rounded text-gray-500 mono">--status pending,blocked</span> <span class="text-xs px-2 py-1 bg-white/5 rounded text-gray-500 mono">--priority high</span> <span class="text-xs px-2 py-1 bg-white/5 rounded text-gray-500 mono">--ready</span> <span class="text-xs px-2 py-1 bg-white/5 rounded text-gray-500 mono">--json</span> </div> </div> </div> <div class="flex items-start justify-between border-b border-white/5 pb-4"> <div> <code class="text-cyan-400 mono font-bold">roady status forecast</code> <p class="text-sm text-gray-400 mt-1">Predicts completion dates using historical velocity data with confidence intervals.</p> </div> </div> <div class="flex items-start justify-between border-b border-white/5 pb-4"> <div> <code class="text-cyan-400 mono font-bold">roady status usage</code> <p class="text-sm text-gray-400 mt-1">Detailed breakdown of AI token consumption and command telemetry.</p> </div> </div> <div class="flex items-start justify-between"> <div> <code class="text-cyan-400 mono font-bold">roady status timeline</code> <p class="text-sm text-gray-400 mt-1">Shows project activity timeline from the audit trail.</p> </div> </div> </div> </div> <!-- Group: Execution --> <div class="glass rounded-2xl overflow-hidden border-white/5 hover:border-white/10 transition-all"> <div class="bg-white/5 px-6 py-4 flex items-center justify-between"> <span class="text-white font-semibold">Execution Control</span> <span class="text-xs uppercase text-gray-500 tracking-widest">Life Cycle</span> </div> <div class="p-6 grid gap-4"> <div class="flex items-start justify-between border-b border-white/5 pb-4"> <div> <code class="text-emerald-400 mono font-bold">roady task start [id]</code> <p class="text-sm text-gray-400 mt-1">Begins work on a task and records the owner.</p> </div> </div> <div class="flex items-start justify-between border-b border-white/5 pb-4"> <div> <code class="text-emerald-400 mono font-bold">roady task complete [id]</code> <p class="text-sm text-gray-400 mt-1">Marks task as done and accepts implementation evidence.</p> </div> </div> <div class="flex items-start justify-between border-b border-white/5 pb-4"> <div> <code class="text-emerald-400 mono font-bold">roady task block [id]</code> <p class="text-sm text-gray-400 mt-1">Marks a task as blocked with an optional reason.</p> </div> </div> <div class="flex items-start justify-between"> <div> <code class="text-emerald-400 mono font-bold">roady task verify [id]</code> <p class="text-sm text-gray-400 mt-1">The final state. Locks the task with verified proof.</p> </div> </div> </div> </div> <!-- Group: Governance --> <div class="glass rounded-2xl overflow-hidden border-white/5 hover:border-white/10 transition-all"> <div class="bg-white/5 px-6 py-4 flex items-center justify-between"> <span class="text-white font-semibold">Governance & Intelligence</span> <span class="text-xs uppercase text-gray-500 tracking-widest">Analysis</span> </div> <div class="p-6 grid gap-4"> <div class="flex items-start justify-between border-b border-white/5 pb-4"> <div> <code class="text-amber-400 mono font-bold">roady audit verify</code> <p class="text-sm text-gray-400 mt-1">Verifies the cryptographic hash chain of your audit trail.</p> </div> </div> <div class="flex items-start justify-between border-b border-white/5 pb-4"> <div> <code class="text-amber-400 mono font-bold">roady debt report</code> <p class="text-sm text-gray-400 mt-1">Analyze planning debt - recurring drift patterns and sticky issues.</p> </div> </div> <div class="flex items-start justify-between"> <div> <code class="text-amber-400 mono font-bold">roady deps scan</code> <p class="text-sm text-gray-400 mt-1">Cross-repository dependency tracking and health analysis.</p> </div> </div> </div> </div> </div> </div> </section> <section id="mcp" class="py-24 bg-gradient-to-b from-[#0B0E14] to-violet-900/10"> <div class="max-w-7xl mx-auto px-6"> <div class="text-center mb-16"> <span class="inline-block px-4 py-1 mb-4 text-xs font-semibold uppercase tracking-widest text-violet-400 bg-violet-500/10 rounded-full border border-violet-500/20">
+AI-First
+</span> <h2 class="text-4xl font-bold text-white mb-4">Model Context Protocol</h2> <p class="text-gray-400 max-w-2xl mx-auto">
+Roady speaks MCP natively. Connect it to Claude, Cursor, or any MCP-compatible AI agent for seamless project coordination.
+</p> </div> <div class="grid lg:grid-cols-2 gap-12 items-center"> <!-- MCP Tools List --> <div class="space-y-6"> <div class="glass p-6 rounded-2xl"> <h3 class="text-white font-semibold mb-4 flex items-center"> <i data-lucide="cpu" class="w-5 h-5 text-violet-400 mr-2"></i>
+Available MCP Tools
+</h3> <div class="grid grid-cols-2 gap-3 text-sm"> <div class="px-3 py-2 bg-black/30 rounded-lg"> <code class="text-violet-300 mono">roady_get_spec</code> </div> <div class="px-3 py-2 bg-black/30 rounded-lg"> <code class="text-violet-300 mono">roady_get_plan</code> </div> <div class="px-3 py-2 bg-black/30 rounded-lg"> <code class="text-violet-300 mono">roady_get_state</code> </div> <div class="px-3 py-2 bg-black/30 rounded-lg"> <code class="text-violet-300 mono">roady_generate_plan</code> </div> <div class="px-3 py-2 bg-black/30 rounded-lg"> <code class="text-violet-300 mono">roady_detect_drift</code> </div> <div class="px-3 py-2 bg-black/30 rounded-lg"> <code class="text-violet-300 mono">roady_transition_task</code> </div> <div class="px-3 py-2 bg-black/30 rounded-lg"> <code class="text-violet-300 mono">roady_status</code> </div> <div class="px-3 py-2 bg-black/30 rounded-lg"> <code class="text-violet-300 mono">roady_forecast</code> </div> </div> </div> <div class="glass p-6 rounded-2xl"> <h3 class="text-white font-semibold mb-4 flex items-center"> <i data-lucide="settings-2" class="w-5 h-5 text-emerald-400 mr-2"></i>
+Transport Options
+</h3> <div class="space-y-3"> <div class="flex items-center justify-between"> <span class="text-gray-400">stdio</span> <code class="text-xs mono text-emerald-300 bg-black/30 px-2 py-1 rounded">roady mcp</code> </div> <div class="flex items-center justify-between"> <span class="text-gray-400">HTTP</span> <code class="text-xs mono text-emerald-300 bg-black/30 px-2 py-1 rounded">roady mcp --transport http --addr :8080</code> </div> <div class="flex items-center justify-between"> <span class="text-gray-400">WebSocket</span> <code class="text-xs mono text-emerald-300 bg-black/30 px-2 py-1 rounded">roady mcp --transport ws --addr :8080</code> </div> </div> </div> </div> <!-- Code Example --> <div class="glass rounded-3xl p-2 shadow-2xl overflow-hidden"> <div class="bg-[#0B0E14] rounded-2xl p-6 mono text-xs leading-relaxed overflow-x-auto"> <div class="flex space-x-2 mb-4"> <div class="w-3 h-3 bg-red-500/50 rounded-full"></div> <div class="w-3 h-3 bg-yellow-500/50 rounded-full"></div> <div class="w-3 h-3 bg-green-500/50 rounded-full"></div> </div> <div class="text-gray-500 mb-2">// Claude Desktop config (~/.claude/mcp.json)</div> <pre class="text-gray-300"><code>{
+  &quot;mcpServers&quot;: {
+    &quot;roady&quot;: {
+      &quot;command&quot;: &quot;roady&quot;,
+      &quot;args&quot;: [&quot;mcp&quot;],
+      &quot;env&quot;: {
+        &quot;ROADY_ROOT&quot;: &quot;/path/to/project&quot;
+      }
+    }
+  }
+}</code></pre> <div class="mt-6 pt-4 border-t border-white/10"> <div class="text-gray-500 mb-2">// Example AI interaction</div> <div class="text-violet-400">AI:</div> <div class="text-gray-300 ml-4">"What tasks are blocked?"</div> <div class="text-emerald-400 mt-2">Tool call:</div> <div class="text-gray-300 ml-4">roady_status { status: "blocked" }</div> <div class="text-emerald-400 mt-2">Response:</div> <div class="text-gray-300 ml-4">2 tasks blocked: auth-api, db-migration</div> </div> </div> </div> </div> </div> </section> <script>(()=>{var a=(s,i,o)=>{let r=async()=>{await(await s())()},t=typeof i.value=="object"?i.value:void 0,c={rootMargin:t==null?void 0:t.rootMargin},n=new IntersectionObserver(e=>{for(let l of e)if(l.isIntersecting){n.disconnect(),r();break}},c);for(let e of o.children)n.observe(e)};(self.Astro||(self.Astro={})).visible=a;window.dispatchEvent(new Event("astro:visible"));})();</script><astro-island uid="Z28EtG5" prefix="s2" component-url="/roady/_astro/AutomationSection.BxD5XD75.js" component-export="default" renderer-url="/roady/_astro/client.DD9Xv6Rb.js" props="{}" ssr client="visible" opts="{&quot;name&quot;:&quot;AutomationSection&quot;,&quot;value&quot;:true}" await-children><section id="automation" class="py-24"><div class="max-w-7xl mx-auto px-6 flex flex-col lg:flex-row items-center space-y-12 lg:space-y-0 lg:space-x-20"><div class="lg:w-1/2"><h2 class="text-4xl font-bold text-white mb-6">Built for Continuous Planning</h2><div class="space-y-8 text-gray-400"><div class="flex items-start space-x-4"><div class="w-8 h-8 bg-violet-500/20 rounded-lg flex-shrink-0 flex items-center justify-center text-violet-400 mt-1"><i data-lucide="eye" class="w-5 h-5"></i></div><div><h4 class="text-white font-semibold mb-1">roady watch</h4><p class="text-sm"> A background sentinel that reacts to document changes, instantly updating your specification and checking for plan drift. </p></div></div><div class="flex items-start space-x-4"><div class="w-8 h-8 bg-violet-500/20 rounded-lg flex-shrink-0 flex items-center justify-center text-violet-400 mt-1"><i data-lucide="git-commit" class="w-5 h-5"></i></div><div><h4 class="text-white font-semibold mb-1">Git Sync Loop</h4><p class="text-sm"> Roady parses your commit history for [roady:task-id] markers to automate status transitions. </p></div></div><div class="flex items-start space-x-4"><div class="w-8 h-8 bg-violet-500/20 rounded-lg flex-shrink-0 flex items-center justify-center text-violet-400 mt-1"><i data-lucide="shield-check" class="w-5 h-5"></i></div><div><h4 class="text-white font-semibold mb-1">Policy-Driven AI</h4><p class="text-sm"> Guard agentic spending with hard token limits and vendor-agnostic routing (OpenAI, Anthropic, Gemini, Ollama). </p></div></div><div class="flex items-start space-x-4"><div class="w-8 h-8 bg-violet-500/20 rounded-lg flex-shrink-0 flex items-center justify-center text-violet-400 mt-1"><i data-lucide="link" class="w-5 h-5"></i></div><div><h4 class="text-white font-semibold mb-1">Plugin Sync</h4><p class="text-sm"> Sync tasks with external systems via plugins (GitHub Issues, Jira, Linear). </p></div></div></div></div><div class="lg:w-1/2 glass rounded-3xl p-2 shadow-2xl overflow-hidden"><div class="bg-[#0B0E14] rounded-2xl p-6 mono text-xs leading-relaxed min-h-[320px]"><div class="flex space-x-2 mb-4"><div class="w-3 h-3 bg-red-500/50 rounded-full"></div><div class="w-3 h-3 bg-yellow-500/50 rounded-full"></div><div class="w-3 h-3 bg-green-500/50 rounded-full"></div></div><div class="space-y-1"><!--[--><!--]--><span class="inline-block w-2 h-4 bg-white/50 animate-pulse"></span></div></div></div></div></section><!--astro:end--></astro-island> <footer class="py-12 border-t border-white/5"> <div class="max-w-7xl mx-auto px-6"> <div class="grid md:grid-cols-4 gap-12 mb-12"> <!-- Logo & Description --> <div class="md:col-span-2"> <div class="flex items-center space-x-3 mb-4"> <img src="/roady/logo.svg" class="w-6 h-6 grayscale opacity-50" alt="Logo"> <span class="text-gray-500 font-bold uppercase tracking-widest text-sm">Roady</span> </div> <p class="text-gray-500 text-sm mb-4 max-w-md">
+A planning-first system of record for software work. Designed for individuals, teams, and AI agents.
+</p> </div> <!-- Links --> <div> <h4 class="text-white font-semibold mb-4 text-sm uppercase tracking-wider">Resources</h4> <ul class="space-y-2 text-sm text-gray-500"> <li> <a href="https://github.com/felixgeelhaar/roady" class="hover:text-violet-400 transition-colors">
+GitHub Repository
+</a> </li> <li> <a href="https://github.com/felixgeelhaar/roady/blob/main/README.md" class="hover:text-violet-400 transition-colors">
+Documentation
+</a> </li> <li> <a href="https://github.com/felixgeelhaar/roady/blob/main/docs/mcp-guide.md" class="hover:text-violet-400 transition-colors">
+MCP Guide
+</a> </li> </ul> </div> <!-- Install --> <div> <h4 class="text-white font-semibold mb-4 text-sm uppercase tracking-wider">Quick Install</h4> <div class="space-y-2 text-sm"> <div class="text-gray-500">Homebrew</div> <code class="block text-xs text-violet-400 bg-white/5 p-2 rounded mono">
+brew install felixgeelhaar/tap/roady
+</code> </div> </div> </div> <!-- Bottom Bar --> <div class="pt-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0"> <p class="text-gray-600 text-sm">
+Built for high-integrity software teams. MIT Licensed.
+</p> <p class="text-gray-600 text-sm">
+&copy; 2026 Felix Geelhaar
+</p> </div> </div> </footer>  <!-- Lucide Icons --> <script src="https://unpkg.com/lucide@latest"></script> <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+    });
+  </script> </body> </html> 

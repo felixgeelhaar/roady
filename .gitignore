@@ -24,3 +24,8 @@ AGENTS.md
 # IDEs
 .vscode/
 .idea/
+
+# Website
+website/node_modules/
+website/dist/
+website/.astro/

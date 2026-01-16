@@ -1,0 +1,135 @@
+---
+// CLI Commands Section - Updated with status subcommands and filtering
+---
+
+<section id="commands" class="py-24">
+  <div class="max-w-5xl mx-auto px-6">
+    <h2 class="text-4xl font-bold text-white mb-12 text-center">CLI Interface</h2>
+
+    <div class="space-y-6">
+      <!-- Group: Setup -->
+      <div class="glass rounded-2xl overflow-hidden border-white/5 hover:border-white/10 transition-all">
+        <div class="bg-white/5 px-6 py-4 flex items-center justify-between">
+          <span class="text-white font-semibold">Workspace Setup</span>
+          <span class="text-xs uppercase text-gray-500 tracking-widest">Initialization</span>
+        </div>
+        <div class="p-6 grid gap-4">
+          <div class="flex items-start justify-between border-b border-white/5 pb-4">
+            <div>
+              <code class="text-violet-400 mono font-bold">roady init [name]</code>
+              <p class="text-sm text-gray-400 mt-1">Bootstraps a new Roady workspace in the current directory.</p>
+            </div>
+          </div>
+          <div class="flex items-start justify-between">
+            <div>
+              <code class="text-violet-400 mono font-bold">roady discover [root]</code>
+              <p class="text-sm text-gray-400 mt-1">Recursively finds all Roady projects in a directory tree.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Group: Status & Analytics -->
+      <div class="glass rounded-2xl overflow-hidden border-white/5 hover:border-white/10 transition-all">
+        <div class="bg-white/5 px-6 py-4 flex items-center justify-between">
+          <span class="text-white font-semibold">Status & Analytics</span>
+          <span class="text-xs uppercase text-gray-500 tracking-widest">Visibility</span>
+        </div>
+        <div class="p-6 grid gap-4">
+          <div class="flex items-start justify-between border-b border-white/5 pb-4">
+            <div>
+              <code class="text-cyan-400 mono font-bold">roady status [flags]</code>
+              <p class="text-sm text-gray-400 mt-1">Project overview with task filtering support.</p>
+              <div class="mt-2 flex flex-wrap gap-2">
+                <span class="text-xs px-2 py-1 bg-white/5 rounded text-gray-500 mono">--status pending,blocked</span>
+                <span class="text-xs px-2 py-1 bg-white/5 rounded text-gray-500 mono">--priority high</span>
+                <span class="text-xs px-2 py-1 bg-white/5 rounded text-gray-500 mono">--ready</span>
+                <span class="text-xs px-2 py-1 bg-white/5 rounded text-gray-500 mono">--json</span>
+              </div>
+            </div>
+          </div>
+          <div class="flex items-start justify-between border-b border-white/5 pb-4">
+            <div>
+              <code class="text-cyan-400 mono font-bold">roady status forecast</code>
+              <p class="text-sm text-gray-400 mt-1">Predicts completion dates using historical velocity data with confidence intervals.</p>
+            </div>
+          </div>
+          <div class="flex items-start justify-between border-b border-white/5 pb-4">
+            <div>
+              <code class="text-cyan-400 mono font-bold">roady status usage</code>
+              <p class="text-sm text-gray-400 mt-1">Detailed breakdown of AI token consumption and command telemetry.</p>
+            </div>
+          </div>
+          <div class="flex items-start justify-between">
+            <div>
+              <code class="text-cyan-400 mono font-bold">roady status timeline</code>
+              <p class="text-sm text-gray-400 mt-1">Shows project activity timeline from the audit trail.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Group: Execution -->
+      <div class="glass rounded-2xl overflow-hidden border-white/5 hover:border-white/10 transition-all">
+        <div class="bg-white/5 px-6 py-4 flex items-center justify-between">
+          <span class="text-white font-semibold">Execution Control</span>
+          <span class="text-xs uppercase text-gray-500 tracking-widest">Life Cycle</span>
+        </div>
+        <div class="p-6 grid gap-4">
+          <div class="flex items-start justify-between border-b border-white/5 pb-4">
+            <div>
+              <code class="text-emerald-400 mono font-bold">roady task start [id]</code>
+              <p class="text-sm text-gray-400 mt-1">Begins work on a task and records the owner.</p>
+            </div>
+          </div>
+          <div class="flex items-start justify-between border-b border-white/5 pb-4">
+            <div>
+              <code class="text-emerald-400 mono font-bold">roady task complete [id]</code>
+              <p class="text-sm text-gray-400 mt-1">Marks task as done and accepts implementation evidence.</p>
+            </div>
+          </div>
+          <div class="flex items-start justify-between border-b border-white/5 pb-4">
+            <div>
+              <code class="text-emerald-400 mono font-bold">roady task block [id]</code>
+              <p class="text-sm text-gray-400 mt-1">Marks a task as blocked with an optional reason.</p>
+            </div>
+          </div>
+          <div class="flex items-start justify-between">
+            <div>
+              <code class="text-emerald-400 mono font-bold">roady task verify [id]</code>
+              <p class="text-sm text-gray-400 mt-1">The final state. Locks the task with verified proof.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Group: Governance -->
+      <div class="glass rounded-2xl overflow-hidden border-white/5 hover:border-white/10 transition-all">
+        <div class="bg-white/5 px-6 py-4 flex items-center justify-between">
+          <span class="text-white font-semibold">Governance & Intelligence</span>
+          <span class="text-xs uppercase text-gray-500 tracking-widest">Analysis</span>
+        </div>
+        <div class="p-6 grid gap-4">
+          <div class="flex items-start justify-between border-b border-white/5 pb-4">
+            <div>
+              <code class="text-amber-400 mono font-bold">roady audit verify</code>
+              <p class="text-sm text-gray-400 mt-1">Verifies the cryptographic hash chain of your audit trail.</p>
+            </div>
+          </div>
+          <div class="flex items-start justify-between border-b border-white/5 pb-4">
+            <div>
+              <code class="text-amber-400 mono font-bold">roady debt report</code>
+              <p class="text-sm text-gray-400 mt-1">Analyze planning debt - recurring drift patterns and sticky issues.</p>
+            </div>
+          </div>
+          <div class="flex items-start justify-between">
+            <div>
+              <code class="text-amber-400 mono font-bold">roady deps scan</code>
+              <p class="text-sm text-gray-400 mt-1">Cross-repository dependency tracking and health analysis.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

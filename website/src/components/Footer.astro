@@ -1,0 +1,63 @@
+---
+const currentYear = new Date().getFullYear();
+---
+
+<footer class="py-12 border-t border-white/5">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="grid md:grid-cols-4 gap-12 mb-12">
+      <!-- Logo & Description -->
+      <div class="md:col-span-2">
+        <div class="flex items-center space-x-3 mb-4">
+          <img src="/roady/logo.svg" class="w-6 h-6 grayscale opacity-50" alt="Logo">
+          <span class="text-gray-500 font-bold uppercase tracking-widest text-sm">Roady</span>
+        </div>
+        <p class="text-gray-500 text-sm mb-4 max-w-md">
+          A planning-first system of record for software work. Designed for individuals, teams, and AI agents.
+        </p>
+      </div>
+
+      <!-- Links -->
+      <div>
+        <h4 class="text-white font-semibold mb-4 text-sm uppercase tracking-wider">Resources</h4>
+        <ul class="space-y-2 text-sm text-gray-500">
+          <li>
+            <a href="https://github.com/felixgeelhaar/roady" class="hover:text-violet-400 transition-colors">
+              GitHub Repository
+            </a>
+          </li>
+          <li>
+            <a href="https://github.com/felixgeelhaar/roady/blob/main/README.md" class="hover:text-violet-400 transition-colors">
+              Documentation
+            </a>
+          </li>
+          <li>
+            <a href="https://github.com/felixgeelhaar/roady/blob/main/docs/mcp-guide.md" class="hover:text-violet-400 transition-colors">
+              MCP Guide
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Install -->
+      <div>
+        <h4 class="text-white font-semibold mb-4 text-sm uppercase tracking-wider">Quick Install</h4>
+        <div class="space-y-2 text-sm">
+          <div class="text-gray-500">Homebrew</div>
+          <code class="block text-xs text-violet-400 bg-white/5 p-2 rounded mono">
+            brew install felixgeelhaar/tap/roady
+          </code>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Bar -->
+    <div class="pt-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0">
+      <p class="text-gray-600 text-sm">
+        Built for high-integrity software teams. MIT Licensed.
+      </p>
+      <p class="text-gray-600 text-sm">
+        &copy; {currentYear} Felix Geelhaar
+      </p>
+    </div>
+  </div>
+</footer>

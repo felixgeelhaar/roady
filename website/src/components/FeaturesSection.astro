@@ -1,0 +1,98 @@
+---
+// Static content - Core Planning Loop
+---
+
+<section id="features" class="py-24 border-t border-white/5">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="text-center mb-16">
+      <h2 class="text-3xl font-bold text-white mb-4">The Continuous Planning Loop</h2>
+      <p class="text-gray-400">Roady works without AI. AI simply accelerates the loop.</p>
+    </div>
+
+    <!-- Flow Visualization -->
+    <div class="max-w-3xl mx-auto mb-20 p-8 glass rounded-2xl flex flex-col items-center justify-center font-mono text-sm md:text-base text-violet-300 bg-black/40">
+      <div class="flex flex-col items-center space-y-2">
+        <span class="px-4 py-2 border border-violet-500/30 rounded bg-violet-500/10 text-white">Docs / Intent</span>
+        <i data-lucide="arrow-down" class="w-4 h-4 text-gray-500"></i>
+        <span class="px-4 py-2 border border-emerald-500/30 rounded bg-emerald-500/10 text-white font-bold">roady spec</span>
+        <i data-lucide="arrow-down" class="w-4 h-4 text-gray-500"></i>
+        <span class="px-4 py-2 border border-emerald-500/30 rounded bg-emerald-500/10 text-white font-bold">roady plan</span>
+        <i data-lucide="arrow-down" class="w-4 h-4 text-gray-500"></i>
+        <span class="px-4 py-2 text-gray-500 italic">[ Execution happens elsewhere ]</span>
+        <i data-lucide="arrow-down" class="w-4 h-4 text-gray-500"></i>
+        <span class="px-4 py-2 border border-orange-500/30 rounded bg-orange-500/10 text-white font-bold">roady drift</span>
+      </div>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-8">
+      <!-- Step 1: Establish Intent -->
+      <div class="glass p-8 rounded-3xl relative group hover:border-violet-500/50 transition-all">
+        <div class="w-12 h-12 bg-violet-500/20 rounded-2xl flex items-center justify-center mb-6 text-violet-400">
+          <i data-lucide="file-text"></i>
+        </div>
+        <h3 class="text-xl font-bold text-white mb-3">1. Establish Intent</h3>
+        <p class="text-sm leading-relaxed text-gray-400">
+          Analyze your documentation tree. Roady extracts functional features and requirements deterministically.
+        </p>
+        <div class="mt-6 mono text-xs text-violet-300 bg-black/40 p-3 rounded-lg">
+          $ roady spec analyze docs/
+        </div>
+      </div>
+
+      <!-- Step 2: Derive Action -->
+      <div class="glass p-8 rounded-3xl relative group hover:border-violet-500/50 transition-all">
+        <div class="w-12 h-12 bg-emerald-500/20 rounded-2xl flex items-center justify-center mb-6 text-emerald-400">
+          <i data-lucide="git-branch"></i>
+        </div>
+        <h3 class="text-xl font-bold text-white mb-3">2. Derive Action</h3>
+        <p class="text-sm leading-relaxed text-gray-400">
+          Decompose features into atomic engineering tasks. Use AI to accelerate this, or write plans manually.
+        </p>
+        <div class="mt-6 mono text-xs text-emerald-300 bg-black/40 p-3 rounded-lg">
+          $ roady plan generate --ai
+        </div>
+      </div>
+
+      <!-- Step 3: Detect Drift -->
+      <div class="glass p-8 rounded-3xl relative group hover:border-violet-500/50 transition-all">
+        <div class="w-12 h-12 bg-orange-500/20 rounded-2xl flex items-center justify-center mb-6 text-orange-400">
+          <i data-lucide="radar"></i>
+        </div>
+        <h3 class="text-xl font-bold text-white mb-3">3. Detect Drift</h3>
+        <p class="text-sm leading-relaxed text-gray-400">
+          Roady monitors your code and state. If your implementation diverges from your plan, you'll know instantly.
+        </p>
+        <div class="mt-6 mono text-xs text-orange-300 bg-black/40 p-3 rounded-lg">
+          $ roady drift detect
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Why Roady Section -->
+<section class="py-24 bg-[#0B0E14]">
+  <div class="max-w-4xl mx-auto px-6 text-center">
+    <h2 class="text-3xl font-bold text-white mb-12">Why Roady?</h2>
+    <div class="grid md:grid-cols-3 gap-8 text-left">
+      <div class="p-6 border border-white/5 rounded-2xl hover:border-violet-500/30 transition-all">
+        <h4 class="text-white font-bold mb-2">AI Tools Forget</h4>
+        <p class="text-sm text-gray-400">
+          Context windows are finite. Roady provides a persistent, structured memory that doesn't expire.
+        </p>
+      </div>
+      <div class="p-6 border border-white/5 rounded-2xl hover:border-violet-500/30 transition-all">
+        <h4 class="text-white font-bold mb-2">Humans Re-plan</h4>
+        <p class="text-sm text-gray-400">
+          Stop answering "what's next?". Roady answers it deterministically based on the approved spec.
+        </p>
+      </div>
+      <div class="p-6 border border-white/5 rounded-2xl hover:border-violet-500/30 transition-all">
+        <h4 class="text-white font-bold mb-2">Drift is Silent</h4>
+        <p class="text-sm text-gray-400">
+          Without Roady, specs and code drift apart unnoticed. Roady makes drift noisy and actionable.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>

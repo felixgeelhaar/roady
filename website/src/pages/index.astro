@@ -1,0 +1,22 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Navigation from '../components/Navigation.vue';
+import HeroSection from '../components/HeroSection.vue';
+import DefinitionSection from '../components/DefinitionSection.astro';
+import FeaturesSection from '../components/FeaturesSection.astro';
+import CommandsSection from '../components/CommandsSection.astro';
+import MCPSection from '../components/MCPSection.astro';
+import AutomationSection from '../components/AutomationSection.vue';
+import Footer from '../components/Footer.astro';
+---
+
+<BaseLayout>
+  <Navigation client:load />
+  <HeroSection client:load />
+  <DefinitionSection />
+  <FeaturesSection />
+  <CommandsSection />
+  <MCPSection />
+  <AutomationSection client:visible />
+  <Footer />
+</BaseLayout>

@@ -1,0 +1,23 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="200" height="200" rx="40" fill="#7D56F4"/>
+  
+  <!-- The Road "R" Path -->
+  <path d="M60 150 V60 C60 40 140 40 140 80 C140 110 100 110 100 110 L140 150" 
+        stroke="white" 
+        stroke-width="18" 
+        stroke-linecap="round" 
+        stroke-linejoin="round" 
+        fill="none"/>
+        
+  <!-- Road Centerline Dash -->
+  <path d="M60 130 V100 M60 80 V60" 
+        stroke="#7D56F4" 
+        stroke-width="4" 
+        stroke-linecap="round" 
+        fill="none" 
+        opacity="0.5"/>
+
+  <!-- Planning Point (The Target) -->
+  <circle cx="140" cy="150" r="8" fill="#42FFB4"/>
+</svg>
