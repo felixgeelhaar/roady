@@ -120,7 +120,70 @@ The `DriftService` must be updated to check **Synchronization Drift**:
 *   *Drift:* Task is `Done` in Roady but `In Progress` in Linear.
 *   *Drift:* Task exists in Roady Plan but was deleted in Jira.
 
-## 6. Execution Plan
+## 6. Plugin Configuration
+
+### Interactive TUI Configuration (Recommended)
+
+Roady provides an interactive TUI wizard for configuring sync plugins. This is the easiest way to set up integrations:
+
+```bash
+# Add a new plugin configuration
+roady sync add
+
+# Edit an existing configuration
+roady sync edit my-jira
+
+# Remove a configuration
+roady sync remove my-jira
+
+# List configured plugins
+roady sync list
+
+# Show configuration details
+roady sync show my-jira
+
+# Install a specific plugin
+roady sync install jira
+```
+
+The `roady sync add` wizard:
+1. **Selects a plugin** from available integrations (Jira, Linear, GitHub, Notion, Trello, Asana)
+2. **Automatically installs** the plugin binary if not present (via `go install`)
+3. **Prompts for credentials** with appropriate field masking for sensitive values
+4. **Saves configuration** to `.roady/plugins.yaml`
+
+### Configuration File Format
+
+Configurations are stored in `.roady/plugins.yaml`:
+
+```yaml
+plugins:
+  jira-prod:
+    binary: ./roady-plugin-jira
+    config:
+      domain: https://company.atlassian.net
+      project_key: ROAD
+      email: team@company.com
+      api_token: your-api-token
+
+  linear-dev:
+    binary: ./roady-plugin-linear
+    config:
+      api_key: lin_api_xxxxx
+      team_id: TEAM-UUID
+```
+
+### Using Named Configurations
+
+```bash
+# Sync using a named configuration
+roady sync --name jira-prod
+roady sync -n linear-dev
+```
+
+> **Security Note:** Add `.roady/plugins.yaml` to `.gitignore` to avoid committing credentials.
+
+## 7. Execution Plan
 
 1.  **Refactor Domain:** Update `TaskResult` struct in `internal/domain/planning/state.go` to support `ExternalRefs`.
 2.  **Refactor Plugin:** Update `Syncer` interface in `internal/domain/plugin/interface.go`.

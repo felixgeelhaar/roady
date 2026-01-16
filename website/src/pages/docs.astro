@@ -564,9 +564,38 @@ import Footer from '../components/Footer.astro';
           <i data-lucide="key" class="w-6 h-6 mr-3 text-amber-400"></i>
           Plugin Configuration
         </h2>
-        <p class="text-gray-400 mb-6">Configure sync plugins using <code class="text-violet-300">.roady/plugins.yaml</code> (recommended) or environment variables. Each plugin requires specific credentials to connect to external services.</p>
+        <p class="text-gray-400 mb-6">Configure sync plugins using the interactive TUI wizard (recommended), <code class="text-violet-300">.roady/plugins.yaml</code>, or environment variables.</p>
 
         <div class="space-y-6">
+          <!-- Interactive TUI (Recommended) -->
+          <div class="glass rounded-xl p-6 border-emerald-500/30">
+            <div class="flex items-center mb-4">
+              <div class="w-10 h-10 bg-emerald-500/20 rounded-lg flex items-center justify-center mr-3">
+                <i data-lucide="terminal-square" class="w-5 h-5 text-emerald-400"></i>
+              </div>
+              <div>
+                <h3 class="text-lg font-semibold text-white">Interactive TUI Wizard (Recommended)</h3>
+                <span class="text-xs text-emerald-400">Guided setup with auto-install</span>
+              </div>
+            </div>
+            <p class="text-gray-400 text-sm mb-4">The easiest way to configure plugins. The wizard guides you through plugin selection, automatic installation, and credential entry.</p>
+
+            <div class="bg-black/40 rounded-lg p-4 mb-4">
+              <p class="text-xs text-gray-500 mb-2"># Add a new plugin interactively</p>
+              <code class="text-sm text-emerald-300 block">roady sync add</code>
+              <p class="text-xs text-gray-500 mb-2 mt-3"># Edit an existing configuration</p>
+              <code class="text-sm text-emerald-300 block">roady sync edit my-jira</code>
+              <p class="text-xs text-gray-500 mb-2 mt-3"># Remove a configuration</p>
+              <code class="text-sm text-emerald-300 block">roady sync remove my-jira</code>
+              <p class="text-xs text-gray-500 mb-2 mt-3"># Install a plugin without configuring</p>
+              <code class="text-sm text-emerald-300 block">roady sync install jira</code>
+            </div>
+
+            <div class="p-3 bg-violet-500/10 border border-violet-500/20 rounded-lg">
+              <p class="text-violet-300 text-xs"><strong>Auto-Install:</strong> When you select an uninstalled plugin, roady automatically installs it via <code>go install</code>. No manual setup required!</p>
+            </div>
+          </div>
+
           <!-- Configuration File Approach (Recommended) -->
           <div class="glass rounded-xl p-6 border-emerald-500/30">
             <div class="flex items-center mb-4">
