@@ -227,6 +227,27 @@ func (s *AIPlanningService) parseTasksFromResponse(text string) ([]planning.Task
 		fmt.Fprintf(os.Stderr, "AI extracted JSON: %s\n", cleanJSON)
 	}
 
+	// Validate JSON against schema first
+	documentLoader := gojsonschema.NewStringLoader(cleanJSON)
+	result, err := gojsonschema.Validate(taskSchemaLoader, documentLoader)
+	if err == nil && result.Valid() {
+		// Schema validation passed - fast path
+		if os.Getenv("ROADY_AI_DEBUG") != "" {
+			fmt.Fprintf(os.Stderr, "AI JSON schema validation passed\n")
+		}
+	} else if os.Getenv("ROADY_AI_DEBUG") != "" {
+		// Log validation issues for debugging
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "AI JSON schema validation error: %v\n", err)
+		} else {
+			for _, desc := range result.Errors() {
+				fmt.Fprintf(os.Stderr, "AI JSON schema issue: %s\n", desc)
+			}
+		}
+	}
+	// Note: We continue even if schema validation fails because we have robust
+	// fallback parsing that can handle many non-conforming responses
+
 	// Helper to validate a task has minimal required fields
 	isValid := func(t planning.Task) bool {
 		return t.ID != "" && (t.Title != "" || t.Description != "")

@@ -111,7 +111,7 @@ func (s *ExecutionState) CanStartTask(taskID string, plan *Plan) (bool, string) 
 		return false, "no plan found"
 	}
 
-	if plan.ApprovalStatus != ApprovalApproved {
+	if !plan.ApprovalStatus.IsApproved() {
 		return false, "plan is not approved"
 	}
 
@@ -131,7 +131,7 @@ func (s *ExecutionState) CanStartTask(taskID string, plan *Plan) (bool, string) 
 	// Check if dependencies are met (all must be Done or Verified)
 	for _, depID := range task.DependsOn {
 		depStatus := s.GetTaskStatus(depID)
-		if depStatus != StatusDone && depStatus != StatusVerified {
+		if !depStatus.IsComplete() {
 			return false, "dependencies not completed: " + depID
 		}
 	}
@@ -149,7 +149,7 @@ func (s *ExecutionState) HasUnfinishedDependencies(taskID string, plan *Plan) bo
 		if task.ID == taskID {
 			for _, depID := range task.DependsOn {
 				depStatus := s.GetTaskStatus(depID)
-				if depStatus != StatusDone && depStatus != StatusVerified {
+				if !depStatus.IsComplete() {
 					return true
 				}
 			}

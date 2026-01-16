@@ -113,6 +113,8 @@ roady mcp --transport http --addr :8080
 roady mcp --transport ws --addr :8080
 ```
 
+See `docs/mcp-guide.md` for the complete MCP documentation, including all available tools and example workflows.
+
 ## Architecture
 
 Roady is built on clean **Domain-Driven Design (DDD)** principles:

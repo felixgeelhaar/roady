@@ -21,9 +21,18 @@ func NewGitService(repo domain.WorkspaceRepository, taskSvc *TaskService) *GitSe
 
 // SyncMarkers scans the last n commits for [roady:task-id] markers and completes tasks.
 func (s *GitService) SyncMarkers(n int) ([]string, error) {
+	// Validate input bounds to prevent abuse
+	if n < 1 {
+		n = 1
+	}
+	if n > 1000 {
+		n = 1000 // Cap at reasonable maximum
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
+	// #nosec G204 -- n is bounds-checked integer, safe for command line
 	cmd := exec.CommandContext(ctx, "git", "log", "-n", fmt.Sprintf("%d", n), "--pretty=format:%H|%s")
 	out, err := cmd.Output()
 	if err != nil {

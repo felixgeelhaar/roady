@@ -7,19 +7,22 @@ import (
 
 	"github.com/felixgeelhaar/roady/pkg/domain"
 	"github.com/felixgeelhaar/roady/pkg/domain/planning"
+	"github.com/felixgeelhaar/roady/pkg/domain/project"
 )
 
 type PlanService struct {
-	repo       domain.WorkspaceRepository
-	audit      domain.AuditLogger
-	reconciler *planning.PlanReconciler
+	repo        domain.WorkspaceRepository
+	audit       domain.AuditLogger
+	reconciler  *planning.PlanReconciler
+	coordinator *project.Coordinator
 }
 
 func NewPlanService(repo domain.WorkspaceRepository, audit domain.AuditLogger) *PlanService {
 	return &PlanService{
-		repo:       repo,
-		audit:      audit,
-		reconciler: planning.NewPlanReconciler(),
+		repo:        repo,
+		audit:       audit,
+		reconciler:  planning.NewPlanReconciler(),
+		coordinator: NewProjectCoordinator(repo, audit),
 	}
 }
 
@@ -141,24 +144,17 @@ func (s *PlanService) GetUsage() (*domain.UsageStats, error) {
 }
 
 func (s *PlanService) ApprovePlan() error {
-	plan, err := s.repo.LoadPlan()
-	if err != nil {
-		return err
-	}
-	if plan == nil {
-		return fmt.Errorf("no plan found to approve")
-	}
+	return s.ApprovePlanWithActor("cli")
+}
 
-	plan.ApprovalStatus = planning.ApprovalApproved
-	plan.UpdatedAt = time.Now()
-	if err := s.repo.SavePlan(plan); err != nil {
+// ApprovePlanWithActor atomically approves the plan and initializes task states.
+func (s *PlanService) ApprovePlanWithActor(actor string) error {
+	ctx := context.Background()
+	if err := s.coordinator.ApprovePlan(ctx, actor); err != nil {
+		if err == project.ErrNoPlan {
+			return fmt.Errorf("no plan found to approve")
+		}
 		return err
-	}
-	if err := s.audit.Log("plan.approve", "cli", map[string]interface{}{
-		"plan_id": plan.ID,
-		"spec_id": plan.SpecID,
-	}); err != nil {
-		return fmt.Errorf("write audit log: %w", err)
 	}
 	return nil
 }
@@ -211,4 +207,49 @@ func (s *PlanService) RejectPlan() error {
 		return fmt.Errorf("write audit log: %w", err)
 	}
 	return s.repo.SavePlan(plan)
+}
+
+// GetProjectSnapshot returns a consistent view of plan and execution state.
+func (s *PlanService) GetProjectSnapshot(ctx context.Context) (*project.ProjectSnapshot, error) {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	return s.coordinator.GetProjectSnapshot(ctx)
+}
+
+// GetTaskSummaries returns summaries of all tasks with their current status.
+func (s *PlanService) GetTaskSummaries(ctx context.Context) ([]project.TaskSummary, error) {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	return s.coordinator.GetTaskSummaries(ctx)
+}
+
+// GetReadyTasks returns tasks that are ready to be started (unlocked and pending).
+func (s *PlanService) GetReadyTasks(ctx context.Context) ([]project.TaskSummary, error) {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	return s.coordinator.GetReadyTasks(ctx)
+}
+
+// GetBlockedTasks returns tasks that are currently blocked.
+func (s *PlanService) GetBlockedTasks(ctx context.Context) ([]project.TaskSummary, error) {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	return s.coordinator.GetBlockedTasks(ctx)
+}
+
+// GetInProgressTasks returns tasks that are currently in progress.
+func (s *PlanService) GetInProgressTasks(ctx context.Context) ([]project.TaskSummary, error) {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	return s.coordinator.GetInProgressTasks(ctx)
+}
+
+// GetCoordinator returns the underlying project coordinator for advanced operations.
+func (s *PlanService) GetCoordinator() *project.Coordinator {
+	return s.coordinator
 }

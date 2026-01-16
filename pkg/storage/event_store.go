@@ -24,8 +24,8 @@ type FileEventStore struct {
 func NewFileEventStore(basePath string) (*FileEventStore, error) {
 	path := filepath.Join(basePath, "events.jsonl")
 
-	// Ensure directory exists
-	if err := os.MkdirAll(basePath, 0755); err != nil {
+	// Ensure directory exists with restricted permissions
+	if err := os.MkdirAll(basePath, 0750); err != nil {
 		return nil, fmt.Errorf("create directory: %w", err)
 	}
 
@@ -58,8 +58,8 @@ func (s *FileEventStore) Append(event *events.BaseEvent) error {
 	event.PrevHash = s.lastHash
 	event.Hash = event.CalculateHash()
 
-	// Open file in append mode
-	f, err := os.OpenFile(s.path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	// Open file in append mode with restricted permissions
+	f, err := os.OpenFile(s.path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
 	if err != nil {
 		return fmt.Errorf("open events file: %w", err)
 	}

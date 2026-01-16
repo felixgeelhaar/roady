@@ -209,6 +209,7 @@ const (
 	EventTypeExternalRefLinked = "external_ref.linked"
 	EventTypeSyncCompleted    = "sync.completed"
 	EventTypeDriftDetected    = "drift.detected"
+	EventTypeDriftAccepted    = "drift.accepted"
 	EventTypeDriftResolved    = "drift.resolved"
 )
 

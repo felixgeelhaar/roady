@@ -154,7 +154,7 @@ func TestPlanCommandsAuditTrail(t *testing.T) {
 		found[ev.Action] = true
 	}
 
-	for _, want := range []string{"plan.approve", "plan.reject", "plan.prune"} {
+	for _, want := range []string{"plan.approved", "plan.reject", "plan.prune"} {
 		if !found[want] {
 			t.Fatalf("expected governance event %s, got events: %+v", want, events)
 		}

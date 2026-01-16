@@ -141,7 +141,7 @@ func TestBuildAppServices_PlanEvents(t *testing.T) {
 		found[ev.Action] = true
 	}
 
-	for _, want := range []string{"plan.generate", "plan.approve"} {
+	for _, want := range []string{"plan.generate", "plan.approved"} {
 		if !found[want] {
 			t.Fatalf("expected %s event via wiring, got %v", want, events)
 		}

@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/felixgeelhaar/mcp-go/client"
+	"github.com/gorilla/websocket"
 )
 
 type jsonRPCRequest struct {
@@ -153,6 +154,120 @@ func TestMCPStdioTransport(t *testing.T) {
 	}
 	if len(result.Content) == 0 || !strings.Contains(result.Content[0].Text, "Project test initialized") {
 		t.Fatalf("unexpected roady_init response: %+v", result.Content)
+	}
+}
+
+func TestMCPWebSocketTransport(t *testing.T) {
+	tempDir := t.TempDir()
+
+	prevVersion, prevCommit, prevDate := Version, BuildCommit, BuildDate
+	Version, BuildCommit, BuildDate = "test", "commit123", "2026-01-01"
+	t.Cleanup(func() {
+		Version, BuildCommit, BuildDate = prevVersion, prevCommit, prevDate
+	})
+
+	addr := pickFreeAddr(t)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	srv, err := NewServer(tempDir)
+	if err != nil {
+		t.Fatalf("create server: %v", err)
+	}
+	errCh := make(chan error, 1)
+	go func() {
+		errCh <- srv.ServeWebSocket(ctx, addr)
+	}()
+
+	// Wait for WebSocket server to start
+	time.Sleep(100 * time.Millisecond)
+
+	// Connect using raw WebSocket (mcp-go client doesn't have WebSocket transport)
+	wsURL := fmt.Sprintf("ws://%s/mcp", addr)
+	ws, _, err := websocket.DefaultDialer.Dial(wsURL, nil)
+	if err != nil {
+		t.Fatalf("websocket dial: %v", err)
+	}
+	defer ws.Close()
+
+	// Send initialize request
+	initReq := jsonRPCRequest{
+		JSONRPC: "2.0",
+		ID:      1,
+		Method:  "initialize",
+		Params: map[string]any{
+			"protocolVersion": "2024-11-05",
+			"clientInfo": map[string]any{
+				"name":    "roady-ws-test",
+				"version": "0.0.0",
+			},
+			"capabilities": map[string]any{},
+		},
+	}
+	if err := ws.WriteJSON(initReq); err != nil {
+		t.Fatalf("write initialize: %v", err)
+	}
+
+	// Read initialize response
+	var initResp jsonRPCResponse
+	if err := ws.ReadJSON(&initResp); err != nil {
+		t.Fatalf("read initialize: %v", err)
+	}
+	if initResp.Error != nil {
+		t.Fatalf("initialize error: %v", initResp.Error.Message)
+	}
+	if initResp.Result == nil {
+		t.Fatalf("initialize missing result")
+	}
+
+	var result map[string]any
+	if err := json.Unmarshal(*initResp.Result, &result); err != nil {
+		t.Fatalf("unmarshal result: %v", err)
+	}
+	capabilities := result["capabilities"].(map[string]any)
+	if _, ok := capabilities["tools"]; !ok {
+		t.Fatalf("expected tools capability")
+	}
+
+	// Send tools/list request
+	toolsReq := jsonRPCRequest{
+		JSONRPC: "2.0",
+		ID:      2,
+		Method:  "tools/list",
+	}
+	if err := ws.WriteJSON(toolsReq); err != nil {
+		t.Fatalf("write tools/list: %v", err)
+	}
+
+	// Read tools/list response
+	var toolsResp jsonRPCResponse
+	if err := ws.ReadJSON(&toolsResp); err != nil {
+		t.Fatalf("read tools/list: %v", err)
+	}
+	if toolsResp.Error != nil {
+		t.Fatalf("tools/list error: %v", toolsResp.Error.Message)
+	}
+
+	var toolsResult map[string]any
+	if err := json.Unmarshal(*toolsResp.Result, &toolsResult); err != nil {
+		t.Fatalf("unmarshal tools: %v", err)
+	}
+
+	tools, ok := toolsResult["tools"].([]any)
+	if !ok {
+		t.Fatalf("expected tools array")
+	}
+
+	found := false
+	for _, tool := range tools {
+		toolMap := tool.(map[string]any)
+		if toolMap["name"] == "roady_status" {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Fatalf("expected roady_status tool")
 	}
 }
 

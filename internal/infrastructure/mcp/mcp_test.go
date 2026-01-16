@@ -94,7 +94,7 @@ func TestServer_Handlers(t *testing.T) {
 			"t2": {Status: planning.StatusDone},
 		},
 	})
-	_, err = s.handleStatus(context.Background(), struct{}{})
+	_, err = s.handleStatus(context.Background(), StatusArgs{})
 	if err != nil {
 		t.Errorf("handleStatus failed: %v", err)
 	}
@@ -174,7 +174,7 @@ func TestServer_Handlers(t *testing.T) {
 	}
 
 	// 8.4 HandleStatus error
-	_, err = s.handleStatus(context.Background(), struct{}{})
+	_, err = s.handleStatus(context.Background(), StatusArgs{})
 	if err == nil {
 		t.Error("expected error for handleStatus on restricted dir")
 	}

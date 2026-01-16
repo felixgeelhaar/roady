@@ -1,6 +1,7 @@
 package application
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -264,5 +265,184 @@ func TestEventSourcedAuditService_NilPublisher(t *testing.T) {
 	evts, _ := svc.LoadEvents()
 	if len(evts) != 1 {
 		t.Errorf("Expected 1 event, got %d", len(evts))
+	}
+}
+
+func TestEventSourcedAuditService_SetDispatcher(t *testing.T) {
+	tmpDir := t.TempDir()
+	store, err := storage.NewFileEventStore(tmpDir)
+	if err != nil {
+		t.Fatalf("NewFileEventStore failed: %v", err)
+	}
+
+	svc, err := NewEventSourcedAuditService(store, nil)
+	if err != nil {
+		t.Fatalf("NewEventSourcedAuditService failed: %v", err)
+	}
+
+	// Initially no dispatcher
+	if svc.GetDispatcher() != nil {
+		t.Error("Expected nil dispatcher initially")
+	}
+
+	// Set dispatcher
+	dispatcher := events.NewEventDispatcher()
+	svc.SetDispatcher(dispatcher)
+
+	if svc.GetDispatcher() == nil {
+		t.Error("Expected dispatcher to be set")
+	}
+	if svc.GetDispatcher() != dispatcher {
+		t.Error("Expected same dispatcher instance")
+	}
+}
+
+func TestEventSourcedAuditService_RegisterHandler(t *testing.T) {
+	tmpDir := t.TempDir()
+	store, err := storage.NewFileEventStore(tmpDir)
+	if err != nil {
+		t.Fatalf("NewFileEventStore failed: %v", err)
+	}
+
+	svc, err := NewEventSourcedAuditService(store, nil)
+	if err != nil {
+		t.Fatalf("NewEventSourcedAuditService failed: %v", err)
+	}
+
+	// Register handler creates dispatcher if nil
+	handlerCalled := make(chan bool, 1)
+	svc.RegisterHandler(events.HandlerRegistration{
+		Name: "test-handler",
+		Handler: func(ctx context.Context, event events.DomainEvent) error {
+			handlerCalled <- true
+			return nil
+		},
+		EventTypes: []string{"task.started"},
+	})
+
+	// Dispatcher should be created
+	if svc.GetDispatcher() == nil {
+		t.Error("Expected dispatcher to be created")
+	}
+
+	// Log an event
+	err = svc.Log("task.started", "alice", map[string]interface{}{
+		"task_id": "task-1",
+	})
+	if err != nil {
+		t.Fatalf("Log failed: %v", err)
+	}
+
+	// Wait for async dispatch with timeout
+	select {
+	case <-handlerCalled:
+		// Handler was called
+	case <-time.After(time.Second):
+		t.Error("Handler was not called within timeout")
+	}
+}
+
+func TestEventSourcedAuditService_DispatcherIntegration(t *testing.T) {
+	tmpDir := t.TempDir()
+	store, err := storage.NewFileEventStore(tmpDir)
+	if err != nil {
+		t.Fatalf("NewFileEventStore failed: %v", err)
+	}
+	publisher := storage.NewInMemoryEventPublisher()
+
+	svc, err := NewEventSourcedAuditService(store, publisher)
+	if err != nil {
+		t.Fatalf("NewEventSourcedAuditService failed: %v", err)
+	}
+
+	// Track dispatched events
+	dispatched := make(chan string, 10)
+	dispatcher := events.NewEventDispatcher()
+	dispatcher.RegisterWildcard("tracker", func(ctx context.Context, event events.DomainEvent) error {
+		dispatched <- event.EventType()
+		return nil
+	})
+	svc.SetDispatcher(dispatcher)
+
+	// Log multiple events
+	svc.Log(events.EventTypeTaskStarted, "alice", map[string]interface{}{"task_id": "task-1"})
+	svc.Log(events.EventTypeTaskCompleted, "alice", map[string]interface{}{"task_id": "task-1"})
+	svc.Log(events.EventTypeTaskVerified, "alice", map[string]interface{}{"task_id": "task-1"})
+
+	// Wait for dispatches with timeout
+	received := make([]string, 0, 3)
+	timeout := time.After(2 * time.Second)
+	for i := 0; i < 3; i++ {
+		select {
+		case evt := <-dispatched:
+			received = append(received, evt)
+		case <-timeout:
+			t.Fatalf("Timeout waiting for dispatches, received: %v", received)
+		}
+	}
+
+	if len(received) != 3 {
+		t.Errorf("Expected 3 dispatched events, got %d", len(received))
+	}
+}
+
+func TestEventSourcedAuditService_GetAITelemetry(t *testing.T) {
+	tmpDir := t.TempDir()
+	store, err := storage.NewFileEventStore(tmpDir)
+	if err != nil {
+		t.Fatalf("NewFileEventStore failed: %v", err)
+	}
+
+	svc, err := NewEventSourcedAuditService(store, nil)
+	if err != nil {
+		t.Fatalf("NewEventSourcedAuditService failed: %v", err)
+	}
+
+	// Log AI events
+	svc.Log("plan.ai_decomposition", "ai", map[string]interface{}{
+		"model":         "gpt-4o",
+		"input_tokens":  float64(100),
+		"output_tokens": float64(50),
+	})
+	svc.Log("plan.ai_decomposition_retry", "ai", map[string]interface{}{
+		"reason":  "invalid json",
+		"attempt": 2,
+	})
+	svc.Log("spec.ai_explanation", "ai", map[string]interface{}{
+		"model":         "gpt-4o",
+		"input_tokens":  float64(200),
+		"output_tokens": float64(100),
+	})
+	// Non-AI event should be ignored
+	svc.Log("task.started", "cli", map[string]interface{}{
+		"task_id": "task-1",
+	})
+
+	// Get telemetry
+	telemetry, err := svc.GetAITelemetry()
+	if err != nil {
+		t.Fatalf("GetAITelemetry failed: %v", err)
+	}
+
+	if telemetry.TotalCalls != 2 {
+		t.Errorf("Expected 2 total calls, got %d", telemetry.TotalCalls)
+	}
+	if telemetry.TotalInputTokens != 300 {
+		t.Errorf("Expected 300 input tokens, got %d", telemetry.TotalInputTokens)
+	}
+	if telemetry.TotalOutputTokens != 150 {
+		t.Errorf("Expected 150 output tokens, got %d", telemetry.TotalOutputTokens)
+	}
+	if telemetry.RetryCount != 1 {
+		t.Errorf("Expected 1 retry, got %d", telemetry.RetryCount)
+	}
+	if telemetry.CallsByAction["plan.ai_decomposition"] != 1 {
+		t.Errorf("Expected 1 decomposition call")
+	}
+	if telemetry.CallsByAction["spec.ai_explanation"] != 1 {
+		t.Errorf("Expected 1 explanation call")
+	}
+	if telemetry.TokensByModel["gpt-4o"] != 450 {
+		t.Errorf("Expected 450 tokens for gpt-4o, got %d", telemetry.TokensByModel["gpt-4o"])
 	}
 }

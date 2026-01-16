@@ -78,6 +78,9 @@ func (s *PolicyService) ValidateTransition(taskID string, event string) error {
 	if err != nil {
 		return err
 	}
+	if plan == nil {
+		return nil // No plan, skip dependency validation
+	}
 
 	var targetTask *planning.Task
 	for _, t := range plan.Tasks {

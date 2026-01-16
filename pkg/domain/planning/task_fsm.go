@@ -6,7 +6,9 @@ import (
 	"github.com/felixgeelhaar/statekit"
 )
 
-// TaskState represents the valid states for a task.
+// State constants for statekit integration.
+// These must remain as untyped string constants for statekit.StateID compatibility.
+// Values are kept in sync with TaskStatus constants in plan.go.
 const (
 	StatePending    = "pending"
 	StateInProgress = "in_progress"
@@ -14,6 +16,24 @@ const (
 	StateDone       = "done"
 	StateVerified   = "verified"
 )
+
+// init validates at startup that FSM state constants match TaskStatus values.
+// This ensures the FSM and value object stay in sync.
+func init() {
+	stateMap := map[string]TaskStatus{
+		StatePending:    StatusPending,
+		StateInProgress: StatusInProgress,
+		StateBlocked:    StatusBlocked,
+		StateDone:       StatusDone,
+		StateVerified:   StatusVerified,
+	}
+
+	for fsmState, taskStatus := range stateMap {
+		if fsmState != string(taskStatus) {
+			panic(fmt.Sprintf("FSM state %q does not match TaskStatus %q - constants are out of sync", fsmState, taskStatus))
+		}
+	}
+}
 
 // TaskContext carries state data.
 type TaskContext struct {
@@ -103,4 +123,31 @@ func (sm *TaskStateMachine) Transition(event string) error {
 
 func (sm *TaskStateMachine) Current() string {
 	return string(sm.interpreter.State().Value)
+}
+
+// CurrentStatus returns the current state as a TaskStatus value object.
+func (sm *TaskStateMachine) CurrentStatus() TaskStatus {
+	return TaskStatus(sm.Current())
+}
+
+// CanTransition checks if the given event is valid for the current state.
+// This delegates to the TaskStatus value object for consistency.
+func (sm *TaskStateMachine) CanTransition(event string) bool {
+	return sm.CurrentStatus().CanTransitionWith(event)
+}
+
+// ValidEvents returns the valid events for the current state.
+// This delegates to the TaskStatus value object for consistency.
+func (sm *TaskStateMachine) ValidEvents() []string {
+	return sm.CurrentStatus().ValidEvents()
+}
+
+// IsFinal returns true if the current state is a final state.
+func (sm *TaskStateMachine) IsFinal() bool {
+	return sm.CurrentStatus().IsFinal()
+}
+
+// IsComplete returns true if the task is done or verified.
+func (sm *TaskStateMachine) IsComplete() bool {
+	return sm.CurrentStatus().IsComplete()
 }

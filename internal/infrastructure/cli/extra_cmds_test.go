@@ -95,7 +95,8 @@ func TestForecastCmd_Estimate(t *testing.T) {
 	}
 
 	audit := application.NewAuditService(repo)
-	if err := audit.Log("task.transition", "tester", map[string]interface{}{"status": "verified"}); err != nil {
+	// Log task.completed event with task_id for velocity calculation
+	if err := audit.Log("task.completed", "tester", map[string]interface{}{"task_id": "t1"}); err != nil {
 		t.Fatalf("log event: %v", err)
 	}
 
@@ -105,7 +106,7 @@ func TestForecastCmd_Estimate(t *testing.T) {
 		}
 	})
 
-	if !strings.Contains(output, "Estimated time to completion") {
+	if !strings.Contains(output, "Estimated Completion") {
 		t.Fatalf("expected estimate message, got:\n%s", output)
 	}
 }

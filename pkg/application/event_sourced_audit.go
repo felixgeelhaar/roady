@@ -2,6 +2,7 @@
 package application
 
 import (
+	"context"
 	"time"
 
 	"github.com/felixgeelhaar/roady/pkg/domain"
@@ -14,6 +15,7 @@ import (
 type EventSourcedAuditService struct {
 	store      events.EventStore
 	publisher  events.EventPublisher
+	dispatcher *events.EventDispatcher
 	taskProj   *events.TaskStateProjection
 	velProj    *events.VelocityProjection
 	auditProj  *events.AuditTimelineProjection
@@ -37,12 +39,12 @@ func NewEventSourcedAuditService(store events.EventStore, publisher events.Event
 		return nil, err
 	}
 
-	// Subscribe projections to new events
+	// Subscribe projections to new events (errors non-fatal for projections)
 	if publisher != nil {
 		publisher.Subscribe(func(e *events.BaseEvent) error {
-			svc.taskProj.Apply(e)
-			svc.velProj.Apply(e)
-			svc.auditProj.Apply(e)
+			_ = svc.taskProj.Apply(e)
+			_ = svc.velProj.Apply(e)
+			_ = svc.auditProj.Apply(e)
 			return nil
 		})
 	}
@@ -92,9 +94,17 @@ func (s *EventSourcedAuditService) Log(action string, actor string, metadata map
 		return err
 	}
 
-	// Publish to subscribers (projections)
+	// Publish to subscribers (projections, fire-and-forget)
 	if s.publisher != nil {
-		s.publisher.Publish(event)
+		_ = s.publisher.Publish(event)
+	}
+
+	// Dispatch to event handlers
+	if s.dispatcher != nil {
+		// Use background context for dispatch - handlers should not block audit logging
+		go func() {
+			_ = s.dispatcher.Dispatch(context.Background(), event)
+		}()
 	}
 
 	return nil
@@ -164,4 +174,84 @@ func (s *EventSourcedAuditService) LoadEvents() ([]*events.BaseEvent, error) {
 // LoadEventsSince returns events since the given time.
 func (s *EventSourcedAuditService) LoadEventsSince(since time.Time) ([]*events.BaseEvent, error) {
 	return s.store.LoadSince(since)
+}
+
+// SetDispatcher sets the event dispatcher for this service.
+func (s *EventSourcedAuditService) SetDispatcher(dispatcher *events.EventDispatcher) {
+	s.dispatcher = dispatcher
+}
+
+// GetDispatcher returns the event dispatcher.
+func (s *EventSourcedAuditService) GetDispatcher() *events.EventDispatcher {
+	return s.dispatcher
+}
+
+// RegisterHandler registers an event handler with the dispatcher.
+// If no dispatcher is set, this creates one.
+func (s *EventSourcedAuditService) RegisterHandler(reg events.HandlerRegistration) {
+	if s.dispatcher == nil {
+		s.dispatcher = events.NewEventDispatcher()
+	}
+	s.dispatcher.Register(reg)
+}
+
+// AITelemetrySummary holds aggregated AI usage metrics.
+type AITelemetrySummary struct {
+	TotalCalls      int            `json:"total_calls"`
+	TotalInputTokens  int          `json:"total_input_tokens"`
+	TotalOutputTokens int          `json:"total_output_tokens"`
+	RetryCount      int            `json:"retry_count"`
+	CallsByAction   map[string]int `json:"calls_by_action"`
+	TokensByModel   map[string]int `json:"tokens_by_model"`
+}
+
+// GetAITelemetry returns aggregated AI usage metrics from events.
+func (s *EventSourcedAuditService) GetAITelemetry() (*AITelemetrySummary, error) {
+	evts, err := s.store.LoadAll()
+	if err != nil {
+		return nil, err
+	}
+
+	summary := &AITelemetrySummary{
+		CallsByAction: make(map[string]int),
+		TokensByModel: make(map[string]int),
+	}
+
+	for _, e := range evts {
+		// Filter for AI-related events
+		if e.Actor != "ai" {
+			continue
+		}
+
+		// Check for AI-specific event types
+		switch e.Type {
+		case "plan.ai_decomposition", "spec.reconcile", "spec.ai_explanation", "drift.ai_explanation":
+			summary.TotalCalls++
+			summary.CallsByAction[e.Type]++
+
+			if e.Metadata != nil {
+				if inputTokens, ok := e.Metadata["input_tokens"].(float64); ok {
+					summary.TotalInputTokens += int(inputTokens)
+				}
+				if outputTokens, ok := e.Metadata["output_tokens"].(float64); ok {
+					summary.TotalOutputTokens += int(outputTokens)
+				}
+				if model, ok := e.Metadata["model"].(string); ok {
+					tokens := 0
+					if it, ok := e.Metadata["input_tokens"].(float64); ok {
+						tokens += int(it)
+					}
+					if ot, ok := e.Metadata["output_tokens"].(float64); ok {
+						tokens += int(ot)
+					}
+					summary.TokensByModel[model] += tokens
+				}
+			}
+
+		case "plan.ai_decomposition_retry":
+			summary.RetryCount++
+		}
+	}
+
+	return summary, nil
 }

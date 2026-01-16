@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"os/signal"
 	"runtime"
+	"strings"
 	"syscall"
 	"time"
 
@@ -173,6 +174,11 @@ func (p *dashboardDataProvider) GetState() (*planning.ExecutionState, error) {
 }
 
 func openBrowser(url string) error {
+	// Validate URL to prevent command injection
+	if !isValidBrowserURL(url) {
+		return fmt.Errorf("invalid URL: must be http:// or https://")
+	}
+
 	var cmd string
 	var args []string
 
@@ -190,7 +196,23 @@ func openBrowser(url string) error {
 		return fmt.Errorf("unsupported platform")
 	}
 
-	return exec.Command(cmd, args...).Start()
+	return exec.Command(cmd, args...).Start() // #nosec G204 -- URL validated above
+}
+
+// isValidBrowserURL validates that the URL is a safe http/https URL.
+func isValidBrowserURL(url string) bool {
+	// Only allow http and https schemes
+	if !strings.HasPrefix(url, "http://") && !strings.HasPrefix(url, "https://") {
+		return false
+	}
+	// Reject URLs with shell metacharacters
+	dangerousChars := []string{";", "|", "&", "$", "`", "(", ")", "{", "}", "<", ">", "\n", "\r"}
+	for _, char := range dangerousChars {
+		if strings.Contains(url, char) {
+			return false
+		}
+	}
+	return true
 }
 
 // Styles

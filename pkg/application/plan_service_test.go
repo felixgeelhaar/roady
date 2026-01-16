@@ -195,7 +195,7 @@ func TestPlanService_GovernanceEventsFromManualTransitions(t *testing.T) {
 		found[ev.Action] = true
 	}
 
-	for _, want := range []string{"plan.approve", "plan.reject", "plan.prune"} {
+	for _, want := range []string{"plan.approved", "plan.reject", "plan.prune"} {
 		if !found[want] {
 			t.Fatalf("expected governance event %s, got events: %+v", want, events)
 		}
@@ -363,7 +363,7 @@ func TestPlanService_GovernanceEvents(t *testing.T) {
 		actionSet[ev.Action] = true
 	}
 
-	for _, want := range []string{"plan.generate", "plan.update_smart", "plan.approve", "plan.reject", "plan.prune"} {
+	for _, want := range []string{"plan.generate", "plan.update_smart", "plan.approved", "plan.reject", "plan.prune"} {
 		if !actionSet[want] {
 			t.Fatalf("expected event %s recorded, got actions %v", want, events)
 		}

@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/felixgeelhaar/roady/pkg/storage"
 	"gopkg.in/yaml.v3"
@@ -28,7 +29,10 @@ func LoadAIConfig(root string) (*AIConfig, error) {
 		return nil, err
 	}
 
-	data, err := os.ReadFile(path)
+	// Clean path for defense in depth (ResolvePath already sanitizes)
+	cleanPath := filepath.Clean(path)
+	// #nosec G304 -- path is resolved from trusted repository root, not user input
+	data, err := os.ReadFile(cleanPath)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return nil, nil

@@ -45,7 +45,18 @@ This project records **governance control** and **provider preferences** in two 
 ## Validation & Troubleshooting
 
 - If you change providers, rebuild the workspace (`wiring.BuildAppServices`) to refresh the bound services. The CLI/MCP wiring already prints warnings when it falls back to an embedded provider.
-- Keep API keys out of the repo; store them in host environment variables (`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, etc.).
+- Keep API keys out of the repo; store them in host environment variables (`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `GEMINI_API_KEY`).
+- Use `roady usage` to monitor AI token consumption against policy limits. Alerts appear at 75%, 90%, and 100% of `token_limit`.
+
+## Supported AI Providers
+
+| Provider | Environment Variable | Model Examples |
+|----------|---------------------|----------------|
+| `ollama` | (none - local) | `llama3`, `llama3.2`, `qwen3:8b` |
+| `openai` | `OPENAI_API_KEY` | `gpt-4o`, `gpt-4-turbo`, `gpt-3.5-turbo` |
+| `anthropic` | `ANTHROPIC_API_KEY` | `claude-3-opus`, `claude-3-sonnet` |
+| `gemini` | `GEMINI_API_KEY` | `gemini-pro`, `gemma3` |
+| `mock` | (none) | Test/development only |
 
 ## Interpreting `.roady/events.jsonl`
 
@@ -77,3 +88,9 @@ Use `jq -c '.action' .roady/events.jsonl` to list actions and `jq 'select(.actio
 - Approve the refreshed plan (`roady plan approve`) whenever the spec/intention has stabilized; this writes `plan.approve` and keeps the approval metadata aligned with the current spec hash.
 - When drift is expected because you intentionally changed the spec, run `roady drift accept` and verify that `drift.accepted` appears in `.roady/events.jsonl`, capturing the `spec_id`, `spec_hash`, and the actor that accepted the drift.
 - Use `jq -c 'select(.action | startswith("plan."))' .roady/events.jsonl` to trace the lifecycle of each plan (generate, approve, reject, prune). If you need a printable checklist, see `docs/governance-checklist.md` for the expanded audit workflow.
+
+## Related Documentation
+
+- **MCP Integration**: See `docs/mcp-guide.md` for the complete MCP server documentation, including transport options (stdio, HTTP, WebSocket) and all available tools.
+- **Governance Checklist**: See `docs/governance-checklist.md` for the full audit workflow checklist.
+- **External Integrations**: See `docs/integrations.md` for Jira/Linear sync architecture.
