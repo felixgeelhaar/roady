@@ -8,6 +8,7 @@ const navLinks = [
   { href: '#features', label: 'Features' },
   { href: '#commands', label: 'Commands' },
   { href: '#mcp', label: 'MCP' },
+  { href: '#integrations', label: 'Integrations' },
   { href: '#automation', label: 'Automation' },
 ];
 
