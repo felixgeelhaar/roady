@@ -78,6 +78,89 @@ func TestPlanService_FailurePaths(t *testing.T) {
 	}
 }
 
+func TestPlanService_GeneratePlanLocksSpec(t *testing.T) {
+	tempDir, _ := os.MkdirTemp("", "roady-plan-lock-*")
+	defer os.RemoveAll(tempDir)
+
+	repo := storage.NewFilesystemRepository(tempDir)
+	if err := repo.Initialize(); err != nil {
+		t.Fatalf("init repo: %v", err)
+	}
+
+	audit := application.NewAuditService(repo)
+	service := application.NewPlanService(repo, audit)
+
+	specDoc := &spec.ProductSpec{
+		ID:      "s1",
+		Title:   "Spec One",
+		Version: "1.0.0",
+		Features: []spec.Feature{
+			{ID: "f1", Title: "Feature 1"},
+		},
+	}
+	if err := repo.SaveSpec(specDoc); err != nil {
+		t.Fatalf("save spec: %v", err)
+	}
+
+	if _, err := service.GeneratePlan(context.Background()); err != nil {
+		t.Fatalf("GeneratePlan failed: %v", err)
+	}
+
+	lock, err := repo.LoadSpecLock()
+	if err != nil {
+		t.Fatalf("load spec lock: %v", err)
+	}
+	if lock == nil {
+		t.Fatal("expected spec lock to exist after plan generation")
+	}
+	if lock.Hash() != specDoc.Hash() {
+		t.Fatalf("spec lock hash mismatch: got %s want %s", lock.Hash(), specDoc.Hash())
+	}
+}
+
+func TestPlanService_UpdatePlanLocksSpec(t *testing.T) {
+	tempDir, _ := os.MkdirTemp("", "roady-plan-update-lock-*")
+	defer os.RemoveAll(tempDir)
+
+	repo := storage.NewFilesystemRepository(tempDir)
+	if err := repo.Initialize(); err != nil {
+		t.Fatalf("init repo: %v", err)
+	}
+
+	audit := application.NewAuditService(repo)
+	service := application.NewPlanService(repo, audit)
+
+	specDoc := &spec.ProductSpec{
+		ID:      "s1",
+		Title:   "Spec One",
+		Version: "1.0.0",
+		Features: []spec.Feature{
+			{ID: "f1", Title: "Feature 1"},
+		},
+	}
+	if err := repo.SaveSpec(specDoc); err != nil {
+		t.Fatalf("save spec: %v", err)
+	}
+
+	_, err := service.UpdatePlan([]planning.Task{
+		{ID: "task-f1", Title: "Implement Feature 1", FeatureID: "f1"},
+	})
+	if err != nil {
+		t.Fatalf("UpdatePlan failed: %v", err)
+	}
+
+	lock, err := repo.LoadSpecLock()
+	if err != nil {
+		t.Fatalf("load spec lock: %v", err)
+	}
+	if lock == nil {
+		t.Fatal("expected spec lock to exist after plan update")
+	}
+	if lock.Hash() != specDoc.Hash() {
+		t.Fatalf("spec lock hash mismatch: got %s want %s", lock.Hash(), specDoc.Hash())
+	}
+}
+
 func TestPlanService_ApproveRejectPlan(t *testing.T) {
 	repo := &MockRepo{
 		Plan: &planning.Plan{

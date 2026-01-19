@@ -124,6 +124,10 @@ func (s *PlanService) ReconcilePlan(proposedTasks []planning.Task) (*planning.Pl
 		return nil, fmt.Errorf("failed to save plan: %w", err)
 	}
 
+	if err := s.repo.SaveSpecLock(spec); err != nil {
+		return nil, fmt.Errorf("save spec lock: %w", err)
+	}
+
 	return newPlan, nil
 }
 
