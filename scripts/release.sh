@@ -66,12 +66,12 @@ log_event "release.notes_generated" "relicta" "{}"
 
 echo ""
 echo "Step 6: Approving release..."
-relicta approve --yes
+relicta approve
 log_event "release.approved" "release-script" "{\"version\":\"$VERSION\"}"
 
 echo ""
 echo "Step 7: Publishing release..."
-relicta publish --yes
+relicta publish
 log_event "release.published" "relicta" "{\"version\":\"$VERSION\"}"
 
 echo ""
