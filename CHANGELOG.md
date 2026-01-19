@@ -2,6 +2,8 @@
 
 Release 0.3.0
 
+Release 0.4.1
+
 ## [0.2.0] - Horizon 2: Increase Leverage
 
 ### Added
