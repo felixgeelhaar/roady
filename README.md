@@ -18,6 +18,7 @@ Designed for individuals, teams, and AI agents, Roady ensures that your developm
 *   **Immutable Audit Trails:** Every action is cryptographically signed in a verifiable hash chain (`roady audit verify`).
 *   **Continuous Automation:** Watch documents for changes and sync task statuses via Git commit markers (`[roady:task-id]`).
 *   **Interactive TUI:** Real-time visibility into your project's health and velocity (`roady dashboard`).
+*   **Interactive D3 Visualizations:** Rich, browser-based charts embedded in MCP apps — donut charts for status breakdowns, force-directed DAGs for plan and dependency graphs, gauges for usage and compliance, bar charts for drift severity, line charts for debt trends, and tree diagrams for spec hierarchies.
 *   **MCP First:** Seamlessly expose planning capabilities to AI agents via the Model Context Protocol.
 
 ## Quick Start
@@ -119,7 +120,7 @@ See `docs/mcp-guide.md` for the complete MCP documentation, including all availa
 
 Roady is built on clean **Domain-Driven Design (DDD)** principles:
 *   **Domain:** Pure business logic for Specs, Plans, Drift, and Policy.
-*   **Infrastructure:** Modern Go stack using `cobra`, `bubbletea`, `mcp-go`, and `fortify`.
+*   **Infrastructure:** Modern Go stack using `cobra`, `bubbletea`, `mcp-go`, and `fortify`. MCP apps built with Vue 3 + D3.js, compiled to self-contained HTML files via Vite.
 *   **Storage:** Git-friendly YAML/JSON artifacts in `.roady/`.
 
 ## License
