@@ -10,10 +10,10 @@ import (
 
 type InitService struct {
 	repo  domain.WorkspaceRepository
-	audit *AuditService
+	audit domain.AuditLogger
 }
 
-func NewInitService(repo domain.WorkspaceRepository, audit *AuditService) *InitService {
+func NewInitService(repo domain.WorkspaceRepository, audit domain.AuditLogger) *InitService {
 	return &InitService{repo: repo, audit: audit}
 }
 

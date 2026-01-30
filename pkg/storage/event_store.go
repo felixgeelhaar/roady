@@ -17,21 +17,19 @@ import (
 type FileEventStore struct {
 	mu       sync.RWMutex
 	path     string
+	basePath string
 	lastHash string
 }
 
 // NewFileEventStore creates a new file-based event store.
+// The basePath directory is created on first write, not at construction time,
+// to avoid interfering with project initialization checks.
 func NewFileEventStore(basePath string) (*FileEventStore, error) {
 	path := filepath.Join(basePath, "events.jsonl")
 
-	// Ensure directory exists with restricted permissions
-	if err := os.MkdirAll(basePath, 0750); err != nil {
-		return nil, fmt.Errorf("create directory: %w", err)
-	}
+	store := &FileEventStore{path: path, basePath: basePath}
 
-	store := &FileEventStore{path: path}
-
-	// Load last hash for chaining
+	// Load last hash for chaining (no error if file doesn't exist yet)
 	if last, err := store.GetLastEvent(); err == nil && last != nil {
 		store.lastHash = last.Hash
 	}
@@ -53,6 +51,14 @@ func (s *FileEventStore) Append(event *events.BaseEvent) error {
 	if event.Timestamp.IsZero() {
 		event.Timestamp = time.Now()
 	}
+
+	// Ensure directory exists on first write
+	if err := os.MkdirAll(s.basePath, 0750); err != nil {
+		return fmt.Errorf("create directory: %w", err)
+	}
+
+	// Ensure Action mirrors Type for backward compatibility
+	event.EnsureAction()
 
 	// Chain to previous event
 	event.PrevHash = s.lastHash

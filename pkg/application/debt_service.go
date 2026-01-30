@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/felixgeelhaar/roady/pkg/domain"
 	"github.com/felixgeelhaar/roady/pkg/domain/debt"
 	"github.com/felixgeelhaar/roady/pkg/domain/drift"
 	"github.com/felixgeelhaar/roady/pkg/domain/events"
@@ -13,11 +14,11 @@ import (
 type DebtService struct {
 	driftSvc          *DriftService
 	driftHistoryProj  *events.DriftHistoryProjection
-	auditSvc          *AuditService
+	auditSvc          domain.AuditLogger
 }
 
 // NewDebtService creates a new debt service.
-func NewDebtService(driftSvc *DriftService, auditSvc *AuditService) *DebtService {
+func NewDebtService(driftSvc *DriftService, auditSvc domain.AuditLogger) *DebtService {
 	return &DebtService{
 		driftSvc:         driftSvc,
 		driftHistoryProj: events.NewDriftHistoryProjection(),

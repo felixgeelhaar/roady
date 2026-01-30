@@ -23,7 +23,7 @@ type Server struct {
 	aiSvc     *application.AIPlanningService
 	gitSvc    *application.GitService
 	syncSvc   *application.SyncService
-	auditSvc  *application.AuditService
+	auditSvc  *application.EventSourcedAuditService
 	depSvc       *application.DependencyService
 	debtSvc      *application.DebtService
 	forecastSvc  *application.ForecastService

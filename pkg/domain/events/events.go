@@ -21,9 +21,11 @@ type DomainEvent interface {
 }
 
 // BaseEvent provides common fields for all events.
+// Action mirrors Type for backward compatibility with domain.Event JSON format.
 type BaseEvent struct {
 	ID             string                 `json:"id"`
 	Type           string                 `json:"type"`
+	Action         string                 `json:"action,omitempty"`
 	AggregateID_   string                 `json:"aggregate_id"`
 	AggregateType_ string                 `json:"aggregate_type"`
 	Timestamp      time.Time              `json:"timestamp"`
@@ -32,6 +34,13 @@ type BaseEvent struct {
 	Metadata       map[string]interface{} `json:"metadata,omitempty"`
 	PrevHash       string                 `json:"prev_hash,omitempty"`
 	Hash           string                 `json:"hash,omitempty"`
+}
+
+// EnsureAction sets Action to match Type for backward-compatible JSON serialization.
+func (e *BaseEvent) EnsureAction() {
+	if e.Action == "" {
+		e.Action = e.Type
+	}
 }
 
 func (e BaseEvent) EventType() string      { return e.Type }

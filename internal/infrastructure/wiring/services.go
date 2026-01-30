@@ -2,6 +2,7 @@ package wiring
 
 import (
 	"fmt"
+	"path/filepath"
 
 	"github.com/felixgeelhaar/roady/pkg/ai"
 	"github.com/felixgeelhaar/roady/pkg/application"
@@ -22,7 +23,7 @@ type AppServices struct {
 	AI         *application.AIPlanningService
 	Git        *application.GitService
 	Sync       *application.SyncService
-	Audit      *application.AuditService // Concrete service for read operations like GetVelocity
+	Audit      *application.EventSourcedAuditService // Event-sourced audit with dispatcher and projections
 	Usage      *application.UsageService // Usage tracking service (separate from audit)
 	Forecast   *application.ForecastService
 	Dependency *application.DependencyService
@@ -44,51 +45,7 @@ func BuildAppServices(root string) (*AppServices, error) {
 		provider = ai.NewResilientProvider(fallback)
 	}
 
-	// Create services in dependency order
-	policySvc := application.NewPolicyService(workspace.Repo)
-	planSvc := application.NewPlanService(workspace.Repo, workspace.Audit)
-	taskSvc := application.NewTaskService(workspace.Repo, workspace.Audit, policySvc)
-	driftSvc := application.NewDriftService(workspace.Repo, workspace.Audit, storage.NewCodebaseInspector(), policySvc)
-	aiSvc := application.NewAIPlanningService(workspace.Repo, provider, workspace.Audit, planSvc)
-	debtSvc := application.NewDebtService(driftSvc, workspace.Audit)
-
-	// Create velocity projection for forecasting and hydrate from stored events
-	velocityProjection := events.NewExtendedVelocityProjection(7, 14, 30)
-	if storedEvents, err := workspace.Repo.LoadEvents(); err == nil {
-		for _, ev := range storedEvents {
-			baseEvent := &events.BaseEvent{
-				Type:      ev.Action,
-				Timestamp: ev.Timestamp,
-				Metadata:  ev.Metadata,
-			}
-			_ = velocityProjection.Apply(baseEvent)
-		}
-	}
-	forecastSvc := application.NewForecastService(velocityProjection, workspace.Repo)
-
-	// Create dependency service
-	depSvc := application.NewDependencyService(workspace.Repo, root)
-
-	services := &AppServices{
-		Workspace:  workspace,
-		Init:       application.NewInitService(workspace.Repo, workspace.Audit),
-		Spec:       application.NewSpecService(workspace.Repo),
-		Plan:       planSvc,
-		Drift:      driftSvc,
-		Policy:     policySvc,
-		Task:       taskSvc,
-		AI:         aiSvc,
-		Git:        application.NewGitService(workspace.Repo, taskSvc),
-		Sync:       application.NewSyncServiceWithPlugins(workspace.Repo, workspace.Repo, taskSvc),
-		Audit:      workspace.Audit,
-		Usage:      workspace.Usage,
-		Forecast:   forecastSvc,
-		Dependency: depSvc,
-		Debt:       debtSvc,
-		Provider:   provider,
-	}
-
-	return services, loadErr
+	return buildServicesWithProvider(workspace, root, provider, loadErr)
 }
 
 // BuildAppServicesWithProvider allows callers to supply a custom AI provider resolver.
@@ -105,13 +62,38 @@ func BuildAppServicesWithProvider(root string, resolver func(string) (domainai.P
 		provider = ai.NewResilientProvider(fallback)
 	}
 
+	return buildServicesWithProvider(workspace, root, provider, loadErr)
+}
+
+// buildServicesWithProvider is the shared implementation for building app services.
+func buildServicesWithProvider(workspace *Workspace, root string, provider domainai.Provider, loadErr error) (*AppServices, error) {
+	// Create event store and publisher for event-sourced audit
+	eventStore, err := storage.NewFileEventStore(filepath.Join(root, storage.RoadyDir))
+	if err != nil {
+		return nil, fmt.Errorf("create event store: %w", err)
+	}
+	publisher := storage.NewInMemoryEventPublisher()
+
+	// Create event-sourced audit service with dispatcher and projections
+	auditSvc, err := application.NewEventSourcedAuditService(eventStore, publisher)
+	if err != nil {
+		return nil, fmt.Errorf("create event-sourced audit: %w", err)
+	}
+
+	// Create and wire event dispatcher with handlers
+	dispatcher := events.NewEventDispatcher()
+	dispatcher.Register(events.NewLoggingHandler(nil).Registration())
+	dispatcher.Register(events.NewDriftWarningHandler(nil, nil).Registration())
+	dispatcher.Register(events.NewTaskTransitionHandler(nil).Registration())
+	auditSvc.SetDispatcher(dispatcher)
+
 	// Create services in dependency order
 	policySvc := application.NewPolicyService(workspace.Repo)
-	planSvc := application.NewPlanService(workspace.Repo, workspace.Audit)
-	taskSvc := application.NewTaskService(workspace.Repo, workspace.Audit, policySvc)
-	driftSvc := application.NewDriftService(workspace.Repo, workspace.Audit, storage.NewCodebaseInspector(), policySvc)
-	aiSvc := application.NewAIPlanningService(workspace.Repo, provider, workspace.Audit, planSvc)
-	debtSvc := application.NewDebtService(driftSvc, workspace.Audit)
+	planSvc := application.NewPlanService(workspace.Repo, auditSvc)
+	taskSvc := application.NewTaskService(workspace.Repo, auditSvc, policySvc)
+	driftSvc := application.NewDriftService(workspace.Repo, auditSvc, storage.NewCodebaseInspector(), policySvc)
+	aiSvc := application.NewAIPlanningService(workspace.Repo, provider, auditSvc, planSvc)
+	debtSvc := application.NewDebtService(driftSvc, auditSvc)
 
 	// Create velocity projection for forecasting and hydrate from stored events
 	velocityProjection := events.NewExtendedVelocityProjection(7, 14, 30)
@@ -125,6 +107,12 @@ func BuildAppServicesWithProvider(root string, resolver func(string) (domainai.P
 			_ = velocityProjection.Apply(baseEvent)
 		}
 	}
+
+	// Subscribe velocity projection to live events via publisher
+	publisher.Subscribe(func(e *events.BaseEvent) error {
+		return velocityProjection.Apply(e)
+	})
+
 	forecastSvc := application.NewForecastService(velocityProjection, workspace.Repo)
 
 	// Create dependency service
@@ -132,7 +120,7 @@ func BuildAppServicesWithProvider(root string, resolver func(string) (domainai.P
 
 	services := &AppServices{
 		Workspace:  workspace,
-		Init:       application.NewInitService(workspace.Repo, workspace.Audit),
+		Init:       application.NewInitService(workspace.Repo, auditSvc),
 		Spec:       application.NewSpecService(workspace.Repo),
 		Plan:       planSvc,
 		Drift:      driftSvc,
@@ -141,7 +129,7 @@ func BuildAppServicesWithProvider(root string, resolver func(string) (domainai.P
 		AI:         aiSvc,
 		Git:        application.NewGitService(workspace.Repo, taskSvc),
 		Sync:       application.NewSyncServiceWithPlugins(workspace.Repo, workspace.Repo, taskSvc),
-		Audit:      workspace.Audit,
+		Audit:      auditSvc,
 		Usage:      workspace.Usage,
 		Forecast:   forecastSvc,
 		Dependency: depSvc,
