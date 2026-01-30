@@ -4,6 +4,26 @@ Release 0.3.0
 
 Release 0.4.1
 
+## [0.5.0] - Domain Events Wired into Production
+
+### Added
+- **Event-Sourced Audit in Production:** `BuildAppServices` now creates `EventSourcedAuditService` with `FileEventStore` and `InMemoryEventPublisher`, replacing the plain `AuditService` for all wired services.
+- **Domain Event Dispatcher:** `EventDispatcher` with `LoggingHandler`, `DriftWarningHandler`, and `TaskTransitionHandler` registered and active in production.
+- **Live Velocity Projection:** `ExtendedVelocityProjection` subscribes to the event publisher, receiving live events in addition to startup hydration from stored events.
+- **D3.js Interactive Visualizations:** 10 MCP apps with D3 charts — donut, force-directed graph, arc gauge, horizontal bars, line chart, collapsible tree, and swimlane views.
+- **Vue 3 + D3.js App Source:** Full `app/` build pipeline with Vite, Vue 3, D3.js and `apps.go` embed directive for serving interactive visualizations from MCP tools.
+
+### Changed
+- `InitService` and `DebtService` now accept `domain.AuditLogger` interface instead of concrete `*AuditService`, enabling polymorphic audit implementations.
+- `BaseEvent` includes `Action` field for backward-compatible JSON serialization with `domain.Event` readers.
+- `FileEventStore` defers directory creation to first write, avoiding interference with `IsInitialized()` project checks.
+- Deduplicated `BuildAppServices` and `BuildAppServicesWithProvider` into shared `buildServicesWithProvider` helper.
+
+### Fixed
+- **User-Friendly MCP Errors:** All MCP handler error messages replaced with actionable, human-readable messages instead of raw Go errors.
+- **FlexBool/FlexInt Types:** MCP args now accept both native and string JSON values.
+- Embedded MCP app dist files committed for CI `go:embed` compatibility.
+
 ## [0.4.3] - User-Friendly MCP Errors & App Source
 
 ### Added
