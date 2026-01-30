@@ -25,6 +25,11 @@ AGENTS.md
 .vscode/
 .idea/
 
+# MCP Apps
+app/node_modules/
+app/dist/
+internal/infrastructure/mcp/dist/
+
 # Website
 website/node_modules/
 website/dist/

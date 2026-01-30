@@ -2,6 +2,7 @@ package mcp
 
 import (
 	"context"
+	"encoding/json"
 	"strings"
 	"testing"
 	"time"
@@ -93,12 +94,17 @@ func TestServerForecastAndExplainDrift(t *testing.T) {
 	}
 	ctx := context.Background()
 
-	forecast, err := server.handleForecast(ctx, struct{}{})
+	forecastResult, err := server.handleForecast(ctx, struct{}{})
 	if err != nil {
 		t.Fatalf("forecast failed: %v", err)
 	}
-	if !strings.Contains(forecast, "Remaining: 1") {
-		t.Fatalf("unexpected forecast: %s", forecast)
+	// Result is now a struct; marshal to JSON to verify content
+	forecastJSON, err := json.Marshal(forecastResult)
+	if err != nil {
+		t.Fatalf("marshal forecast: %v", err)
+	}
+	if !strings.Contains(string(forecastJSON), `"remaining":1`) {
+		t.Fatalf("unexpected forecast: %s", string(forecastJSON))
 	}
 
 	explanation, err := server.handleExplainDrift(ctx, struct{}{})
