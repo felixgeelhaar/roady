@@ -1,0 +1,272 @@
+id: horizons-5-6
+title: 'Roady Horizons 5 & 6: Adaptive Intelligence & Domain Hardening'
+description: |
+    Complete the final two horizons of Roady's roadmap:
+    - Horizon 5: Adaptive Intelligence - Predictive analytics, dependency graphs, and debt analysis
+    - Horizon 6: Domain Hardening - Value objects, domain events, and aggregate consolidation
+    - v0.5.0: All horizons complete. Domain events wired into production with EventSourcedAuditService,
+      EventDispatcher with handlers (Logging, DriftWarning, TaskTransition), and live velocity projection.
+features:
+    - id: predictive-velocity
+      title: Predictive Velocity Analytics
+      description: |
+        Enhanced forecasting with multi-window analysis, trends, and confidence intervals.
+      requirements:
+        - id: pv-types
+          title: Create velocity analytics types
+          description: Create pkg/domain/analytics/velocity.go with VelocityTrend, ConfidenceInterval, BurndownPoint types
+          priority: high
+          estimate: ""
+          depends_on: []
+        - id: pv-projection
+          title: Implement ExtendedVelocityProjection
+          description: Multi-window velocity projection with 7/14/30 day analysis windows
+          priority: high
+          estimate: ""
+          depends_on:
+            - pv-types
+        - id: pv-service
+          title: Create ForecastService
+          description: Implement GetForecast(), GetVelocityTrend(), GetBurndown() methods
+          priority: high
+          estimate: ""
+          depends_on:
+            - pv-projection
+        - id: pv-cli
+          title: Update CLI forecast command
+          description: Add --detailed, --burndown, --trend flags to forecast command
+          priority: medium
+          estimate: ""
+          depends_on:
+            - pv-service
+        - id: pv-mcp
+          title: Add MCP tools
+          description: Add roady_velocity_trend, roady_burndown MCP tools
+          priority: medium
+          estimate: ""
+          depends_on:
+            - pv-service
+    - id: dependency-graph
+      title: Cross-repo Dependency Graph
+      description: |
+        Track dependencies between repos, detect drift in dependent services.
+      requirements:
+        - id: dep-types
+          title: Create dependency types
+          description: Create pkg/domain/dependency/graph.go with RepoDependency, DependencyGraph, RepoHealth types
+          priority: high
+          estimate: ""
+          depends_on: []
+        - id: dep-resolver
+          title: Implement DependencyResolver
+          description: Parse dependencies from spec.yaml configuration
+          priority: high
+          estimate: ""
+          depends_on:
+            - dep-types
+        - id: dep-storage
+          title: Create dependency storage
+          description: Persist dependencies to .roady/dependencies.json
+          priority: medium
+          estimate: ""
+          depends_on:
+            - dep-types
+        - id: dep-service
+          title: Implement DependencyService
+          description: Create GetDependencyGraph(), ScanDependentRepos() methods
+          priority: high
+          estimate: ""
+          depends_on:
+            - dep-resolver
+            - dep-storage
+        - id: dep-cli
+          title: Add deps CLI commands
+          description: Implement deps list/add/scan/graph subcommands
+          priority: medium
+          estimate: ""
+          depends_on:
+            - dep-service
+        - id: dep-mcp
+          title: Add deps MCP tools
+          description: Add roady_deps_list, roady_deps_scan MCP tools
+          priority: medium
+          estimate: ""
+          depends_on:
+            - dep-service
+    - id: planning-debt
+      title: Planning Debt Analysis
+      description: |
+        Track recurring drift patterns, calculate debt scores, identify sticky issues.
+      requirements:
+        - id: debt-types
+          title: Create debt types
+          description: Create pkg/domain/debt/debt.go with DebtItem, DebtScore, DebtReport types
+          priority: high
+          estimate: ""
+          depends_on: []
+        - id: debt-projection
+          title: Implement DriftHistoryProjection
+          description: Track drift detection history over time from events
+          priority: high
+          estimate: ""
+          depends_on:
+            - debt-types
+        - id: debt-service
+          title: Create DebtService
+          description: Implement GetDebtReport(), GetStickyDrift() methods
+          priority: high
+          estimate: ""
+          depends_on:
+            - debt-projection
+        - id: debt-cli
+          title: Add debt CLI commands
+          description: Implement debt report/score/sticky subcommands
+          priority: medium
+          estimate: ""
+          depends_on:
+            - debt-service
+        - id: drift-history
+          title: Add drift history command
+          description: Add drift history subcommand to show drift over time
+          priority: medium
+          estimate: ""
+          depends_on:
+            - debt-projection
+        - id: debt-mcp
+          title: Add debt MCP tools
+          description: Add roady_debt_report, roady_sticky_drift MCP tools
+          priority: medium
+          estimate: ""
+          depends_on:
+            - debt-service
+    - id: value-objects
+      title: Value Object Ubiquity
+      description: |
+        Convert string aliases to full value objects with validation and behavior.
+      requirements:
+        - id: vo-status
+          title: Create TaskStatus value object
+          description: Implement TaskStatus VO with CanTransitionTo(), ValidTransitions(), IsFinal()
+          priority: high
+          estimate: ""
+          depends_on: []
+        - id: vo-priority
+          title: Create TaskPriority value object
+          description: Implement TaskPriority VO with Compare(), IsHigherThan()
+          priority: high
+          estimate: ""
+          depends_on: []
+        - id: vo-approval
+          title: Create ApprovalStatus value object
+          description: Implement ApprovalStatus VO with validation
+          priority: medium
+          estimate: ""
+          depends_on: []
+        - id: vo-integrate
+          title: Update domain to use VOs
+          description: Update plan.go and state.go to use new value objects
+          priority: high
+          estimate: ""
+          depends_on:
+            - vo-status
+            - vo-priority
+            - vo-approval
+        - id: vo-fsm
+          title: Refactor task_fsm.go
+          description: Delegate transitions to TaskStatus VO methods
+          priority: medium
+          estimate: ""
+          depends_on:
+            - vo-status
+            - vo-integrate
+    - id: domain-events
+      title: Internal Domain Events
+      description: |
+        Auto-triggered side effects when domain events occur.
+      requirements:
+        - id: evt-dispatcher
+          title: Create EventDispatcher
+          description: Create pkg/domain/events/dispatcher.go with handler registration
+          priority: high
+          estimate: ""
+          depends_on: []
+        - id: evt-handlers
+          title: Implement domain event handlers
+          description: Create DependencyUnlockHandler, DriftWarningHandler, StateProjectionHandler
+          priority: high
+          estimate: ""
+          depends_on:
+            - evt-dispatcher
+        - id: evt-notifiers
+          title: Create notifier interfaces
+          description: Define notifier interfaces for external notifications
+          priority: medium
+          estimate: ""
+          depends_on:
+            - evt-dispatcher
+        - id: evt-integrate
+          title: Integrate dispatcher with audit service
+          description: Wire dispatcher into EventSourcedAuditService.Log()
+          priority: high
+          estimate: ""
+          depends_on:
+            - evt-handlers
+        - id: evt-production-wiring
+          title: Wire domain events into production
+          description: |
+            Replace AuditService with EventSourcedAuditService in BuildAppServices.
+            Create FileEventStore + InMemoryEventPublisher, register LoggingHandler,
+            DriftWarningHandler, TaskTransitionHandler on EventDispatcher, subscribe
+            velocity projection to live events. Update InitService and DebtService
+            to accept domain.AuditLogger interface.
+          priority: high
+          estimate: ""
+          depends_on:
+            - evt-integrate
+    - id: aggregate-consolidation
+      title: Aggregate Consolidation
+      description: |
+        Coordinate Plan and ExecutionState with transactional boundaries.
+      requirements:
+        - id: agg-coordinator
+          title: Create Project Coordinator
+          description: Create pkg/domain/project/coordinator.go with atomic operations
+          priority: high
+          estimate: ""
+          depends_on: []
+        - id: agg-operations
+          title: Implement atomic operations
+          description: Implement ApprovePlan(), StartTask(), CompleteTask() methods
+          priority: high
+          estimate: ""
+          depends_on:
+            - agg-coordinator
+        - id: agg-snapshot
+          title: Create ProjectSnapshot
+          description: Create consistent read model with plan + state + progress
+          priority: medium
+          estimate: ""
+          depends_on:
+            - agg-coordinator
+        - id: agg-integrate
+          title: Update application services
+          description: Update TaskService and PlanService to use coordinator
+          priority: high
+          estimate: ""
+          depends_on:
+            - agg-operations
+            - agg-snapshot
+    - id: interactive-d3-mcp-app-visualizations
+      title: Interactive D3 MCP App Visualizations
+      description: 'Rich, browser-based D3.js charts embedded in all MCP apps. A shared d3-charts.ts library provides 6 reusable chart functions (donut, force-directed graph, arc gauge, horizontal bars, line chart, collapsible tree) used across 10 apps: status (donut), plan (force DAG), state (donut + swimlanes), drift (severity bars), debt (gauge + donut + bars + line), deps (force network), usage (token gauge), spec (feature tree), policy (compliance gauge), and git-sync (timeline). All charts include hover tooltips, click-to-filter, drag, and zoom interactions.'
+      requirements: []
+constraints:
+    - id: backward-compat
+      description: Maintain backward compatibility with existing spec.yaml and plan.json formats
+    - id: test-coverage
+      description: Achieve 80%+ test coverage on new packages
+    - id: ddd-patterns
+      description: Follow existing DDD patterns and naming conventions
+    - id: cli-mcp-parity
+      description: All new CLI commands should have corresponding MCP tools
+version: 0.5.0
