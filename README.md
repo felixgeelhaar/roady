@@ -15,7 +15,7 @@ Designed for individuals, teams, and AI agents, Roady ensures that your developm
 *   **Deterministic Drift Detection:** Instantly catch misalignments between docs, plans, and code reality (`roady drift detect`).
 *   **Organizational Intelligence:** Discover projects across your machine (`roady discover`) and get unified progress views (`roady org status`).
 *   **AI Governance:** Enforce policy-based token limits to control agentic spending.
-*   **Immutable Audit Trails:** Every action is cryptographically signed in a verifiable hash chain (`roady audit verify`).
+*   **Event-Sourced Audit:** Every action is an immutable domain event with hash-chain integrity. Live handlers react to task transitions, drift warnings, and plan changes in real time (`roady audit verify`).
 *   **Continuous Automation:** Watch documents for changes and sync task statuses via Git commit markers (`[roady:task-id]`).
 *   **Interactive TUI:** Real-time visibility into your project's health and velocity (`roady dashboard`).
 *   **Interactive D3 Visualizations:** Rich, browser-based charts embedded in MCP apps — donut charts for status breakdowns, force-directed DAGs for plan and dependency graphs, gauges for usage and compliance, bar charts for drift severity, line charts for debt trends, and tree diagrams for spec hierarchies.
@@ -119,9 +119,9 @@ See `docs/mcp-guide.md` for the complete MCP documentation, including all availa
 ## Architecture
 
 Roady is built on clean **Domain-Driven Design (DDD)** principles:
-*   **Domain:** Pure business logic for Specs, Plans, Drift, and Policy.
+*   **Domain:** Pure business logic for Specs, Plans, Drift, Policy, and Domain Events. Value objects (`TaskStatus`, `TaskPriority`, `ApprovalStatus`) enforce transitions. An `EventDispatcher` routes events to handlers (logging, drift warnings, task transitions) and projections (velocity, state, audit timeline).
 *   **Infrastructure:** Modern Go stack using `cobra`, `bubbletea`, `mcp-go`, and `fortify`. MCP apps built with Vue 3 + D3.js, compiled to self-contained HTML files via Vite.
-*   **Storage:** Git-friendly YAML/JSON artifacts in `.roady/`.
+*   **Storage:** Git-friendly YAML/JSON artifacts in `.roady/`. Events stored as hash-chained JSONL via `FileEventStore` with `InMemoryEventPublisher` for live subscriptions.
 
 ## License
 
