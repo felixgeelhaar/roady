@@ -4,6 +4,15 @@ Release 0.3.0
 
 Release 0.4.1
 
+## [0.4.3] - User-Friendly MCP Errors & App Source
+
+### Added
+- **Vue 3 + D3.js App Source:** Committed full `app/` build pipeline (Vite, Vue 3, D3.js) and `apps.go` embed directive for serving interactive visualizations from MCP tools.
+
+### Fixed
+- **FlexBool/FlexInt Types:** MCP args now accept both native and string JSON values, fixing `json: cannot unmarshal string` errors from clients that send `"true"` instead of `true`.
+- **User-Friendly MCP Errors:** All MCP handler error messages replaced with actionable, human-readable messages instead of raw Go errors (e.g., "Failed to load plan. Generate a plan first." instead of internal stack traces).
+
 ## [0.4.2] - Interactive D3 Visualizations
 
 ### Added
