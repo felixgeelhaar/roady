@@ -28,7 +28,7 @@ AGENTS.md
 # MCP Apps
 app/node_modules/
 app/dist/
-internal/infrastructure/mcp/dist/
+# internal/infrastructure/mcp/dist/ is committed for go:embed
 
 # Website
 website/node_modules/
