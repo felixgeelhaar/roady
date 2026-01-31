@@ -1,492 +1,81 @@
 {
-  "id": "plan-imported-spec-1768342409",
-  "spec_id": "horizons-5-6",
+  "id": "plan-v0.7.0",
+  "spec_id": "horizons-7",
   "tasks": [
-    {
-      "id": "task-pv-types",
-      "title": "Create velocity analytics types (Predictive Velocity Analytics)",
-      "description": "Create pkg/domain/analytics/velocity.go with VelocityTrend, ConfidenceInterval, BurndownPoint types",
-      "priority": "high",
-      "estimate": "",
-      "depends_on": [],
-      "feature_id": "predictive-velocity"
-    },
-    {
-      "id": "task-pv-projection",
-      "title": "Implement ExtendedVelocityProjection (Predictive Velocity Analytics)",
-      "description": "Multi-window velocity projection with 7/14/30 day analysis windows",
-      "priority": "high",
-      "estimate": "",
-      "depends_on": [
-        "task-pv-types"
-      ],
-      "feature_id": "predictive-velocity"
-    },
-    {
-      "id": "task-pv-service",
-      "title": "Create ForecastService (Predictive Velocity Analytics)",
-      "description": "Implement GetForecast(), GetVelocityTrend(), GetBurndown() methods",
-      "priority": "high",
-      "estimate": "",
-      "depends_on": [
-        "task-pv-projection"
-      ],
-      "feature_id": "predictive-velocity"
-    },
-    {
-      "id": "task-pv-cli",
-      "title": "Update CLI forecast command (Predictive Velocity Analytics)",
-      "description": "Add --detailed, --burndown, --trend flags to forecast command",
-      "priority": "medium",
-      "estimate": "",
-      "depends_on": [
-        "task-pv-service"
-      ],
-      "feature_id": "predictive-velocity"
-    },
-    {
-      "id": "task-pv-mcp",
-      "title": "Add MCP tools (Predictive Velocity Analytics)",
-      "description": "Add roady_velocity_trend, roady_burndown MCP tools",
-      "priority": "medium",
-      "estimate": "",
-      "depends_on": [
-        "task-pv-service"
-      ],
-      "feature_id": "predictive-velocity"
-    },
-    {
-      "id": "task-dep-types",
-      "title": "Create dependency types (Cross-repo Dependency Graph)",
-      "description": "Create pkg/domain/dependency/graph.go with RepoDependency, DependencyGraph, RepoHealth types",
-      "priority": "high",
-      "estimate": "",
-      "depends_on": [],
-      "feature_id": "dependency-graph"
-    },
-    {
-      "id": "task-dep-resolver",
-      "title": "Implement DependencyResolver (Cross-repo Dependency Graph)",
-      "description": "Parse dependencies from spec.yaml configuration",
-      "priority": "high",
-      "estimate": "",
-      "depends_on": [
-        "task-dep-types"
-      ],
-      "feature_id": "dependency-graph"
-    },
-    {
-      "id": "task-dep-storage",
-      "title": "Create dependency storage (Cross-repo Dependency Graph)",
-      "description": "Persist dependencies to .roady/dependencies.json",
-      "priority": "medium",
-      "estimate": "",
-      "depends_on": [
-        "task-dep-types"
-      ],
-      "feature_id": "dependency-graph"
-    },
-    {
-      "id": "task-dep-service",
-      "title": "Implement DependencyService (Cross-repo Dependency Graph)",
-      "description": "Create GetDependencyGraph(), ScanDependentRepos() methods",
-      "priority": "high",
-      "estimate": "",
-      "depends_on": [
-        "task-dep-resolver",
-        "task-dep-storage"
-      ],
-      "feature_id": "dependency-graph"
-    },
-    {
-      "id": "task-dep-cli",
-      "title": "Add deps CLI commands (Cross-repo Dependency Graph)",
-      "description": "Implement deps list/add/scan/graph subcommands",
-      "priority": "medium",
-      "estimate": "",
-      "depends_on": [
-        "task-dep-service"
-      ],
-      "feature_id": "dependency-graph"
-    },
-    {
-      "id": "task-dep-mcp",
-      "title": "Add deps MCP tools (Cross-repo Dependency Graph)",
-      "description": "Add roady_deps_list, roady_deps_scan MCP tools",
-      "priority": "medium",
-      "estimate": "",
-      "depends_on": [
-        "task-dep-service"
-      ],
-      "feature_id": "dependency-graph"
-    },
-    {
-      "id": "task-debt-types",
-      "title": "Create debt types (Planning Debt Analysis)",
-      "description": "Create pkg/domain/debt/debt.go with DebtItem, DebtScore, DebtReport types",
-      "priority": "high",
-      "estimate": "",
-      "depends_on": [],
-      "feature_id": "planning-debt"
-    },
-    {
-      "id": "task-debt-projection",
-      "title": "Implement DriftHistoryProjection (Planning Debt Analysis)",
-      "description": "Track drift detection history over time from events",
-      "priority": "high",
-      "estimate": "",
-      "depends_on": [
-        "task-debt-types"
-      ],
-      "feature_id": "planning-debt"
-    },
-    {
-      "id": "task-debt-service",
-      "title": "Create DebtService (Planning Debt Analysis)",
-      "description": "Implement GetDebtReport(), GetStickyDrift() methods",
-      "priority": "high",
-      "estimate": "",
-      "depends_on": [
-        "task-debt-projection"
-      ],
-      "feature_id": "planning-debt"
-    },
-    {
-      "id": "task-debt-cli",
-      "title": "Add debt CLI commands (Planning Debt Analysis)",
-      "description": "Implement debt report/score/sticky subcommands",
-      "priority": "medium",
-      "estimate": "",
-      "depends_on": [
-        "task-debt-service"
-      ],
-      "feature_id": "planning-debt"
-    },
-    {
-      "id": "task-drift-history",
-      "title": "Add drift history command (Planning Debt Analysis)",
-      "description": "Add drift history subcommand to show drift over time",
-      "priority": "medium",
-      "estimate": "",
-      "depends_on": [
-        "task-debt-projection"
-      ],
-      "feature_id": "planning-debt"
-    },
-    {
-      "id": "task-debt-mcp",
-      "title": "Add debt MCP tools (Planning Debt Analysis)",
-      "description": "Add roady_debt_report, roady_sticky_drift MCP tools",
-      "priority": "medium",
-      "estimate": "",
-      "depends_on": [
-        "task-debt-service"
-      ],
-      "feature_id": "planning-debt"
-    },
-    {
-      "id": "task-vo-status",
-      "title": "Create TaskStatus value object (Value Object Ubiquity)",
-      "description": "Implement TaskStatus VO with CanTransitionTo(), ValidTransitions(), IsFinal()",
-      "priority": "high",
-      "estimate": "",
-      "depends_on": [],
-      "feature_id": "value-objects"
-    },
-    {
-      "id": "task-vo-priority",
-      "title": "Create TaskPriority value object (Value Object Ubiquity)",
-      "description": "Implement TaskPriority VO with Compare(), IsHigherThan()",
-      "priority": "high",
-      "estimate": "",
-      "depends_on": [],
-      "feature_id": "value-objects"
-    },
-    {
-      "id": "task-vo-approval",
-      "title": "Create ApprovalStatus value object (Value Object Ubiquity)",
-      "description": "Implement ApprovalStatus VO with validation",
-      "priority": "medium",
-      "estimate": "",
-      "depends_on": [],
-      "feature_id": "value-objects"
-    },
-    {
-      "id": "task-vo-integrate",
-      "title": "Update domain to use VOs (Value Object Ubiquity)",
-      "description": "Update plan.go and state.go to use new value objects",
-      "priority": "high",
-      "estimate": "",
-      "depends_on": [
-        "task-vo-status",
-        "task-vo-priority",
-        "task-vo-approval"
-      ],
-      "feature_id": "value-objects"
-    },
-    {
-      "id": "task-vo-fsm",
-      "title": "Refactor task_fsm.go (Value Object Ubiquity)",
-      "description": "Delegate transitions to TaskStatus VO methods",
-      "priority": "medium",
-      "estimate": "",
-      "depends_on": [
-        "task-vo-status",
-        "task-vo-integrate"
-      ],
-      "feature_id": "value-objects"
-    },
-    {
-      "id": "task-evt-dispatcher",
-      "title": "Create EventDispatcher (Internal Domain Events)",
-      "description": "Create pkg/domain/events/dispatcher.go with handler registration",
-      "priority": "high",
-      "estimate": "",
-      "depends_on": [],
-      "feature_id": "domain-events"
-    },
-    {
-      "id": "task-evt-handlers",
-      "title": "Implement domain event handlers (Internal Domain Events)",
-      "description": "Create DependencyUnlockHandler, DriftWarningHandler, StateProjectionHandler",
-      "priority": "high",
-      "estimate": "",
-      "depends_on": [
-        "task-evt-dispatcher"
-      ],
-      "feature_id": "domain-events"
-    },
-    {
-      "id": "task-evt-notifiers",
-      "title": "Create notifier interfaces (Internal Domain Events)",
-      "description": "Define notifier interfaces for external notifications",
-      "priority": "medium",
-      "estimate": "",
-      "depends_on": [
-        "task-evt-dispatcher"
-      ],
-      "feature_id": "domain-events"
-    },
-    {
-      "id": "task-evt-integrate",
-      "title": "Integrate dispatcher with audit service (Internal Domain Events)",
-      "description": "Wire dispatcher into EventSourcedAuditService.Log()",
-      "priority": "high",
-      "estimate": "",
-      "depends_on": [
-        "task-evt-handlers"
-      ],
-      "feature_id": "domain-events"
-    },
-    {
-      "id": "task-evt-production-wiring",
-      "title": "Wire domain events into production (Internal Domain Events)",
-      "description": "Replace AuditService with EventSourcedAuditService in BuildAppServices. Create FileEventStore + InMemoryEventPublisher, register LoggingHandler, DriftWarningHandler, TaskTransitionHandler on EventDispatcher, subscribe velocity projection to live events. Update InitService and DebtService to accept domain.AuditLogger interface.",
-      "priority": "high",
-      "estimate": "",
-      "depends_on": [
-        "task-evt-integrate"
-      ],
-      "feature_id": "domain-events"
-    },
-    {
-      "id": "task-agg-coordinator",
-      "title": "Create Project Coordinator (Aggregate Consolidation)",
-      "description": "Create pkg/domain/project/coordinator.go with atomic operations",
-      "priority": "high",
-      "estimate": "",
-      "depends_on": [],
-      "feature_id": "aggregate-consolidation"
-    },
-    {
-      "id": "task-agg-operations",
-      "title": "Implement atomic operations (Aggregate Consolidation)",
-      "description": "Implement ApprovePlan(), StartTask(), CompleteTask() methods",
-      "priority": "high",
-      "estimate": "",
-      "depends_on": [
-        "task-agg-coordinator"
-      ],
-      "feature_id": "aggregate-consolidation"
-    },
-    {
-      "id": "task-agg-snapshot",
-      "title": "Create ProjectSnapshot (Aggregate Consolidation)",
-      "description": "Create consistent read model with plan + state + progress",
-      "priority": "medium",
-      "estimate": "",
-      "depends_on": [
-        "task-agg-coordinator"
-      ],
-      "feature_id": "aggregate-consolidation"
-    },
-    {
-      "id": "task-agg-integrate",
-      "title": "Update application services (Aggregate Consolidation)",
-      "description": "Update TaskService and PlanService to use coordinator",
-      "priority": "high",
-      "estimate": "",
-      "depends_on": [
-        "task-agg-operations",
-        "task-agg-snapshot"
-      ],
-      "feature_id": "aggregate-consolidation"
-    },
-    {
-      "id": "task-interactive-d3-mcp-app-visualizations",
-      "title": "Implement Interactive D3 MCP App Visualizations",
-      "description": "Implement the feature: Interactive D3 MCP App Visualizations. Rich, browser-based D3.js charts embedded in all MCP apps. A shared d3-charts.ts library provides 6 reusable chart functions (donut, force-directed graph, arc gauge, horizontal bars, line chart, collapsible tree) used across 10 apps: status (donut), plan (force DAG), state (donut + swimlanes), drift (severity bars), debt (gauge + donut + bars + line), deps (force network), usage (token gauge), spec (feature tree), policy (compliance gauge), and git-sync (timeline). All charts include hover tooltips, click-to-filter, drag, and zoom interactions.",
-      "priority": "medium",
-      "estimate": "",
-      "depends_on": [],
-      "feature_id": "interactive-d3-mcp-app-visualizations"
-    },
-    {
-      "id": "task-ai-response-validation-\u0026-resilience",
-      "title": "Implement AI Response Validation \u0026 Resilience",
-      "description": "Implement the feature: AI Response Validation \u0026 Resilience. Ensure AI-plan parsing never accepts broken JSON.\n- Embed a JSON schema for tasks and reject responses that violate it; log the failure clearly.\n- Retry once with a stricter prompt if the schema still fails, then surface the raw response for debugging.\n- Emit telemetry when retries occur so teams can track unreliable models.",
-      "priority": "medium",
-      "estimate": "",
-      "depends_on": [],
-      "feature_id": "ai-response-validation-\u0026-resilience"
-    },
-    {
-      "id": "task-documentation-\u0026-guidance-updates",
-      "title": "Implement Documentation \u0026 Guidance Updates",
-      "description": "Implement the feature: Documentation \u0026 Guidance Updates. Keep guides accurate as the config surface evolves.\n- Audit docs (`README`, `docs/integrations`, `docs/core`, `docs/tdd`, etc.) for legacy `policy.yaml` provider/model references.\n- Document `.roady/ai.yaml` and how it interacts with env overrides and MCP capabilities.\n- Publish guidance for using MCP HTTP/WS transports plus upcoming release automation features.",
-      "priority": "medium",
-      "estimate": "",
-      "depends_on": [],
-      "feature_id": "documentation-\u0026-guidance-updates"
-    },
-    {
-      "id": "task-mcp-\u0026-cli-feature-parity",
-      "title": "Implement MCP \u0026 CLI Feature Parity",
-      "description": "Implement the feature: MCP \u0026 CLI Feature Parity. Raise MCP to full feature parity with the CLI so they can be used interchangeably.\n- Ensure MCP tools call the same `application` services as the CLI (already done) and add coverage for additional transports (stdio/http/ws) in E2E tests.\n- Document `pkg/mcp` vs `internal/infrastructure/mcp` so integrators pick the stable entry point.\n- Provide a tiny helper SDK (or example) that reuses CLI commands via the shared wiring, enabling plugin authors to embed CLI behavior.",
-      "priority": "medium",
-      "estimate": "",
-      "depends_on": [],
-      "feature_id": "mcp-\u0026-cli-feature-parity"
-    },
-    {
-      "id": "task-workflows-\u0026-automation",
-      "title": "Implement Workflows \u0026 Automation",
-      "description": "Implement the feature: Workflows \u0026 Automation. Reduce manual steps for releases and governance.\n- Add a script (`scripts/release.sh`) that composes `coverctl`, `gorun ./cmd/roady plan generate`, and `relicta release` to standardize releases.\n- Log governance events (`.roady/events.jsonl`) whenever a plan is approved/released for audit trail.\n- Measure AI token usage vs policy limits and surface alerts when budgets approach thresholds (e.g., via `roady usage` enhancements).",
-      "priority": "medium",
-      "estimate": "",
-      "depends_on": [],
-      "feature_id": "workflows-\u0026-automation"
-    },
-    {
-      "id": "task-org-dashboard",
-      "title": "Implement org-level dashboard (Multi-Repo Organization Dashboard)",
-      "description": "Aggregate project statuses from multiple .roady directories into a unified view",
-      "priority": "high",
-      "estimate": "",
-      "depends_on": [],
-      "feature_id": "multi-repo-org"
-    },
     {
       "id": "task-org-shared-policies",
       "title": "Shared policy inheritance (Multi-Repo Organization Dashboard)",
-      "description": "Allow org-level policy.yaml that child projects inherit and can override",
+      "description": "Allow org-level policy.yaml that child projects inherit and can override. Load from .roady/org.yaml, merge with project-level policy.yaml, expose via PolicyService and MCP.",
       "priority": "medium",
       "estimate": "",
-      "depends_on": ["task-org-dashboard"],
+      "depends_on": [],
       "feature_id": "multi-repo-org"
     },
     {
       "id": "task-org-cross-drift",
       "title": "Cross-project drift detection (Multi-Repo Organization Dashboard)",
-      "description": "Detect drift patterns spanning multiple repositories",
+      "description": "Detect drift patterns spanning multiple repositories. Extend OrgService.AggregateMetrics() to include per-project drift counts, add cross-project drift correlation, expose via CLI --drift flag and MCP.",
       "priority": "medium",
       "estimate": "",
-      "depends_on": ["task-org-dashboard"],
-      "feature_id": "multi-repo-org"
-    },
-    {
-      "id": "task-plugin-contracts",
-      "title": "Plugin contract testing (Plugin System Hardening)",
-      "description": "Automated contract tests ensuring plugins conform to Syncer interface semantics",
-      "priority": "high",
-      "estimate": "",
       "depends_on": [],
-      "feature_id": "plugin-hardening"
+      "feature_id": "multi-repo-org"
     },
     {
       "id": "task-plugin-registry",
       "title": "Plugin registry with versioning (Plugin System Hardening)",
-      "description": "Maintain a registry of available plugins with version compatibility checking",
+      "description": "Maintain a registry of available plugins with version compatibility checking. Store in .roady/plugins.yaml with name, path, version, last-checked. Add CLI: roady plugin list/register/unregister.",
       "priority": "medium",
       "estimate": "",
-      "depends_on": ["task-plugin-contracts"],
+      "depends_on": [],
       "feature_id": "plugin-hardening"
     },
     {
       "id": "task-plugin-health",
       "title": "Plugin health monitoring (Plugin System Hardening)",
-      "description": "Runtime health checks and graceful degradation for loaded plugins",
+      "description": "Runtime health checks and graceful degradation for loaded plugins. Periodic ping via Init(), track response times, mark unhealthy after N failures, expose via roady plugin status and MCP.",
       "priority": "medium",
       "estimate": "",
-      "depends_on": ["task-plugin-contracts"],
+      "depends_on": ["task-plugin-registry"],
       "feature_id": "plugin-hardening"
     },
     {
-      "id": "task-notif-webhooks",
-      "title": "Reliable webhook delivery (Notification Integration)",
-      "description": "At-least-once webhook delivery with retry and dead-letter queue",
-      "priority": "high",
-      "estimate": "",
-      "depends_on": [],
-      "feature_id": "notification-integration"
-    },
-    {
       "id": "task-notif-slack",
-      "title": "Slack/Discord/Teams integration (Notification Integration)",
-      "description": "Built-in notification adapters for popular team messaging platforms",
+      "title": "Pluggable messaging adapters (Notification Integration)",
+      "description": "Define a MessagingAdapter interface for team messaging platforms. Implement Slack adapter as reference, with channel routing and mention configuration. Adapters reuse WebhookNotifier retry infrastructure. Additional adapters (Discord, Teams) follow the same interface.",
       "priority": "medium",
       "estimate": "",
-      "depends_on": ["task-notif-webhooks"],
+      "depends_on": [],
       "feature_id": "notification-integration"
     },
     {
       "id": "task-notif-realtime",
       "title": "Realtime event streaming (Notification Integration)",
-      "description": "SSE or WebSocket push for live project state updates",
+      "description": "SSE or WebSocket push for live project state updates. Add /events/stream SSE endpoint to MCP HTTP server, subscribe to InMemoryEventPublisher, broadcast domain events to connected clients.",
       "priority": "medium",
       "estimate": "",
-      "depends_on": ["task-notif-webhooks"],
+      "depends_on": [],
       "feature_id": "notification-integration"
     },
     {
-      "id": "task-watch-fsnotify",
-      "title": "fsnotify-based file watching (Watch Mode Enhancement)",
-      "description": "Replace polling with efficient OS-level file notifications",
-      "priority": "high",
+      "id": "task-watch-auto-sync",
+      "title": "Auto-sync workflows (Watch Mode Enhancement)",
+      "description": "Automatically trigger drift detection and plan reconciliation on file changes. Enhance FSWatcher callback to optionally run spec analyze + drift detect + plan generate pipeline. Add --reconcile flag to watch command.",
+      "priority": "medium",
       "estimate": "",
       "depends_on": [],
       "feature_id": "watch-enhancement"
     },
     {
-      "id": "task-watch-auto-sync",
-      "title": "Auto-sync workflows (Watch Mode Enhancement)",
-      "description": "Automatically trigger drift detection and plan reconciliation on file changes",
-      "priority": "medium",
-      "estimate": "",
-      "depends_on": ["task-watch-fsnotify"],
-      "feature_id": "watch-enhancement"
-    },
-    {
       "id": "task-watch-patterns",
       "title": "Selective watch patterns (Watch Mode Enhancement)",
-      "description": "Configurable glob patterns to watch specific files or directories",
+      "description": "Configurable glob patterns to watch specific files or directories. Add --include and --exclude flags to watch command. Filter FSWatcher events against compiled glob patterns before triggering callbacks.",
       "priority": "low",
       "estimate": "",
-      "depends_on": ["task-watch-fsnotify"],
+      "depends_on": ["task-watch-auto-sync"],
       "feature_id": "watch-enhancement"
     }
   ],
-  "approval_status": "approved",
-  "created_at": "2026-01-13T23:13:29.459028+01:00",
-  "updated_at": "2026-01-30T16:14:47.612346+01:00"
+  "approval_status": "pending",
+  "created_at": "2026-01-31T15:15:00.000000+01:00",
+  "updated_at": "2026-01-31T15:15:00.000000+01:00"
 }
