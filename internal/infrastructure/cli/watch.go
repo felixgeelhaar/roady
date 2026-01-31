@@ -13,8 +13,9 @@ import (
 )
 
 var (
-	autoSync        bool
-	debounceWindow  time.Duration
+	autoSync       bool
+	reconcile      bool
+	debounceWindow time.Duration
 )
 
 var watchCmd = &cobra.Command{
@@ -38,8 +39,9 @@ var watchCmd = &cobra.Command{
 		specSvc := services.Spec
 		driftSvc := services.Drift
 		aiSvc := services.AI
+		planSvc := services.Plan
 
-		fmt.Printf("Watching %s for changes... (Auto-sync: %v)\n", dir, autoSync)
+		fmt.Printf("Watching %s for changes... (Auto-sync: %v, Reconcile: %v)\n", dir, autoSync, reconcile)
 
 		lastHash := ""
 		if seed := os.Getenv("ROADY_WATCH_SEED_HASH"); seed != "" {
@@ -61,23 +63,53 @@ var watchCmd = &cobra.Command{
 			if lastHash != "" {
 				fmt.Printf("\nDocumentation change detected at %s\n", time.Now().Format("15:04:05"))
 
-				if autoSync {
+				if reconcile {
+					fmt.Println("Reconcile: spec analyze → drift detect → accept drift → plan generate")
+					// Step 1: spec is already analyzed above
+					// Step 2: detect drift
+					report, err := driftSvc.DetectDrift(cmd.Context())
+					if err == nil && len(report.Issues) > 0 {
+						fmt.Printf("Drift detected: %d issues\n", len(report.Issues))
+						// Step 3: accept drift
+						if err := driftSvc.AcceptDrift(); err != nil {
+							fmt.Printf("Accept drift failed: %v\n", err)
+						} else {
+							fmt.Println("Drift accepted.")
+						}
+					}
+					// Step 4: generate plan
+					if _, err := planSvc.GeneratePlan(cmd.Context()); err != nil {
+						fmt.Printf("Plan generation failed: %v\n", err)
+					} else {
+						fmt.Println("Plan regenerated.")
+					}
+				} else if autoSync {
 					fmt.Println("Autonomous Reconciliation: Synchronizing plan with new intent...")
 					if _, err := aiSvc.DecomposeSpec(cmd.Context()); err != nil {
 						fmt.Printf("Auto-sync failed: %v\n", err)
 					} else {
 						fmt.Println("Plan successfully synchronized.")
 					}
-				}
 
-				report, err := driftSvc.DetectDrift(cmd.Context())
-				if err == nil && len(report.Issues) > 0 {
-					fmt.Printf("Drift detected: %d issues found.\n", len(report.Issues))
-					for _, iss := range report.Issues {
-						fmt.Printf("  - [%s] %s\n", iss.Severity, iss.Message)
+					report, err := driftSvc.DetectDrift(cmd.Context())
+					if err == nil && len(report.Issues) > 0 {
+						fmt.Printf("Drift detected: %d issues found.\n", len(report.Issues))
+						for _, iss := range report.Issues {
+							fmt.Printf("  - [%s] %s\n", iss.Severity, iss.Message)
+						}
+					} else {
+						fmt.Println("Intent and Plan are in sync.")
 					}
 				} else {
-					fmt.Println("Intent and Plan are in sync.")
+					report, err := driftSvc.DetectDrift(cmd.Context())
+					if err == nil && len(report.Issues) > 0 {
+						fmt.Printf("Drift detected: %d issues found.\n", len(report.Issues))
+						for _, iss := range report.Issues {
+							fmt.Printf("  - [%s] %s\n", iss.Severity, iss.Message)
+						}
+					} else {
+						fmt.Println("Intent and Plan are in sync.")
+					}
 				}
 			}
 			lastHash = currentHash
@@ -120,6 +152,7 @@ var watchCmd = &cobra.Command{
 
 func init() {
 	watchCmd.Flags().BoolVar(&autoSync, "auto-sync", false, "Automatically regenerate plan on documentation changes")
+	watchCmd.Flags().BoolVar(&reconcile, "reconcile", false, "Full reconcile: spec analyze → drift detect → accept → plan generate")
 	watchCmd.Flags().DurationVar(&debounceWindow, "debounce", 500*time.Millisecond, "Debounce window for file change events")
 	RootCmd.AddCommand(watchCmd)
 }
