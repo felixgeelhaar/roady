@@ -13,9 +13,12 @@ Designed for individuals, teams, and AI agents, Roady ensures that your developm
 *   **Spec-Driven Inference:** Automatically derive functional specifications from multiple markdown documents (`roady spec analyze`).
 *   **Adaptive AI Planning:** Decompose high-level features into granular task graphs using OpenAI or local Ollama models (`roady plan generate --ai`).
 *   **Deterministic Drift Detection:** Instantly catch misalignments between docs, plans, and code reality (`roady drift detect`).
-*   **Organizational Intelligence:** Discover projects across your machine (`roady discover`) and get unified progress views (`roady org status`).
+*   **Organizational Intelligence:** Discover projects across your machine (`roady discover`) and get unified progress views with aggregated metrics (`roady org status --json`).
 *   **AI Governance:** Enforce policy-based token limits to control agentic spending.
 *   **Event-Sourced Audit:** Every action is an immutable domain event with hash-chain integrity. Live handlers react to task transitions, drift warnings, and plan changes in real time (`roady audit verify`).
+*   **fsnotify File Watching:** Efficient OS-level file monitoring with configurable debounce replaces polling (`roady watch docs/ --debounce 500ms`).
+*   **Outgoing Webhook Notifications:** HMAC-SHA256 signed webhook delivery with retry and dead-letter queue (`roady webhook notif add/list/test`).
+*   **Plugin Contract Testing:** Automated contract test suite validates plugins conform to Syncer interface semantics.
 *   **Continuous Automation:** Watch documents for changes and sync task statuses via Git commit markers (`[roady:task-id]`).
 *   **Interactive TUI:** Real-time visibility into your project's health and velocity (`roady dashboard`).
 *   **Interactive D3 Visualizations:** Rich, browser-based charts embedded in MCP apps — donut charts for status breakdowns, force-directed DAGs for plan and dependency graphs, gauges for usage and compliance, bar charts for drift severity, line charts for debt trends, and tree diagrams for spec hierarchies.
