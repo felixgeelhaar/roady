@@ -6,6 +6,7 @@ import (
 
 	"github.com/felixgeelhaar/roady/pkg/domain/org"
 	"github.com/felixgeelhaar/roady/pkg/domain/planning"
+	"github.com/felixgeelhaar/roady/pkg/domain/policy"
 	"github.com/felixgeelhaar/roady/pkg/storage"
 	"gopkg.in/yaml.v3"
 )
@@ -147,4 +148,34 @@ func (s *OrgService) SaveOrgConfig(config *org.OrgConfig) error {
 		return err
 	}
 	return os.WriteFile(filepath.Join(dir, "org.yaml"), data, 0600)
+}
+
+// LoadMergedPolicy loads org-level SharedPolicy and overlays project-level policy.yaml values.
+func (s *OrgService) LoadMergedPolicy(projectPath string) (*policy.PolicyConfig, error) {
+	merged := &policy.PolicyConfig{}
+
+	// Load org-level shared policy
+	config, err := s.LoadOrgConfig()
+	if err == nil && config != nil && config.SharedPolicy != nil {
+		merged.MaxWIP = config.SharedPolicy.MaxWIP
+		merged.AllowAI = config.SharedPolicy.AllowAI
+		merged.TokenLimit = config.SharedPolicy.TokenLimit
+	}
+
+	// Overlay project-level policy
+	repo := storage.NewFilesystemRepository(projectPath)
+	projectPolicy, err := repo.LoadPolicy()
+	if err == nil && projectPolicy != nil {
+		if projectPolicy.MaxWIP > 0 {
+			merged.MaxWIP = projectPolicy.MaxWIP
+		}
+		if projectPolicy.AllowAI {
+			merged.AllowAI = true
+		}
+		if projectPolicy.TokenLimit > 0 {
+			merged.TokenLimit = projectPolicy.TokenLimit
+		}
+	}
+
+	return merged, nil
 }

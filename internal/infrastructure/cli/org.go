@@ -105,8 +105,48 @@ var orgStatusCmd = &cobra.Command{
 	},
 }
 
+var orgPolicyCmd = &cobra.Command{
+	Use:   "policy [project-path]",
+	Short: "Show merged policy (org defaults + project overrides)",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		root := "."
+		if len(args) > 0 {
+			root = args[0]
+		}
+
+		// Use parent of project as org root to find org.yaml
+		svc := application.NewOrgService(root)
+		projectPath := root
+		if len(args) > 0 {
+			projectPath = args[0]
+		}
+
+		merged, err := svc.LoadMergedPolicy(projectPath)
+		if err != nil {
+			return err
+		}
+
+		if orgJSON {
+			data, err := json.MarshalIndent(merged, "", "  ")
+			if err != nil {
+				return err
+			}
+			fmt.Println(string(data))
+			return nil
+		}
+
+		fmt.Printf("Merged Policy:\n")
+		fmt.Printf("  Max WIP:     %d\n", merged.MaxWIP)
+		fmt.Printf("  Allow AI:    %v\n", merged.AllowAI)
+		fmt.Printf("  Token Limit: %d\n", merged.TokenLimit)
+		return nil
+	},
+}
+
 func init() {
 	orgStatusCmd.Flags().BoolVar(&orgJSON, "json", false, "Output as JSON")
+	orgPolicyCmd.Flags().BoolVar(&orgJSON, "json", false, "Output as JSON")
 	orgCmd.AddCommand(orgStatusCmd)
+	orgCmd.AddCommand(orgPolicyCmd)
 	RootCmd.AddCommand(orgCmd)
 }

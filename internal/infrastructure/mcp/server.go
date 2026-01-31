@@ -28,6 +28,7 @@ type Server struct {
 	debtSvc      *application.DebtService
 	forecastSvc  *application.ForecastService
 	orgSvc       *application.OrgService
+	root         string
 }
 
 var (
@@ -78,6 +79,7 @@ func NewServer(root string) (*Server, error) {
 		debtSvc:     services.Debt,
 		forecastSvc: services.Forecast,
 		orgSvc:      application.NewOrgService(root),
+		root:        root,
 	}
 
 	s.registerTools()
@@ -259,6 +261,12 @@ func (s *Server) registerTools() {
 		Description("Analyze drift trend over time").
 		UIResource("ui://roady/debt").
 		Handler(s.handleDebtTrend)
+
+	// Tool: roady_org_policy (v0.7.0)
+	s.mcpServer.Tool("roady_org_policy").
+		Description("Get merged policy for a project (org defaults + project overrides)").
+		UIResource("ui://roady/org").
+		Handler(s.handleOrgPolicy)
 
 	// Tool: roady_get_snapshot (v0.6.0 - Coordinator)
 	s.mcpServer.Tool("roady_get_snapshot").
