@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -16,6 +17,8 @@ var (
 	autoSync       bool
 	reconcile      bool
 	debounceWindow time.Duration
+	includeGlobs   string
+	excludeGlobs   string
 )
 
 var watchCmd = &cobra.Command{
@@ -127,6 +130,18 @@ var watchCmd = &cobra.Command{
 			return fmt.Errorf("create watcher: %w", err)
 		}
 
+		// Set pattern filter if include/exclude flags provided
+		if includeGlobs != "" || excludeGlobs != "" {
+			var include, exclude []string
+			if includeGlobs != "" {
+				include = strings.Split(includeGlobs, ",")
+			}
+			if excludeGlobs != "" {
+				exclude = strings.Split(excludeGlobs, ",")
+			}
+			watcher.SetFilter(watch.NewPatternFilter(include, exclude))
+		}
+
 		if err := watcher.WatchRecursive(dir); err != nil {
 			return fmt.Errorf("watch directory: %w", err)
 		}
@@ -154,5 +169,7 @@ func init() {
 	watchCmd.Flags().BoolVar(&autoSync, "auto-sync", false, "Automatically regenerate plan on documentation changes")
 	watchCmd.Flags().BoolVar(&reconcile, "reconcile", false, "Full reconcile: spec analyze → drift detect → accept → plan generate")
 	watchCmd.Flags().DurationVar(&debounceWindow, "debounce", 500*time.Millisecond, "Debounce window for file change events")
+	watchCmd.Flags().StringVar(&includeGlobs, "include", "", "Comma-separated glob patterns to include (e.g. '*.md,*.txt')")
+	watchCmd.Flags().StringVar(&excludeGlobs, "exclude", "", "Comma-separated glob patterns to exclude (e.g. '*.tmp,*.log')")
 	RootCmd.AddCommand(watchCmd)
 }

@@ -21,6 +21,12 @@ type FSWatcher struct {
 	watcher  *fsnotify.Watcher
 	debounce time.Duration
 	onChange func(ChangeEvent)
+	filter   *PatternFilter
+}
+
+// SetFilter sets a pattern filter for the watcher.
+func (w *FSWatcher) SetFilter(f *PatternFilter) {
+	w.filter = f
 }
 
 // NewFSWatcher creates a new filesystem watcher.
@@ -84,6 +90,11 @@ func (w *FSWatcher) Run(ctx context.Context) error {
 				if info, err := os.Stat(event.Name); err == nil && info.IsDir() {
 					_ = w.WatchRecursive(event.Name)
 				}
+			}
+
+			// Apply pattern filter
+			if w.filter != nil && !w.filter.Matches(event.Name) {
+				continue
 			}
 
 			lastEvent = ChangeEvent{Path: event.Name, ChangeType: changeType}
