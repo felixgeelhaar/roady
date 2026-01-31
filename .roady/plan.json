@@ -35,7 +35,9 @@
       "description": "Runtime health checks and graceful degradation for loaded plugins. Periodic ping via Init(), track response times, mark unhealthy after N failures, expose via roady plugin status and MCP.",
       "priority": "medium",
       "estimate": "",
-      "depends_on": ["task-plugin-registry"],
+      "depends_on": [
+        "task-plugin-registry"
+      ],
       "feature_id": "plugin-hardening"
     },
     {
@@ -71,11 +73,13 @@
       "description": "Configurable glob patterns to watch specific files or directories. Add --include and --exclude flags to watch command. Filter FSWatcher events against compiled glob patterns before triggering callbacks.",
       "priority": "low",
       "estimate": "",
-      "depends_on": ["task-watch-auto-sync"],
+      "depends_on": [
+        "task-watch-auto-sync"
+      ],
       "feature_id": "watch-enhancement"
     }
   ],
-  "approval_status": "pending",
-  "created_at": "2026-01-31T15:15:00.000000+01:00",
-  "updated_at": "2026-01-31T15:15:00.000000+01:00"
+  "approval_status": "approved",
+  "created_at": "2026-01-31T15:15:00+01:00",
+  "updated_at": "2026-01-31T15:15:00+01:00"
 }

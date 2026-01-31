@@ -1,19 +1,7 @@
 {
   "project_id": "test-refactor",
   "task_states": {
-    "task-org-shared-policies": {
-      "status": "pending",
-      "path": ""
-    },
-    "task-org-cross-drift": {
-      "status": "pending",
-      "path": ""
-    },
-    "task-plugin-registry": {
-      "status": "pending",
-      "path": ""
-    },
-    "task-plugin-health": {
+    "task-notif-realtime": {
       "status": "pending",
       "path": ""
     },
@@ -21,7 +9,19 @@
       "status": "pending",
       "path": ""
     },
-    "task-notif-realtime": {
+    "task-org-cross-drift": {
+      "status": "pending",
+      "path": ""
+    },
+    "task-org-shared-policies": {
+      "status": "pending",
+      "path": ""
+    },
+    "task-plugin-health": {
+      "status": "pending",
+      "path": ""
+    },
+    "task-plugin-registry": {
       "status": "pending",
       "path": ""
     },
@@ -34,5 +34,5 @@
       "path": ""
     }
   },
-  "updated_at": "2026-01-31T15:15:00.000000+01:00"
+  "updated_at": "2026-01-31T15:15:00+01:00"
 }
