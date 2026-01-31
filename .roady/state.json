@@ -263,6 +263,14 @@
         "EventDispatcher integrated with EventSourcedAuditService.Log() with async dispatch"
       ]
     },
+    "task-evt-notifiers": {
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "Notifier interface defined in handlers.go for external notifications"
+      ]
+    },
     "task-evt-production-wiring": {
       "status": "done",
       "path": "",
@@ -272,14 +280,6 @@
         "EventDispatcher with LoggingHandler, DriftWarningHandler, TaskTransitionHandler registered",
         "Velocity projection subscribed to live events via publisher",
         "InitService and DebtService accept domain.AuditLogger interface"
-      ]
-    },
-    "task-evt-notifiers": {
-      "status": "done",
-      "path": "",
-      "owner": "ai-agent",
-      "evidence": [
-        "Notifier interface defined in handlers.go for external notifications"
       ]
     },
     "task-fs-implementation": {
@@ -311,9 +311,25 @@
         "pkg/mcp shim retained and documented"
       ]
     },
+    "task-notif-webhooks": {
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "cfd5db7 — HMAC-SHA256 notifier, dead letter queue, event filtering, CLI commands, dispatcher wiring"
+      ]
+    },
     "task-ollama-integration": {
       "status": "done",
       "path": ""
+    },
+    "task-org-dashboard": {
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "cfd5db7 — OrgService, aggregated metrics, JSON output, MCP integration"
+      ]
     },
     "task-persistence-layer": {
       "status": "done",
@@ -322,6 +338,14 @@
     "task-plan-generation": {
       "status": "done",
       "path": ""
+    },
+    "task-plugin-contracts": {
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "cfd5db7 — contract assertions, suite runner, mock plugin fail support"
+      ]
     },
     "task-pv-cli": {
       "status": "done",
@@ -497,6 +521,14 @@
         "TaskStatus VO with CanTransitionTo, ValidTransitions, IsFinal, IsComplete methods"
       ]
     },
+    "task-watch-fsnotify": {
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "cfd5db7 — replaced polling with fsnotify, debounce helper, graceful shutdown"
+      ]
+    },
     "task-wip-limit": {
       "status": "done",
       "path": ""
@@ -510,5 +542,5 @@
       ]
     }
   },
-  "updated_at": "2026-01-29T19:24:50.190711+01:00"
+  "updated_at": "2026-01-31T15:10:10.08881+01:00"
 }
