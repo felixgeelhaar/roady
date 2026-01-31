@@ -2,6 +2,8 @@ package mcp
 
 import (
 	"context"
+
+	"github.com/felixgeelhaar/roady/pkg/storage"
 )
 
 // Org policy handler
@@ -72,3 +74,13 @@ func (s *Server) handlePluginStatus(ctx context.Context, args PluginStatusArgs) 
 	return results, nil
 }
 
+// Messaging handler
+
+func (s *Server) handleMessagingList(ctx context.Context, args struct{}) (any, error) {
+	repo := storage.NewFilesystemRepository(s.root)
+	cfg, err := repo.LoadMessagingConfig()
+	if err != nil {
+		return nil, mcpErr("Failed to load messaging config.")
+	}
+	return cfg, nil
+}

@@ -294,6 +294,12 @@ func (s *Server) registerTools() {
 		UIResource("ui://roady/plugins").
 		Handler(s.handlePluginStatus)
 
+	// Tool: roady_messaging_list (v0.7.0)
+	s.mcpServer.Tool("roady_messaging_list").
+		Description("List configured messaging adapters").
+		UIResource("ui://roady/messaging").
+		Handler(s.handleMessagingList)
+
 	// Tool: roady_get_snapshot (v0.6.0 - Coordinator)
 	s.mcpServer.Tool("roady_get_snapshot").
 		Description("Get a consistent project snapshot with progress, categorized task counts, and task lists").
