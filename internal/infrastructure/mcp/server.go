@@ -288,6 +288,12 @@ func (s *Server) registerTools() {
 		UIResource("ui://roady/plugins").
 		Handler(s.handlePluginValidate)
 
+	// Tool: roady_plugin_status (v0.7.0)
+	s.mcpServer.Tool("roady_plugin_status").
+		Description("Check health status of one or all plugins").
+		UIResource("ui://roady/plugins").
+		Handler(s.handlePluginStatus)
+
 	// Tool: roady_get_snapshot (v0.6.0 - Coordinator)
 	s.mcpServer.Tool("roady_get_snapshot").
 		Description("Get a consistent project snapshot with progress, categorized task counts, and task lists").

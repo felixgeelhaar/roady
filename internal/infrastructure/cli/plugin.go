@@ -107,10 +107,54 @@ var pluginValidateCmd = &cobra.Command{
 	},
 }
 
+var pluginStatusCmd = &cobra.Command{
+	Use:   "status [name]",
+	Short: "Check health of one or all plugins",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		services, err := loadServicesForCurrentDir()
+		if err != nil {
+			return err
+		}
+
+		svc := application.NewPluginService(services.Workspace.Repo)
+
+		if len(args) > 0 {
+			result, err := svc.CheckHealth(args[0])
+			if err != nil {
+				return err
+			}
+			data, err := json.MarshalIndent(result, "", "  ")
+			if err != nil {
+				return err
+			}
+			fmt.Println(string(data))
+			return nil
+		}
+
+		results, err := svc.CheckAllHealth()
+		if err != nil {
+			return err
+		}
+
+		if len(results) == 0 {
+			fmt.Println("No plugins registered.")
+			return nil
+		}
+
+		data, err := json.MarshalIndent(results, "", "  ")
+		if err != nil {
+			return err
+		}
+		fmt.Println(string(data))
+		return nil
+	},
+}
+
 func init() {
 	pluginCmd.AddCommand(pluginListCmd)
 	pluginCmd.AddCommand(pluginRegisterCmd)
 	pluginCmd.AddCommand(pluginUnregisterCmd)
 	pluginCmd.AddCommand(pluginValidateCmd)
+	pluginCmd.AddCommand(pluginStatusCmd)
 	RootCmd.AddCommand(pluginCmd)
 }

@@ -53,3 +53,22 @@ func (s *Server) handlePluginValidate(ctx context.Context, args PluginValidateAr
 	return result, nil
 }
 
+type PluginStatusArgs struct {
+	Name string `json:"name,omitempty" jsonschema:"description=Name of the plugin to check (omit for all)"`
+}
+
+func (s *Server) handlePluginStatus(ctx context.Context, args PluginStatusArgs) (any, error) {
+	if args.Name != "" {
+		result, err := s.pluginSvc.CheckHealth(args.Name)
+		if err != nil {
+			return nil, mcpErr("Failed to check plugin health.")
+		}
+		return result, nil
+	}
+	results, err := s.pluginSvc.CheckAllHealth()
+	if err != nil {
+		return nil, mcpErr("Failed to check plugin health.")
+	}
+	return results, nil
+}
+

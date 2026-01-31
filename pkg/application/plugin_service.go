@@ -4,10 +4,30 @@ import (
 	"fmt"
 	"os"
 	"sort"
+	"time"
 
 	"github.com/felixgeelhaar/roady/pkg/domain/plugin"
 	"github.com/felixgeelhaar/roady/pkg/storage"
 )
+
+// HealthStatus represents plugin health state.
+type HealthStatus string
+
+const (
+	HealthStatusHealthy   HealthStatus = "healthy"
+	HealthStatusDegraded  HealthStatus = "degraded"
+	HealthStatusUnhealthy HealthStatus = "unhealthy"
+	HealthStatusUnknown   HealthStatus = "unknown"
+)
+
+// HealthResult holds health check results for a plugin.
+type HealthResult struct {
+	Name      string       `json:"name"`
+	Status    HealthStatus `json:"status"`
+	Latency   string       `json:"latency,omitempty"`
+	Error     string       `json:"error,omitempty"`
+	CheckedAt time.Time    `json:"checked_at"`
+}
 
 // PluginInfo represents enriched plugin information.
 type PluginInfo struct {
@@ -26,7 +46,7 @@ type ValidationResult struct {
 	Latency string `json:"latency,omitempty"`
 }
 
-// PluginService manages plugin registration and validation.
+// PluginService manages plugin registration, validation, and health.
 type PluginService struct {
 	repo *storage.FilesystemRepository
 }
@@ -129,4 +149,58 @@ func (s *PluginService) ValidatePlugin(name string) (*ValidationResult, error) {
 
 	result.Valid = true
 	return result, nil
+}
+
+// CheckHealth checks the health of a single plugin.
+func (s *PluginService) CheckHealth(name string) (*HealthResult, error) {
+	cfg, err := s.repo.GetPluginConfig(name)
+	if err != nil {
+		return nil, err
+	}
+
+	result := &HealthResult{
+		Name:      name,
+		CheckedAt: time.Now(),
+	}
+
+	info, err := os.Stat(cfg.Binary)
+	if err != nil {
+		result.Status = HealthStatusUnhealthy
+		result.Error = fmt.Sprintf("binary not found: %s", cfg.Binary)
+		return result, nil
+	}
+
+	if info.Mode()&0111 == 0 {
+		result.Status = HealthStatusUnhealthy
+		result.Error = "binary is not executable"
+		return result, nil
+	}
+
+	result.Status = HealthStatusHealthy
+	return result, nil
+}
+
+// CheckAllHealth checks health of all registered plugins.
+func (s *PluginService) CheckAllHealth() (map[string]*HealthResult, error) {
+	configs, err := s.repo.LoadPluginConfigs()
+	if err != nil {
+		return nil, err
+	}
+
+	results := make(map[string]*HealthResult)
+	for _, name := range configs.Names() {
+		result, err := s.CheckHealth(name)
+		if err != nil {
+			results[name] = &HealthResult{
+				Name:      name,
+				Status:    HealthStatusUnknown,
+				Error:     err.Error(),
+				CheckedAt: time.Now(),
+			}
+			continue
+		}
+		results[name] = result
+	}
+
+	return results, nil
 }
