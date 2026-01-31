@@ -1,11 +1,10 @@
 id: horizons-5-6
 title: 'Roady Horizons 5 & 6: Adaptive Intelligence & Domain Hardening'
 description: |
-    Complete the final two horizons of Roady's roadmap:
-    - Horizon 5: Adaptive Intelligence - Predictive analytics, dependency graphs, and debt analysis
-    - Horizon 6: Domain Hardening - Value objects, domain events, and aggregate consolidation
-    - v0.5.0: All horizons complete. Domain events wired into production with EventSourcedAuditService,
-      EventDispatcher with handlers (Logging, DriftWarning, TaskTransition), and live velocity projection.
+    Roady planning system — v0.6.0 roadmap:
+    - v0.5.0 (complete): Horizons 5 & 6 — predictive analytics, domain hardening, event sourcing.
+    - v0.6.0: Multi-repo org dashboard, plugin hardening, notification integration, watch enhancement.
+      Coordinator integration into CLI/MCP with snapshot, ready/blocked/in-progress task queries.
 features:
     - id: predictive-velocity
       title: Predictive Velocity Analytics
@@ -260,6 +259,110 @@ features:
       title: Interactive D3 MCP App Visualizations
       description: 'Rich, browser-based D3.js charts embedded in all MCP apps. A shared d3-charts.ts library provides 6 reusable chart functions (donut, force-directed graph, arc gauge, horizontal bars, line chart, collapsible tree) used across 10 apps: status (donut), plan (force DAG), state (donut + swimlanes), drift (severity bars), debt (gauge + donut + bars + line), deps (force network), usage (token gauge), spec (feature tree), policy (compliance gauge), and git-sync (timeline). All charts include hover tooltips, click-to-filter, drag, and zoom interactions.'
       requirements: []
+    - id: multi-repo-org
+      title: Multi-Repo Organization Dashboard
+      description: |
+        Org-level dashboard aggregating status across multiple Roady projects.
+        Shared policies, cross-project drift detection, and unified reporting.
+      requirements:
+        - id: org-dashboard
+          title: Implement org-level dashboard
+          description: Aggregate project statuses from multiple .roady directories into a unified view
+          priority: high
+          estimate: ""
+          depends_on: []
+        - id: org-shared-policies
+          title: Shared policy inheritance
+          description: Allow org-level policy.yaml that child projects inherit and can override
+          priority: medium
+          estimate: ""
+          depends_on:
+            - org-dashboard
+        - id: org-cross-drift
+          title: Cross-project drift detection
+          description: Detect drift patterns spanning multiple repositories
+          priority: medium
+          estimate: ""
+          depends_on:
+            - org-dashboard
+    - id: plugin-hardening
+      title: Plugin System Hardening
+      description: |
+        Contract testing, plugin registry with versioning, and health monitoring
+        for the HashiCorp go-plugin based syncer system.
+      requirements:
+        - id: plugin-contracts
+          title: Plugin contract testing
+          description: Automated contract tests ensuring plugins conform to Syncer interface semantics
+          priority: high
+          estimate: ""
+          depends_on: []
+        - id: plugin-registry
+          title: Plugin registry with versioning
+          description: Maintain a registry of available plugins with version compatibility checking
+          priority: medium
+          estimate: ""
+          depends_on:
+            - plugin-contracts
+        - id: plugin-health
+          title: Plugin health monitoring
+          description: Runtime health checks and graceful degradation for loaded plugins
+          priority: medium
+          estimate: ""
+          depends_on:
+            - plugin-contracts
+    - id: notification-integration
+      title: Notification Integration
+      description: |
+        Webhook reliability, Slack/Discord/Teams integration, and realtime
+        update delivery for domain events.
+      requirements:
+        - id: notif-webhooks
+          title: Reliable webhook delivery
+          description: At-least-once webhook delivery with retry and dead-letter queue
+          priority: high
+          estimate: ""
+          depends_on: []
+        - id: notif-slack
+          title: Slack/Discord/Teams integration
+          description: Built-in notification adapters for popular team messaging platforms
+          priority: medium
+          estimate: ""
+          depends_on:
+            - notif-webhooks
+        - id: notif-realtime
+          title: Realtime event streaming
+          description: SSE or WebSocket push for live project state updates
+          priority: medium
+          estimate: ""
+          depends_on:
+            - notif-webhooks
+    - id: watch-enhancement
+      title: Watch Mode Enhancement
+      description: |
+        Replace polling with fsnotify-based file watching, auto-sync workflows,
+        and selective watch patterns for efficient continuous monitoring.
+      requirements:
+        - id: watch-fsnotify
+          title: fsnotify-based file watching
+          description: Replace polling with efficient OS-level file notifications
+          priority: high
+          estimate: ""
+          depends_on: []
+        - id: watch-auto-sync
+          title: Auto-sync workflows
+          description: Automatically trigger drift detection and plan reconciliation on file changes
+          priority: medium
+          estimate: ""
+          depends_on:
+            - watch-fsnotify
+        - id: watch-patterns
+          title: Selective watch patterns
+          description: Configurable glob patterns to watch specific files or directories
+          priority: low
+          estimate: ""
+          depends_on:
+            - watch-fsnotify
 constraints:
     - id: backward-compat
       description: Maintain backward compatibility with existing spec.yaml and plan.json formats
@@ -269,4 +372,4 @@ constraints:
       description: Follow existing DDD patterns and naming conventions
     - id: cli-mcp-parity
       description: All new CLI commands should have corresponding MCP tools
-version: 0.5.0
+version: 0.6.0

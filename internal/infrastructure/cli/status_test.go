@@ -18,6 +18,7 @@ func resetStatusFlags() {
 	activeOnly = false
 	statusLimit = 0
 	statusJSON = false
+	snapshotMode = false
 }
 
 func setupStatusTestData(t *testing.T) *storage.FilesystemRepository {
@@ -413,6 +414,109 @@ func TestContainsPriority(t *testing.T) {
 	}
 	if containsPriority(priorities, planning.PriorityLow) {
 		t.Error("should not contain low")
+	}
+}
+
+func TestStatusCmd_Snapshot(t *testing.T) {
+	_, cleanup := withTempDir(t)
+	defer cleanup()
+	defer resetStatusFlags()
+
+	setupStatusTestData(t)
+
+	snapshotMode = true
+	output := captureStdout(t, func() {
+		if err := statusCmd.RunE(statusCmd, []string{}); err != nil {
+			t.Fatalf("status --snapshot failed: %v", err)
+		}
+	})
+
+	if !strings.Contains(output, "Project Snapshot") {
+		t.Errorf("expected snapshot header, got:\n%s", output)
+	}
+	if !strings.Contains(output, "Progress:") {
+		t.Errorf("expected progress in snapshot, got:\n%s", output)
+	}
+}
+
+func TestStatusCmd_SnapshotJSON(t *testing.T) {
+	_, cleanup := withTempDir(t)
+	defer cleanup()
+	defer resetStatusFlags()
+
+	setupStatusTestData(t)
+
+	snapshotMode = true
+	statusJSON = true
+	output := captureStdout(t, func() {
+		if err := statusCmd.RunE(statusCmd, []string{}); err != nil {
+			t.Fatalf("status --snapshot --json failed: %v", err)
+		}
+	})
+
+	var result map[string]interface{}
+	if err := json.Unmarshal([]byte(output), &result); err != nil {
+		t.Fatalf("invalid JSON: %v\n%s", err, output)
+	}
+	if _, ok := result["progress"]; !ok {
+		t.Error("expected 'progress' in JSON snapshot")
+	}
+	if _, ok := result["total_tasks"]; !ok {
+		t.Error("expected 'total_tasks' in JSON snapshot")
+	}
+}
+
+func TestTaskReady(t *testing.T) {
+	_, cleanup := withTempDir(t)
+	defer cleanup()
+
+	setupStatusTestData(t)
+
+	taskQueryJSON = false
+	output := captureStdout(t, func() {
+		if err := taskReadyCmd.RunE(taskReadyCmd, []string{}); err != nil {
+			t.Fatalf("task ready failed: %v", err)
+		}
+	})
+
+	if !strings.Contains(output, "Ready Tasks") {
+		t.Errorf("expected Ready Tasks header, got:\n%s", output)
+	}
+}
+
+func TestTaskBlocked(t *testing.T) {
+	_, cleanup := withTempDir(t)
+	defer cleanup()
+
+	setupStatusTestData(t)
+
+	taskQueryJSON = false
+	output := captureStdout(t, func() {
+		if err := taskBlockedCmd.RunE(taskBlockedCmd, []string{}); err != nil {
+			t.Fatalf("task blocked failed: %v", err)
+		}
+	})
+
+	if !strings.Contains(output, "Blocked Tasks") {
+		t.Errorf("expected Blocked Tasks header, got:\n%s", output)
+	}
+}
+
+func TestTaskInProgress(t *testing.T) {
+	_, cleanup := withTempDir(t)
+	defer cleanup()
+
+	setupStatusTestData(t)
+
+	taskQueryJSON = false
+	output := captureStdout(t, func() {
+		if err := taskInProgressCmd.RunE(taskInProgressCmd, []string{}); err != nil {
+			t.Fatalf("task in-progress failed: %v", err)
+		}
+	})
+
+	if !strings.Contains(output, "In-Progress Tasks") {
+		t.Errorf("expected In-Progress Tasks header, got:\n%s", output)
 	}
 }
 

@@ -24,9 +24,12 @@
       "path": ""
     },
     "implement-resilience-mechanisms": {
-      "status": "in_progress",
+      "status": "done",
       "path": "",
-      "owner": "felixgeelhaar"
+      "owner": "felixgeelhaar",
+      "evidence": [
+        "fortify/retry and fortify/timeout integrated via ResilientProvider"
+      ]
     },
     "task-1": {
       "status": "done",

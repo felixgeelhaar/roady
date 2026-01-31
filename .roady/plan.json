@@ -376,6 +376,114 @@
       "estimate": "",
       "depends_on": [],
       "feature_id": "workflows-\u0026-automation"
+    },
+    {
+      "id": "task-org-dashboard",
+      "title": "Implement org-level dashboard (Multi-Repo Organization Dashboard)",
+      "description": "Aggregate project statuses from multiple .roady directories into a unified view",
+      "priority": "high",
+      "estimate": "",
+      "depends_on": [],
+      "feature_id": "multi-repo-org"
+    },
+    {
+      "id": "task-org-shared-policies",
+      "title": "Shared policy inheritance (Multi-Repo Organization Dashboard)",
+      "description": "Allow org-level policy.yaml that child projects inherit and can override",
+      "priority": "medium",
+      "estimate": "",
+      "depends_on": ["task-org-dashboard"],
+      "feature_id": "multi-repo-org"
+    },
+    {
+      "id": "task-org-cross-drift",
+      "title": "Cross-project drift detection (Multi-Repo Organization Dashboard)",
+      "description": "Detect drift patterns spanning multiple repositories",
+      "priority": "medium",
+      "estimate": "",
+      "depends_on": ["task-org-dashboard"],
+      "feature_id": "multi-repo-org"
+    },
+    {
+      "id": "task-plugin-contracts",
+      "title": "Plugin contract testing (Plugin System Hardening)",
+      "description": "Automated contract tests ensuring plugins conform to Syncer interface semantics",
+      "priority": "high",
+      "estimate": "",
+      "depends_on": [],
+      "feature_id": "plugin-hardening"
+    },
+    {
+      "id": "task-plugin-registry",
+      "title": "Plugin registry with versioning (Plugin System Hardening)",
+      "description": "Maintain a registry of available plugins with version compatibility checking",
+      "priority": "medium",
+      "estimate": "",
+      "depends_on": ["task-plugin-contracts"],
+      "feature_id": "plugin-hardening"
+    },
+    {
+      "id": "task-plugin-health",
+      "title": "Plugin health monitoring (Plugin System Hardening)",
+      "description": "Runtime health checks and graceful degradation for loaded plugins",
+      "priority": "medium",
+      "estimate": "",
+      "depends_on": ["task-plugin-contracts"],
+      "feature_id": "plugin-hardening"
+    },
+    {
+      "id": "task-notif-webhooks",
+      "title": "Reliable webhook delivery (Notification Integration)",
+      "description": "At-least-once webhook delivery with retry and dead-letter queue",
+      "priority": "high",
+      "estimate": "",
+      "depends_on": [],
+      "feature_id": "notification-integration"
+    },
+    {
+      "id": "task-notif-slack",
+      "title": "Slack/Discord/Teams integration (Notification Integration)",
+      "description": "Built-in notification adapters for popular team messaging platforms",
+      "priority": "medium",
+      "estimate": "",
+      "depends_on": ["task-notif-webhooks"],
+      "feature_id": "notification-integration"
+    },
+    {
+      "id": "task-notif-realtime",
+      "title": "Realtime event streaming (Notification Integration)",
+      "description": "SSE or WebSocket push for live project state updates",
+      "priority": "medium",
+      "estimate": "",
+      "depends_on": ["task-notif-webhooks"],
+      "feature_id": "notification-integration"
+    },
+    {
+      "id": "task-watch-fsnotify",
+      "title": "fsnotify-based file watching (Watch Mode Enhancement)",
+      "description": "Replace polling with efficient OS-level file notifications",
+      "priority": "high",
+      "estimate": "",
+      "depends_on": [],
+      "feature_id": "watch-enhancement"
+    },
+    {
+      "id": "task-watch-auto-sync",
+      "title": "Auto-sync workflows (Watch Mode Enhancement)",
+      "description": "Automatically trigger drift detection and plan reconciliation on file changes",
+      "priority": "medium",
+      "estimate": "",
+      "depends_on": ["task-watch-fsnotify"],
+      "feature_id": "watch-enhancement"
+    },
+    {
+      "id": "task-watch-patterns",
+      "title": "Selective watch patterns (Watch Mode Enhancement)",
+      "description": "Configurable glob patterns to watch specific files or directories",
+      "priority": "low",
+      "estimate": "",
+      "depends_on": ["task-watch-fsnotify"],
+      "feature_id": "watch-enhancement"
     }
   ],
   "approval_status": "approved",

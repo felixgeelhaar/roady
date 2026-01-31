@@ -257,6 +257,30 @@ func (s *Server) registerTools() {
 		Description("Analyze drift trend over time").
 		UIResource("ui://roady/debt").
 		Handler(s.handleDebtTrend)
+
+	// Tool: roady_get_snapshot (v0.6.0 - Coordinator)
+	s.mcpServer.Tool("roady_get_snapshot").
+		Description("Get a consistent project snapshot with progress, categorized task counts, and task lists").
+		UIResource("ui://roady/status").
+		Handler(s.handleGetSnapshot)
+
+	// Tool: roady_get_ready_tasks (v0.6.0 - Coordinator)
+	s.mcpServer.Tool("roady_get_ready_tasks").
+		Description("Get tasks that are ready to start (unlocked and pending)").
+		UIResource("ui://roady/status").
+		Handler(s.handleGetReadyTasks)
+
+	// Tool: roady_get_blocked_tasks (v0.6.0 - Coordinator)
+	s.mcpServer.Tool("roady_get_blocked_tasks").
+		Description("Get tasks that are currently blocked").
+		UIResource("ui://roady/status").
+		Handler(s.handleGetBlockedTasks)
+
+	// Tool: roady_get_in_progress_tasks (v0.6.0 - Coordinator)
+	s.mcpServer.Tool("roady_get_in_progress_tasks").
+		Description("Get tasks that are currently in progress").
+		UIResource("ui://roady/status").
+		Handler(s.handleGetInProgressTasks)
 }
 
 func (s *Server) handleForecast(ctx context.Context, args struct{}) (any, error) {
@@ -839,4 +863,72 @@ func (s *Server) handleDebtTrend(ctx context.Context, args DebtTrendArgs) (any, 
 		return nil, mcpErr("Failed to get debt trend. Ensure drift history exists.")
 	}
 	return trend, nil
+}
+
+// Coordinator-based snapshot and task query handlers (v0.6.0)
+
+func (s *Server) handleGetSnapshot(ctx context.Context, args struct{}) (any, error) {
+	snapshot, err := s.planSvc.GetProjectSnapshot(ctx)
+	if err != nil {
+		return nil, mcpErr("Failed to get project snapshot. Ensure a plan and state exist.")
+	}
+
+	type snapshotResp struct {
+		Progress      float64  `json:"progress"`
+		UnlockedTasks []string `json:"unlocked_tasks"`
+		BlockedTasks  []string `json:"blocked_tasks"`
+		InProgress    []string `json:"in_progress"`
+		Completed     []string `json:"completed"`
+		Verified      []string `json:"verified"`
+		TotalTasks    int      `json:"total_tasks"`
+		SnapshotTime  string   `json:"snapshot_time"`
+	}
+
+	totalTasks := 0
+	if snapshot.Plan != nil {
+		totalTasks = len(snapshot.Plan.Tasks)
+	}
+
+	return snapshotResp{
+		Progress:      snapshot.Progress,
+		UnlockedTasks: orEmpty(snapshot.UnlockedTasks),
+		BlockedTasks:  orEmpty(snapshot.BlockedTasks),
+		InProgress:    orEmpty(snapshot.InProgress),
+		Completed:     orEmpty(snapshot.Completed),
+		Verified:      orEmpty(snapshot.Verified),
+		TotalTasks:    totalTasks,
+		SnapshotTime:  snapshot.SnapshotTime.Format("2006-01-02T15:04:05Z07:00"),
+	}, nil
+}
+
+func (s *Server) handleGetReadyTasks(ctx context.Context, args struct{}) (any, error) {
+	tasks, err := s.planSvc.GetReadyTasks(ctx)
+	if err != nil {
+		return nil, mcpErr("Failed to get ready tasks. Ensure a plan and state exist.")
+	}
+	return tasks, nil
+}
+
+func (s *Server) handleGetBlockedTasks(ctx context.Context, args struct{}) (any, error) {
+	tasks, err := s.planSvc.GetBlockedTasks(ctx)
+	if err != nil {
+		return nil, mcpErr("Failed to get blocked tasks. Ensure a plan and state exist.")
+	}
+	return tasks, nil
+}
+
+func (s *Server) handleGetInProgressTasks(ctx context.Context, args struct{}) (any, error) {
+	tasks, err := s.planSvc.GetInProgressTasks(ctx)
+	if err != nil {
+		return nil, mcpErr("Failed to get in-progress tasks. Ensure a plan and state exist.")
+	}
+	return tasks, nil
+}
+
+// orEmpty returns the slice or an empty slice if nil (for clean JSON output).
+func orEmpty(s []string) []string {
+	if s == nil {
+		return []string{}
+	}
+	return s
 }

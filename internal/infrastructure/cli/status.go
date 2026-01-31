@@ -1,12 +1,14 @@
 package cli
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
 	"sort"
 	"strings"
 
+	"github.com/felixgeelhaar/roady/internal/infrastructure/wiring"
 	"github.com/felixgeelhaar/roady/pkg/domain/planning"
 	"github.com/felixgeelhaar/roady/pkg/domain/spec"
 	"github.com/spf13/cobra"
@@ -21,6 +23,7 @@ var (
 	activeOnly     bool
 	statusLimit    int
 	statusJSON     bool
+	snapshotMode   bool
 )
 
 var statusCmd = &cobra.Command{
@@ -103,6 +106,11 @@ func runStatusCmd(cmd *cobra.Command, args []string) error {
 	report, driftErr := services.Drift.DetectDrift(cmd.Context())
 	if driftErr == nil && len(report.Issues) > 0 {
 		driftCount = len(report.Issues)
+	}
+
+	// Snapshot mode — uses coordinator for consistent view
+	if snapshotMode {
+		return outputSnapshot(services, statusJSON)
 	}
 
 	// JSON output mode
@@ -419,6 +427,69 @@ var statusTimelineCmd = &cobra.Command{
 	RunE:  RunTimeline,
 }
 
+func outputSnapshot(services *wiring.AppServices, jsonOut bool) error {
+	ctx := context.Background()
+	snapshot, err := services.Plan.GetProjectSnapshot(ctx)
+	if err != nil {
+		return fmt.Errorf("snapshot: %w", err)
+	}
+
+	if jsonOut {
+		type snapshotJSON struct {
+			Progress      float64  `json:"progress"`
+			TotalTasks    int      `json:"total_tasks"`
+			UnlockedTasks []string `json:"unlocked_tasks"`
+			BlockedTasks  []string `json:"blocked_tasks"`
+			InProgress    []string `json:"in_progress"`
+			Completed     []string `json:"completed"`
+			Verified      []string `json:"verified"`
+		}
+
+		totalTasks := 0
+		if snapshot.Plan != nil {
+			totalTasks = len(snapshot.Plan.Tasks)
+		}
+
+		out := snapshotJSON{
+			Progress:      snapshot.Progress,
+			TotalTasks:    totalTasks,
+			UnlockedTasks: orEmptySlice(snapshot.UnlockedTasks),
+			BlockedTasks:  orEmptySlice(snapshot.BlockedTasks),
+			InProgress:    orEmptySlice(snapshot.InProgress),
+			Completed:     orEmptySlice(snapshot.Completed),
+			Verified:      orEmptySlice(snapshot.Verified),
+		}
+
+		enc := json.NewEncoder(os.Stdout)
+		enc.SetIndent("", "  ")
+		return enc.Encode(out)
+	}
+
+	totalTasks := 0
+	if snapshot.Plan != nil {
+		totalTasks = len(snapshot.Plan.Tasks)
+	}
+
+	fmt.Printf("Project Snapshot\n")
+	fmt.Printf("================\n")
+	fmt.Printf("Progress:    %.1f%%\n", snapshot.Progress)
+	fmt.Printf("Total Tasks: %d\n", totalTasks)
+	fmt.Printf("Ready:       %d\n", len(snapshot.UnlockedTasks))
+	fmt.Printf("Blocked:     %d\n", len(snapshot.BlockedTasks))
+	fmt.Printf("In Progress: %d\n", len(snapshot.InProgress))
+	fmt.Printf("Completed:   %d\n", len(snapshot.Completed))
+	fmt.Printf("Verified:    %d\n", len(snapshot.Verified))
+
+	return nil
+}
+
+func orEmptySlice(s []string) []string {
+	if s == nil {
+		return []string{}
+	}
+	return s
+}
+
 func init() {
 	statusCmd.Flags().StringVarP(&statusFilter, "status", "s", "",
 		"Filter by status (pending,blocked,in_progress,done,verified)")
@@ -434,6 +505,8 @@ func init() {
 		"Limit number of tasks shown")
 	statusCmd.Flags().BoolVar(&statusJSON, "json", false,
 		"Output in JSON format")
+	statusCmd.Flags().BoolVar(&snapshotMode, "snapshot", false,
+		"Show coordinator-based project snapshot with progress and categorized task counts")
 
 	// Add subcommands for consolidated views
 	statusForecastCmd.Flags().BoolVar(&forecastDetailed, "detailed", false, "Show detailed forecast with confidence intervals")
