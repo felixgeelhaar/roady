@@ -29,6 +29,7 @@ type AppServices struct {
 	Forecast   *application.ForecastService
 	Dependency *application.DependencyService
 	Debt       *application.DebtService // Debt analysis service (Horizon 5)
+	Plugin     *application.PluginService
 	Provider   domainai.Provider
 }
 
@@ -144,6 +145,7 @@ func buildServicesWithProvider(workspace *Workspace, root string, provider domai
 		Forecast:   forecastSvc,
 		Dependency: depSvc,
 		Debt:       debtSvc,
+		Plugin:     application.NewPluginService(workspace.Repo),
 		Provider:   provider,
 	}
 

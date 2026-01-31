@@ -28,6 +28,7 @@ type Server struct {
 	debtSvc      *application.DebtService
 	forecastSvc  *application.ForecastService
 	orgSvc       *application.OrgService
+	pluginSvc    *application.PluginService
 	root         string
 }
 
@@ -79,6 +80,7 @@ func NewServer(root string) (*Server, error) {
 		debtSvc:     services.Debt,
 		forecastSvc: services.Forecast,
 		orgSvc:      application.NewOrgService(root),
+		pluginSvc:   application.NewPluginService(services.Workspace.Repo),
 		root:        root,
 	}
 
@@ -273,6 +275,18 @@ func (s *Server) registerTools() {
 		Description("Detect drift across all projects in the directory tree").
 		UIResource("ui://roady/org").
 		Handler(s.handleOrgDetectDrift)
+
+	// Tool: roady_plugin_list (v0.7.0)
+	s.mcpServer.Tool("roady_plugin_list").
+		Description("List all registered plugins with their status").
+		UIResource("ui://roady/plugins").
+		Handler(s.handlePluginList)
+
+	// Tool: roady_plugin_validate (v0.7.0)
+	s.mcpServer.Tool("roady_plugin_validate").
+		Description("Validate a registered plugin by loading and initializing it").
+		UIResource("ui://roady/plugins").
+		Handler(s.handlePluginValidate)
 
 	// Tool: roady_get_snapshot (v0.6.0 - Coordinator)
 	s.mcpServer.Tool("roady_get_snapshot").

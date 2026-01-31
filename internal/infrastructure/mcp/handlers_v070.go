@@ -30,3 +30,26 @@ func (s *Server) handleOrgDetectDrift(ctx context.Context, args struct{}) (any, 
 	}
 	return report, nil
 }
+
+// Plugin handlers
+
+func (s *Server) handlePluginList(ctx context.Context, args struct{}) (any, error) {
+	plugins, err := s.pluginSvc.ListPlugins()
+	if err != nil {
+		return nil, mcpErr("Failed to list plugins.")
+	}
+	return plugins, nil
+}
+
+type PluginValidateArgs struct {
+	Name string `json:"name" jsonschema:"description=Name of the plugin to validate"`
+}
+
+func (s *Server) handlePluginValidate(ctx context.Context, args PluginValidateArgs) (any, error) {
+	result, err := s.pluginSvc.ValidatePlugin(args.Name)
+	if err != nil {
+		return nil, mcpErr("Failed to validate plugin.")
+	}
+	return result, nil
+}
+
