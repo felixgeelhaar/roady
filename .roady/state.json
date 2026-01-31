@@ -2,37 +2,69 @@
   "project_id": "test-refactor",
   "task_states": {
     "task-notif-realtime": {
-      "status": "pending",
-      "path": ""
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "b96d9d9"
+      ]
     },
     "task-notif-slack": {
-      "status": "pending",
-      "path": ""
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "47c8ac1"
+      ]
     },
     "task-org-cross-drift": {
-      "status": "pending",
-      "path": ""
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "fbcc8bd"
+      ]
     },
     "task-org-shared-policies": {
-      "status": "pending",
-      "path": ""
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "fe1f6b6"
+      ]
     },
     "task-plugin-health": {
-      "status": "pending",
-      "path": ""
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "363ec54"
+      ]
     },
     "task-plugin-registry": {
-      "status": "pending",
-      "path": ""
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "1af0047"
+      ]
     },
     "task-watch-auto-sync": {
-      "status": "pending",
-      "path": ""
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "f3c971e"
+      ]
     },
     "task-watch-patterns": {
-      "status": "pending",
-      "path": ""
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "b2dfcf4"
+      ]
     }
   },
-  "updated_at": "2026-01-31T15:15:00+01:00"
+  "updated_at": "2026-01-31T15:54:02.851623+01:00"
 }
