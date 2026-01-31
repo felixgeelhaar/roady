@@ -1,6 +1,7 @@
 package application
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 
@@ -120,6 +121,18 @@ func (s *OrgService) projectMetrics(path string) org.ProjectMetrics {
 		}
 	}
 
+	// Check drift
+	auditSvc := NewAuditService(repo)
+	policySvc := NewPolicyService(repo)
+	inspector := storage.NewCodebaseInspector()
+	driftSvc := NewDriftService(repo, auditSvc, inspector, policySvc)
+	if driftReport, err := driftSvc.DetectDrift(context.Background()); err == nil && driftReport != nil {
+		if len(driftReport.Issues) > 0 {
+			pm.HasDrift = true
+			pm.DriftCount = len(driftReport.Issues)
+		}
+	}
+
 	return pm
 }
 
@@ -178,4 +191,47 @@ func (s *OrgService) LoadMergedPolicy(projectPath string) (*policy.PolicyConfig,
 	}
 
 	return merged, nil
+}
+
+// DetectCrossDrift discovers projects and aggregates drift reports.
+func (s *OrgService) DetectCrossDrift() (*org.CrossDriftReport, error) {
+	projects, err := s.DiscoverProjects()
+	if err != nil {
+		return nil, err
+	}
+
+	report := &org.CrossDriftReport{}
+
+	for _, p := range projects {
+		repo := storage.NewFilesystemRepository(p)
+		auditSvc := NewAuditService(repo)
+		policySvc := NewPolicyService(repo)
+		inspector := storage.NewCodebaseInspector()
+		driftSvc := NewDriftService(repo, auditSvc, inspector, policySvc)
+
+		driftReport, err := driftSvc.DetectDrift(context.Background())
+		summary := org.ProjectDriftSummary{
+			Name: filepath.Base(p),
+			Path: p,
+		}
+
+		if absPath, absErr := filepath.Abs(p); absErr == nil {
+			summary.Path = absPath
+		}
+
+		// Try to get project name from spec
+		if spec, specErr := repo.LoadSpec(); specErr == nil && spec != nil {
+			summary.Name = spec.Title
+		}
+
+		if err == nil && driftReport != nil && len(driftReport.Issues) > 0 {
+			summary.IssueCount = len(driftReport.Issues)
+			summary.HasDrift = true
+			report.TotalIssues += summary.IssueCount
+		}
+
+		report.Projects = append(report.Projects, summary)
+	}
+
+	return report, nil
 }

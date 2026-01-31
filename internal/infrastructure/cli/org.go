@@ -143,10 +143,53 @@ var orgPolicyCmd = &cobra.Command{
 	},
 }
 
+var orgDriftCmd = &cobra.Command{
+	Use:   "drift [root-dir]",
+	Short: "Detect drift across all projects in the directory tree",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		root := "."
+		if len(args) > 0 {
+			root = args[0]
+		}
+
+		svc := application.NewOrgService(root)
+		report, err := svc.DetectCrossDrift()
+		if err != nil {
+			return err
+		}
+
+		if len(report.Projects) == 0 {
+			fmt.Println("No Roady projects found.")
+			return nil
+		}
+
+		if orgJSON {
+			data, err := json.MarshalIndent(report, "", "  ")
+			if err != nil {
+				return err
+			}
+			fmt.Println(string(data))
+			return nil
+		}
+
+		fmt.Printf("Cross-Project Drift Report (%d projects, %d total issues)\n\n", len(report.Projects), report.TotalIssues)
+		for _, p := range report.Projects {
+			status := "clean"
+			if p.HasDrift {
+				status = fmt.Sprintf("%d issues", p.IssueCount)
+			}
+			fmt.Printf("  %-30s %s\n", p.Name, status)
+		}
+		return nil
+	},
+}
+
 func init() {
 	orgStatusCmd.Flags().BoolVar(&orgJSON, "json", false, "Output as JSON")
 	orgPolicyCmd.Flags().BoolVar(&orgJSON, "json", false, "Output as JSON")
+	orgDriftCmd.Flags().BoolVar(&orgJSON, "json", false, "Output as JSON")
 	orgCmd.AddCommand(orgStatusCmd)
 	orgCmd.AddCommand(orgPolicyCmd)
+	orgCmd.AddCommand(orgDriftCmd)
 	RootCmd.AddCommand(orgCmd)
 }

@@ -268,6 +268,12 @@ func (s *Server) registerTools() {
 		UIResource("ui://roady/org").
 		Handler(s.handleOrgPolicy)
 
+	// Tool: roady_org_detect_drift (v0.7.0)
+	s.mcpServer.Tool("roady_org_detect_drift").
+		Description("Detect drift across all projects in the directory tree").
+		UIResource("ui://roady/org").
+		Handler(s.handleOrgDetectDrift)
+
 	// Tool: roady_get_snapshot (v0.6.0 - Coordinator)
 	s.mcpServer.Tool("roady_get_snapshot").
 		Description("Get a consistent project snapshot with progress, categorized task counts, and task lists").

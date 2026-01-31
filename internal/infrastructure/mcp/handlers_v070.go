@@ -21,3 +21,12 @@ func (s *Server) handleOrgPolicy(ctx context.Context, args OrgPolicyArgs) (any, 
 	}
 	return merged, nil
 }
+
+// Org cross-drift handler
+func (s *Server) handleOrgDetectDrift(ctx context.Context, args struct{}) (any, error) {
+	report, err := s.orgSvc.DetectCrossDrift()
+	if err != nil {
+		return nil, mcpErr("Failed to detect cross-project drift.")
+	}
+	return report, nil
+}
