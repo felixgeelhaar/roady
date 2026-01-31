@@ -1,85 +1,175 @@
 {
-  "id": "plan-v0.7.0",
-  "spec_id": "horizons-7",
+  "id": "plan-v0.8.0",
+  "spec_id": "horizons-8",
   "tasks": [
     {
-      "id": "task-org-shared-policies",
-      "title": "Shared policy inheritance (Multi-Repo Organization Dashboard)",
-      "description": "Allow org-level policy.yaml that child projects inherit and can override. Load from .roady/org.yaml, merge with project-level policy.yaml, expose via PolicyService and MCP.",
-      "priority": "medium",
+      "id": "task-dx-shell-completions",
+      "title": "Shell completions for bash/zsh/fish (Developer Experience)",
+      "description": "Cobra shell completions for bash, zsh, fish, and powershell. Add completion subcommand with per-shell output generation.",
+      "priority": "high",
       "estimate": "",
       "depends_on": [],
-      "feature_id": "multi-repo-org"
+      "feature_id": "developer-experience"
     },
     {
-      "id": "task-org-cross-drift",
-      "title": "Cross-project drift detection (Multi-Repo Organization Dashboard)",
-      "description": "Detect drift patterns spanning multiple repositories. Extend OrgService.AggregateMetrics() to include per-project drift counts, add cross-project drift correlation, expose via CLI --drift flag and MCP.",
-      "priority": "medium",
+      "id": "task-dx-error-messages",
+      "title": "Structured CLI error types with hints (Developer Experience)",
+      "description": "Structured CLI error types with actionable hints and suggestions. Define error taxonomy, wrap existing errors, provide user-facing remediation steps.",
+      "priority": "high",
       "estimate": "",
       "depends_on": [],
-      "feature_id": "multi-repo-org"
+      "feature_id": "developer-experience"
     },
     {
-      "id": "task-plugin-registry",
-      "title": "Plugin registry with versioning (Plugin System Hardening)",
-      "description": "Maintain a registry of available plugins with version compatibility checking. Store in .roady/plugins.yaml with name, path, version, last-checked. Add CLI: roady plugin list/register/unregister.",
-      "priority": "medium",
-      "estimate": "",
-      "depends_on": [],
-      "feature_id": "plugin-hardening"
-    },
-    {
-      "id": "task-plugin-health",
-      "title": "Plugin health monitoring (Plugin System Hardening)",
-      "description": "Runtime health checks and graceful degradation for loaded plugins. Periodic ping via Init(), track response times, mark unhealthy after N failures, expose via roady plugin status and MCP.",
+      "id": "task-dx-config-wizard",
+      "title": "Interactive config wizard (Developer Experience)",
+      "description": "Interactive roady config wizard for ai.yaml and policy.yaml setup. Use bubbletea for TUI prompts, validate inputs, write config files.",
       "priority": "medium",
       "estimate": "",
       "depends_on": [
-        "task-plugin-registry"
+        "task-dx-error-messages"
       ],
-      "feature_id": "plugin-hardening"
+      "feature_id": "developer-experience"
     },
     {
-      "id": "task-notif-slack",
-      "title": "Pluggable messaging adapters (Notification Integration)",
-      "description": "Define a MessagingAdapter interface for team messaging platforms. Implement Slack adapter as reference, with channel routing and mention configuration. Adapters reuse WebhookNotifier retry infrastructure. Additional adapters (Discord, Teams) follow the same interface.",
+      "id": "task-dx-onboarding",
+      "title": "Guided onboarding flow (Developer Experience)",
+      "description": "Guided init flow with templates and first-plan walkthrough. Extend roady init with interactive mode, offer starter templates, walk through first spec and plan.",
       "priority": "medium",
       "estimate": "",
-      "depends_on": [],
-      "feature_id": "notification-integration"
+      "depends_on": [
+        "task-dx-config-wizard",
+        "task-dx-shell-completions"
+      ],
+      "feature_id": "developer-experience"
     },
     {
-      "id": "task-notif-realtime",
-      "title": "Realtime event streaming (Notification Integration)",
-      "description": "SSE or WebSocket push for live project state updates. Add /events/stream SSE endpoint to MCP HTTP server, subscribe to InMemoryEventPublisher, broadcast domain events to connected clients.",
-      "priority": "medium",
+      "id": "task-sdk-mcp-schema",
+      "title": "Versioned MCP tool schema (API & SDK Stability)",
+      "description": "Versioned MCP tool schema with backward-compatible evolution. Add schema version field, support schema negotiation, document migration paths.",
+      "priority": "high",
       "estimate": "",
       "depends_on": [],
-      "feature_id": "notification-integration"
+      "feature_id": "api-sdk-stability"
     },
     {
-      "id": "task-watch-auto-sync",
-      "title": "Auto-sync workflows (Watch Mode Enhancement)",
-      "description": "Automatically trigger drift detection and plan reconciliation on file changes. Enhance FSWatcher callback to optionally run spec analyze + drift detect + plan generate pipeline. Add --reconcile flag to watch command.",
-      "priority": "medium",
+      "id": "task-sdk-go-client",
+      "title": "Public Go SDK client package (API & SDK Stability)",
+      "description": "Public Go client package wrapping MCP JSON-RPC calls. Typed methods for each MCP tool, connection management, retry support.",
+      "priority": "high",
       "estimate": "",
       "depends_on": [],
-      "feature_id": "watch-enhancement"
+      "feature_id": "api-sdk-stability"
     },
     {
-      "id": "task-watch-patterns",
-      "title": "Selective watch patterns (Watch Mode Enhancement)",
-      "description": "Configurable glob patterns to watch specific files or directories. Add --include and --exclude flags to watch command. Filter FSWatcher events against compiled glob patterns before triggering callbacks.",
+      "id": "task-sdk-openapi",
+      "title": "OpenAPI 3.0 spec generation (API & SDK Stability)",
+      "description": "OpenAPI 3.0 spec generation from MCP tool registrations. Auto-generate OpenAPI spec from registered MCP tools, serve via HTTP endpoint.",
+      "priority": "medium",
+      "estimate": "",
+      "depends_on": [
+        "task-sdk-mcp-schema"
+      ],
+      "feature_id": "api-sdk-stability"
+    },
+    {
+      "id": "task-sdk-client-helpers",
+      "title": "Typed SDK request/response helpers (API & SDK Stability)",
+      "description": "Typed request/response helpers for SDK consumers. Code-generated types from MCP schema, marshaling utilities, error type mapping.",
+      "priority": "medium",
+      "estimate": "",
+      "depends_on": [
+        "task-sdk-go-client"
+      ],
+      "feature_id": "api-sdk-stability"
+    },
+    {
+      "id": "task-collab-assignment",
+      "title": "Task assignment with Assignee field (Multi-User Collaboration)",
+      "description": "Add Assignee field to Task domain entity, implement assign/unassign operations in CLI and MCP, persist in plan.json and state.json.",
+      "priority": "high",
+      "estimate": "",
+      "depends_on": [],
+      "feature_id": "multi-user-collaboration"
+    },
+    {
+      "id": "task-collab-team-roles",
+      "title": "Role-based access via team.yaml (Multi-User Collaboration)",
+      "description": "Role-based access control stored in .roady/team.yaml. Define roles (owner, contributor, viewer), enforce permissions on task transitions and plan approval.",
+      "priority": "medium",
+      "estimate": "",
+      "depends_on": [
+        "task-collab-assignment"
+      ],
+      "feature_id": "multi-user-collaboration"
+    },
+    {
+      "id": "task-collab-conflict",
+      "title": "Optimistic locking for concurrency (Multi-User Collaboration)",
+      "description": "Optimistic locking for concurrent state modifications. Add version field to state.json, check-and-set semantics on write, conflict error with merge hints.",
+      "priority": "medium",
+      "estimate": "",
+      "depends_on": [
+        "task-collab-assignment"
+      ],
+      "feature_id": "multi-user-collaboration"
+    },
+    {
+      "id": "task-collab-shared",
+      "title": "Remote workspace sync (Multi-User Collaboration)",
+      "description": "Remote workspace sync for shared project state. Git-based or server-based sync of .roady directory, conflict resolution strategy, pull/push commands.",
       "priority": "low",
       "estimate": "",
       "depends_on": [
-        "task-watch-auto-sync"
+        "task-collab-conflict",
+        "task-collab-team-roles"
       ],
-      "feature_id": "watch-enhancement"
+      "feature_id": "multi-user-collaboration"
+    },
+    {
+      "id": "task-ai-spec-review",
+      "title": "AI spec quality review (AI-Powered Workflows)",
+      "description": "AI spec quality review with completeness scoring. Analyze spec for gaps, ambiguities, missing requirements, provide structured feedback with scores.",
+      "priority": "high",
+      "estimate": "",
+      "depends_on": [],
+      "feature_id": "ai-powered-workflows"
+    },
+    {
+      "id": "task-ai-auto-prioritize",
+      "title": "AI priority suggestions (AI-Powered Workflows)",
+      "description": "AI task priority suggestions from spec and dependency analysis. Analyze task graph, suggest priority adjustments based on critical path and business value.",
+      "priority": "medium",
+      "estimate": "",
+      "depends_on": [
+        "task-ai-spec-review"
+      ],
+      "feature_id": "ai-powered-workflows"
+    },
+    {
+      "id": "task-ai-smart-decompose",
+      "title": "Context-aware task decomposition (AI-Powered Workflows)",
+      "description": "Context-aware decomposition using codebase analysis. Scan source code to inform task breakdown, suggest file-level work items, estimate complexity.",
+      "priority": "medium",
+      "estimate": "",
+      "depends_on": [
+        "task-ai-auto-prioritize"
+      ],
+      "feature_id": "ai-powered-workflows"
+    },
+    {
+      "id": "task-ai-natural-language",
+      "title": "Natural language query interface (AI-Powered Workflows)",
+      "description": "Natural language query interface for project status. Parse NL queries, map to plan/state/drift data, return conversational responses.",
+      "priority": "low",
+      "estimate": "",
+      "depends_on": [
+        "task-ai-spec-review"
+      ],
+      "feature_id": "ai-powered-workflows"
     }
   ],
-  "approval_status": "approved",
-  "created_at": "2026-01-31T15:15:00+01:00",
-  "updated_at": "2026-01-31T15:15:00+01:00"
+  "approval_status": "pending",
+  "created_at": "2026-01-31T18:00:00+01:00",
+  "updated_at": "2026-01-31T18:00:00+01:00"
 }

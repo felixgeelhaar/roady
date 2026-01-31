@@ -1,70 +1,102 @@
 {
   "project_id": "test-refactor",
   "task_states": {
-    "task-notif-realtime": {
-      "status": "done",
+    "task-dx-shell-completions": {
+      "status": "pending",
       "path": "",
-      "owner": "ai-agent",
-      "evidence": [
-        "b96d9d9"
-      ]
+      "owner": "",
+      "evidence": []
     },
-    "task-notif-slack": {
-      "status": "done",
+    "task-dx-error-messages": {
+      "status": "pending",
       "path": "",
-      "owner": "ai-agent",
-      "evidence": [
-        "47c8ac1"
-      ]
+      "owner": "",
+      "evidence": []
     },
-    "task-org-cross-drift": {
-      "status": "done",
+    "task-dx-config-wizard": {
+      "status": "pending",
       "path": "",
-      "owner": "ai-agent",
-      "evidence": [
-        "fbcc8bd"
-      ]
+      "owner": "",
+      "evidence": []
     },
-    "task-org-shared-policies": {
-      "status": "done",
+    "task-dx-onboarding": {
+      "status": "pending",
       "path": "",
-      "owner": "ai-agent",
-      "evidence": [
-        "fe1f6b6"
-      ]
+      "owner": "",
+      "evidence": []
     },
-    "task-plugin-health": {
-      "status": "done",
+    "task-sdk-mcp-schema": {
+      "status": "pending",
       "path": "",
-      "owner": "ai-agent",
-      "evidence": [
-        "363ec54"
-      ]
+      "owner": "",
+      "evidence": []
     },
-    "task-plugin-registry": {
-      "status": "done",
+    "task-sdk-go-client": {
+      "status": "pending",
       "path": "",
-      "owner": "ai-agent",
-      "evidence": [
-        "1af0047"
-      ]
+      "owner": "",
+      "evidence": []
     },
-    "task-watch-auto-sync": {
-      "status": "done",
+    "task-sdk-openapi": {
+      "status": "pending",
       "path": "",
-      "owner": "ai-agent",
-      "evidence": [
-        "f3c971e"
-      ]
+      "owner": "",
+      "evidence": []
     },
-    "task-watch-patterns": {
-      "status": "done",
+    "task-sdk-client-helpers": {
+      "status": "pending",
       "path": "",
-      "owner": "ai-agent",
-      "evidence": [
-        "b2dfcf4"
-      ]
+      "owner": "",
+      "evidence": []
+    },
+    "task-collab-assignment": {
+      "status": "pending",
+      "path": "",
+      "owner": "",
+      "evidence": []
+    },
+    "task-collab-team-roles": {
+      "status": "pending",
+      "path": "",
+      "owner": "",
+      "evidence": []
+    },
+    "task-collab-conflict": {
+      "status": "pending",
+      "path": "",
+      "owner": "",
+      "evidence": []
+    },
+    "task-collab-shared": {
+      "status": "pending",
+      "path": "",
+      "owner": "",
+      "evidence": []
+    },
+    "task-ai-spec-review": {
+      "status": "pending",
+      "path": "",
+      "owner": "",
+      "evidence": []
+    },
+    "task-ai-auto-prioritize": {
+      "status": "pending",
+      "path": "",
+      "owner": "",
+      "evidence": []
+    },
+    "task-ai-smart-decompose": {
+      "status": "pending",
+      "path": "",
+      "owner": "",
+      "evidence": []
+    },
+    "task-ai-natural-language": {
+      "status": "pending",
+      "path": "",
+      "owner": "",
+      "evidence": []
     }
   },
-  "updated_at": "2026-01-31T15:54:02.851623+01:00"
+  "updated_at": "2026-01-31T18:00:00+01:00"
 }

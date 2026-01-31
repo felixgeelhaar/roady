@@ -1,12 +1,13 @@
-id: horizons-7
-title: 'Roady v0.7.0: Platform Maturation'
+id: horizons-8
+title: 'Roady v0.8.0: Developer Platform'
 description: |
-    Roady planning system — v0.7.0 roadmap:
+    Roady planning system — v0.8.0 roadmap:
     - v0.5.0 (complete): Horizons 5 & 6 — predictive analytics, domain hardening, event sourcing.
     - v0.6.0 (complete): Multi-repo org dashboard, plugin contracts, notification webhooks, fsnotify watch,
       coordinator integration into CLI/MCP with snapshot and task queries.
-    - v0.7.0: Complete remaining second-tier features — org policy inheritance, cross-project drift,
-      plugin registry and health, Slack/realtime notifications, watch auto-sync and patterns.
+    - v0.7.0 (complete): Org policy inheritance, cross-project drift, plugin registry and health,
+      Slack/realtime notifications, watch auto-sync and patterns.
+    - v0.8.0: Developer experience polish, API/SDK stability, multi-user collaboration, AI-powered workflows.
 features:
     - id: predictive-velocity
       title: Predictive Velocity Analytics
@@ -364,6 +365,138 @@ features:
           estimate: ""
           depends_on:
             - watch-fsnotify
+    - id: developer-experience
+      title: Developer Experience
+      description: |
+        Shell completions, interactive config wizard, structured error messages,
+        and guided onboarding for new users.
+      requirements:
+        - id: dx-shell-completions
+          title: Shell completions for bash/zsh/fish/powershell
+          description: Cobra shell completions for bash, zsh, fish, and powershell
+          priority: high
+          estimate: ""
+          depends_on: []
+        - id: dx-error-messages
+          title: Structured CLI error types with hints
+          description: Structured CLI error types with actionable hints and suggestions
+          priority: high
+          estimate: ""
+          depends_on: []
+        - id: dx-config-wizard
+          title: Interactive config wizard
+          description: Interactive roady config wizard for ai.yaml and policy.yaml setup
+          priority: medium
+          estimate: ""
+          depends_on:
+            - dx-error-messages
+        - id: dx-onboarding
+          title: Guided onboarding flow
+          description: Guided init flow with templates and first-plan walkthrough
+          priority: medium
+          estimate: ""
+          depends_on:
+            - dx-config-wizard
+            - dx-shell-completions
+    - id: api-sdk-stability
+      title: API & SDK Stability
+      description: |
+        Versioned MCP schema, public Go SDK client, OpenAPI spec generation,
+        and typed client helpers for SDK consumers.
+      requirements:
+        - id: sdk-mcp-schema
+          title: Versioned MCP tool schema
+          description: Versioned MCP tool schema with backward-compatible evolution
+          priority: high
+          estimate: ""
+          depends_on: []
+        - id: sdk-go-client
+          title: Public Go SDK client package
+          description: Public Go client package wrapping MCP JSON-RPC calls
+          priority: high
+          estimate: ""
+          depends_on: []
+        - id: sdk-openapi
+          title: OpenAPI 3.0 spec generation
+          description: OpenAPI 3.0 spec generation from MCP tool registrations
+          priority: medium
+          estimate: ""
+          depends_on:
+            - sdk-mcp-schema
+        - id: sdk-client-helpers
+          title: Typed SDK request/response helpers
+          description: Typed request/response helpers for SDK consumers
+          priority: medium
+          estimate: ""
+          depends_on:
+            - sdk-go-client
+    - id: multi-user-collaboration
+      title: Multi-User Collaboration
+      description: |
+        Task assignment, team roles, optimistic locking for concurrency,
+        and remote workspace sync for shared project state.
+      requirements:
+        - id: collab-task-assignment
+          title: Task assignment with Assignee field
+          description: Add Assignee field to Task, assign/unassign via CLI and MCP
+          priority: high
+          estimate: ""
+          depends_on: []
+        - id: collab-team-roles
+          title: Role-based access (team.yaml)
+          description: Role-based access control in .roady/team.yaml
+          priority: medium
+          estimate: ""
+          depends_on:
+            - collab-task-assignment
+        - id: collab-conflict-resolution
+          title: Optimistic locking for concurrency
+          description: Optimistic locking for concurrent state modifications
+          priority: medium
+          estimate: ""
+          depends_on:
+            - collab-task-assignment
+        - id: collab-shared-workspaces
+          title: Remote workspace sync
+          description: Remote workspace sync for shared project state
+          priority: low
+          estimate: ""
+          depends_on:
+            - collab-conflict-resolution
+            - collab-team-roles
+    - id: ai-powered-workflows
+      title: AI-Powered Workflows
+      description: |
+        AI spec review, auto-prioritization, smart decomposition,
+        and natural language query interface for project status.
+      requirements:
+        - id: ai-spec-review
+          title: AI spec quality review
+          description: AI spec quality review with completeness scoring
+          priority: high
+          estimate: ""
+          depends_on: []
+        - id: ai-auto-prioritize
+          title: AI priority suggestions
+          description: AI task priority suggestions from spec and dependency analysis
+          priority: medium
+          estimate: ""
+          depends_on:
+            - ai-spec-review
+        - id: ai-smart-decompose
+          title: Context-aware task decomposition
+          description: Context-aware decomposition using codebase analysis
+          priority: medium
+          estimate: ""
+          depends_on:
+            - ai-auto-prioritize
+        - id: ai-natural-language
+          title: Natural language query interface
+          description: Natural language query interface for project status
+          priority: low
+          estimate: ""
+          depends_on:
+            - ai-spec-review
 constraints:
     - id: backward-compat
       description: Maintain backward compatibility with existing spec.yaml and plan.json formats
@@ -373,4 +506,4 @@ constraints:
       description: Follow existing DDD patterns and naming conventions
     - id: cli-mcp-parity
       description: All new CLI commands should have corresponding MCP tools
-version: 0.7.0
+version: 0.8.0
