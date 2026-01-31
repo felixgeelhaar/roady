@@ -13,10 +13,13 @@ Designed for individuals, teams, and AI agents, Roady ensures that your developm
 *   **Spec-Driven Inference:** Automatically derive functional specifications from multiple markdown documents (`roady spec analyze`).
 *   **Adaptive AI Planning:** Decompose high-level features into granular task graphs using OpenAI or local Ollama models (`roady plan generate --ai`).
 *   **Deterministic Drift Detection:** Instantly catch misalignments between docs, plans, and code reality (`roady drift detect`).
-*   **Organizational Intelligence:** Discover projects across your machine (`roady discover`) and get unified progress views with aggregated metrics (`roady org status --json`).
+*   **Organizational Intelligence:** Discover projects across your machine (`roady discover`) and get unified progress views with aggregated metrics (`roady org status --json`). Shared policy inheritance lets org-level defaults cascade to projects (`roady org policy`), and cross-project drift detection aggregates issues across all repos (`roady org drift`).
 *   **AI Governance:** Enforce policy-based token limits to control agentic spending.
 *   **Event-Sourced Audit:** Every action is an immutable domain event with hash-chain integrity. Live handlers react to task transitions, drift warnings, and plan changes in real time (`roady audit verify`).
-*   **fsnotify File Watching:** Efficient OS-level file monitoring with configurable debounce replaces polling (`roady watch docs/ --debounce 500ms`).
+*   **Realtime Event Streaming:** Server-Sent Events endpoint streams live events to clients with type filtering and reconnection support.
+*   **fsnotify File Watching:** Efficient OS-level file monitoring with configurable debounce, selective include/exclude glob patterns (`--include "*.md" --exclude "*.tmp"`), and a `--reconcile` flag for full auto-sync workflows (`roady watch docs/ --reconcile`).
+*   **Pluggable Messaging:** Webhook and Slack adapters with a factory registry for event notifications (`roady messaging add/list/test`).
+*   **Plugin Registry & Health:** Register, validate, and monitor syncer plugins with health checks (`roady plugin list/register/validate/status`).
 *   **Outgoing Webhook Notifications:** HMAC-SHA256 signed webhook delivery with retry and dead-letter queue (`roady webhook notif add/list/test`).
 *   **Plugin Contract Testing:** Automated contract test suite validates plugins conform to Syncer interface semantics.
 *   **Continuous Automation:** Watch documents for changes and sync task statuses via Git commit markers (`[roady:task-id]`).
@@ -74,6 +77,18 @@ allow_ai: true        # Enable AI planning
 token_limit: 50000    # Hard budget for AI operations
 ```
 
+Org-level defaults can be set in `.roady/org.yaml` and inherited by all projects:
+
+```yaml
+name: my-org
+shared_policy:
+  max_wip: 5
+  allow_ai: true
+  token_limit: 100000
+```
+
+Project-level values override org defaults. View the merged result with `roady org policy`.
+
 Configure AI provider defaults in `.roady/ai.yaml`:
 
 ```yaml
@@ -123,8 +138,8 @@ See `docs/mcp-guide.md` for the complete MCP documentation, including all availa
 
 Roady is built on clean **Domain-Driven Design (DDD)** principles:
 *   **Domain:** Pure business logic for Specs, Plans, Drift, Policy, and Domain Events. Value objects (`TaskStatus`, `TaskPriority`, `ApprovalStatus`) enforce transitions. An `EventDispatcher` routes events to handlers (logging, drift warnings, task transitions) and projections (velocity, state, audit timeline).
-*   **Infrastructure:** Modern Go stack using `cobra`, `bubbletea`, `mcp-go`, and `fortify`. MCP apps built with Vue 3 + D3.js, compiled to self-contained HTML files via Vite.
-*   **Storage:** Git-friendly YAML/JSON artifacts in `.roady/`. Events stored as hash-chained JSONL via `FileEventStore` with `InMemoryEventPublisher` for live subscriptions.
+*   **Infrastructure:** Modern Go stack using `cobra`, `bubbletea`, `mcp-go`, and `fortify`. Pluggable messaging adapters (webhook, Slack) via factory registry. SSE handler for realtime event streaming. MCP apps built with Vue 3 + D3.js, compiled to self-contained HTML files via Vite.
+*   **Storage:** Git-friendly YAML/JSON artifacts in `.roady/`. Events stored as hash-chained JSONL via `FileEventStore` with `InMemoryEventPublisher` for live subscriptions. Messaging config in `.roady/messaging.yaml`.
 
 ## License
 
