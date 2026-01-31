@@ -202,6 +202,17 @@ type DriftResolved struct {
 }
 
 // =============================================================================
+// File Events
+// =============================================================================
+
+// FileChanged is emitted when a watched file is modified.
+type FileChanged struct {
+	BaseEvent
+	FilePath   string `json:"file_path"`
+	ChangeType string `json:"change_type"` // "create", "write", "remove", "rename"
+}
+
+// =============================================================================
 // Event Type Constants
 // =============================================================================
 
@@ -220,6 +231,7 @@ const (
 	EventTypeDriftDetected    = "drift.detected"
 	EventTypeDriftAccepted    = "drift.accepted"
 	EventTypeDriftResolved    = "drift.resolved"
+	EventTypeFileChanged      = "file.changed"
 )
 
 // AggregateTypes

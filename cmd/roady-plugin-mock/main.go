@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/felixgeelhaar/roady/pkg/domain/planning"
@@ -12,6 +13,9 @@ import (
 type MockSyncer struct{}
 
 func (m *MockSyncer) Init(config map[string]string) error {
+	if config["fail"] == "true" {
+		return fmt.Errorf("mock init failure (fail=true)")
+	}
 	return nil
 }
 

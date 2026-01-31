@@ -1,16 +1,16 @@
 package cli
 
 import (
+	"encoding/json"
 	"fmt"
-	"os"
-	"path/filepath"
 
 	"github.com/charmbracelet/bubbles/table"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/felixgeelhaar/roady/pkg/domain/planning"
-	"github.com/felixgeelhaar/roady/pkg/storage"
+	"github.com/felixgeelhaar/roady/pkg/application"
 	"github.com/spf13/cobra"
 )
+
+var orgJSON bool
 
 var orgCmd = &cobra.Command{
 	Use:   "org",
@@ -26,20 +26,23 @@ var orgStatusCmd = &cobra.Command{
 			root = args[0]
 		}
 
-		projects := []string{}
-		_ = filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
-			if err != nil {
-				return nil
-			}
-			if info.IsDir() && info.Name() == ".roady" {
-				projects = append(projects, filepath.Dir(path))
-				return filepath.SkipDir
-			}
-			return nil
-		})
+		svc := application.NewOrgService(root)
+		metrics, err := svc.AggregateMetrics()
+		if err != nil {
+			return err
+		}
 
-		if len(projects) == 0 {
+		if len(metrics.Projects) == 0 {
 			fmt.Println("No Roady projects found.")
+			return nil
+		}
+
+		if orgJSON {
+			data, err := json.MarshalIndent(metrics, "", "  ")
+			if err != nil {
+				return err
+			}
+			fmt.Println(string(data))
 			return nil
 		}
 
@@ -53,48 +56,34 @@ var orgStatusCmd = &cobra.Command{
 		}
 
 		rows := []table.Row{}
-		for _, p := range projects {
-			repo := storage.NewFilesystemRepository(p)
-			spec, _ := repo.LoadSpec()
-			plan, _ := repo.LoadPlan()
-			state, _ := repo.LoadState()
-
-			name := filepath.Base(p)
-			if spec != nil {
-				name = spec.Title
-			}
-
-			verified, wip, total := 0, 0, 0
+		for _, pm := range metrics.Projects {
 			progress := "0%"
-			if plan != nil {
-				total = len(plan.Tasks)
-				for _, t := range plan.Tasks {
-					if state != nil {
-						if res, ok := state.TaskStates[t.ID]; ok {
-							if res.Status == planning.StatusVerified {
-								verified++
-							}
-							if res.Status == planning.StatusInProgress {
-								wip++
-							}
-						}
-					}
-				}
-				if total > 0 {
-					progress = fmt.Sprintf("%.1f%%", float64(verified)/float64(total)*100)
-				}
+			if pm.Total > 0 {
+				progress = fmt.Sprintf("%.1f%%", pm.Progress)
 			}
-
-			abs, _ := filepath.Abs(p)
 			rows = append(rows, table.Row{
-				name,
+				pm.Name,
 				progress,
-				fmt.Sprintf("%d", verified),
-				fmt.Sprintf("%d", wip),
-				fmt.Sprintf("%d", total),
-				abs,
+				fmt.Sprintf("%d", pm.Verified),
+				fmt.Sprintf("%d", pm.WIP),
+				fmt.Sprintf("%d", pm.Total),
+				pm.Path,
 			})
 		}
+
+		// Summary row
+		avgProgress := "0%"
+		if metrics.TotalProjects > 0 {
+			avgProgress = fmt.Sprintf("%.1f%%", metrics.AvgProgress)
+		}
+		rows = append(rows, table.Row{
+			fmt.Sprintf("TOTAL (%d)", metrics.TotalProjects),
+			avgProgress,
+			fmt.Sprintf("%d", metrics.TotalVerified),
+			fmt.Sprintf("%d", metrics.TotalWIP),
+			fmt.Sprintf("%d", metrics.TotalTasks),
+			"",
+		})
 
 		t := table.New(
 			table.WithColumns(columns),
@@ -107,16 +96,17 @@ var orgStatusCmd = &cobra.Command{
 			BorderStyle(lipgloss.NormalBorder()).
 			BorderForeground(lipgloss.Color("240")).
 			Bold(true)
-		s.Selected = lipgloss.NewStyle() // Disable selection style for static view
+		s.Selected = lipgloss.NewStyle()
 		t.SetStyles(s)
 
-		fmt.Printf("Organizational Status (%d projects)\n", len(projects))
+		fmt.Printf("Organizational Status (%d projects)\n", metrics.TotalProjects)
 		fmt.Println(t.View())
 		return nil
 	},
 }
 
 func init() {
+	orgStatusCmd.Flags().BoolVar(&orgJSON, "json", false, "Output as JSON")
 	orgCmd.AddCommand(orgStatusCmd)
 	RootCmd.AddCommand(orgCmd)
 }

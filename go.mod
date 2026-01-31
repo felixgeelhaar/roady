@@ -10,6 +10,7 @@ require (
 	github.com/felixgeelhaar/jirasdk v1.5.2
 	github.com/felixgeelhaar/mcp-go v1.6.2
 	github.com/felixgeelhaar/statekit v1.0.1
+	github.com/fsnotify/fsnotify v1.9.0
 	github.com/google/go-github/v69 v69.2.0
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/websocket v1.5.3

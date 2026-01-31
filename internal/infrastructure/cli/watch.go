@@ -1,14 +1,21 @@
 package cli
 
 import (
+	"context"
 	"fmt"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
+	"github.com/felixgeelhaar/roady/internal/infrastructure/watch"
 	"github.com/spf13/cobra"
 )
 
-var autoSync bool
+var (
+	autoSync        bool
+	debounceWindow  time.Duration
+)
 
 var watchCmd = &cobra.Command{
 
@@ -39,55 +46,80 @@ var watchCmd = &cobra.Command{
 			lastHash = seed
 		}
 		once := os.Getenv("ROADY_WATCH_ONCE") == "true"
-		for {
 
+		handleChange := func(_ watch.ChangeEvent) {
 			currentSpec, err := specSvc.AnalyzeDirectory(dir)
-			if err == nil {
+			if err != nil {
+				return
+			}
 
-				currentHash := currentSpec.Hash()
-				if currentHash != lastHash {
+			currentHash := currentSpec.Hash()
+			if currentHash == lastHash {
+				return
+			}
 
-					if lastHash != "" {
-						fmt.Printf("\nDocumentation change detected at %s\n", time.Now().Format("15:04:05"))
+			if lastHash != "" {
+				fmt.Printf("\nDocumentation change detected at %s\n", time.Now().Format("15:04:05"))
 
-						if autoSync {
-							fmt.Println("Autonomous Reconciliation: Synchronizing plan with new intent...")
-
-							if _, err := aiSvc.DecomposeSpec(cmd.Context()); err != nil {
-								fmt.Printf("Auto-sync failed: %v\n", err)
-							} else {
-								fmt.Println("Plan successfully synchronized.")
-							}
-						}
-
-						// 2. Detect Drift Automatically
-						report, err := driftSvc.DetectDrift(cmd.Context())
-						if err == nil && len(report.Issues) > 0 {
-							fmt.Printf("Drift detected: %d issues found.\n", len(report.Issues))
-							for _, iss := range report.Issues {
-								fmt.Printf("  - [%s] %s\n", iss.Severity, iss.Message)
-							}
-						} else {
-							fmt.Println("Intent and Plan are in sync.")
-						}
-
+				if autoSync {
+					fmt.Println("Autonomous Reconciliation: Synchronizing plan with new intent...")
+					if _, err := aiSvc.DecomposeSpec(cmd.Context()); err != nil {
+						fmt.Printf("Auto-sync failed: %v\n", err)
+					} else {
+						fmt.Println("Plan successfully synchronized.")
 					}
-					lastHash = currentHash
 				}
 
+				report, err := driftSvc.DetectDrift(cmd.Context())
+				if err == nil && len(report.Issues) > 0 {
+					fmt.Printf("Drift detected: %d issues found.\n", len(report.Issues))
+					for _, iss := range report.Issues {
+						fmt.Printf("  - [%s] %s\n", iss.Severity, iss.Message)
+					}
+				} else {
+					fmt.Println("Intent and Plan are in sync.")
+				}
 			}
-
-			time.Sleep(2 * time.Second)
-			if once {
-				return nil
-			}
-
+			lastHash = currentHash
 		}
 
+		// Single-pass mode for testing
+		if once {
+			handleChange(watch.ChangeEvent{})
+			return nil
+		}
+
+		// Use fsnotify-based watcher
+		watcher, err := watch.NewFSWatcher(debounceWindow, handleChange)
+		if err != nil {
+			return fmt.Errorf("create watcher: %w", err)
+		}
+
+		if err := watcher.WatchRecursive(dir); err != nil {
+			return fmt.Errorf("watch directory: %w", err)
+		}
+
+		// Perform initial analysis
+		handleChange(watch.ChangeEvent{})
+
+		// Graceful shutdown on signal
+		ctx, cancel := context.WithCancel(cmd.Context())
+		defer cancel()
+
+		sigCh := make(chan os.Signal, 1)
+		signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
+		go func() {
+			<-sigCh
+			fmt.Println("\nStopping watcher...")
+			cancel()
+		}()
+
+		return watcher.Run(ctx)
 	},
 }
 
 func init() {
 	watchCmd.Flags().BoolVar(&autoSync, "auto-sync", false, "Automatically regenerate plan on documentation changes")
+	watchCmd.Flags().DurationVar(&debounceWindow, "debounce", 500*time.Millisecond, "Debounce window for file change events")
 	RootCmd.AddCommand(watchCmd)
 }

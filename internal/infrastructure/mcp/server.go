@@ -27,6 +27,7 @@ type Server struct {
 	depSvc       *application.DependencyService
 	debtSvc      *application.DebtService
 	forecastSvc  *application.ForecastService
+	orgSvc       *application.OrgService
 }
 
 var (
@@ -76,6 +77,7 @@ func NewServer(root string) (*Server, error) {
 		depSvc:      services.Dependency,
 		debtSvc:     services.Debt,
 		forecastSvc: services.Forecast,
+		orgSvc:      application.NewOrgService(root),
 	}
 
 	s.registerTools()
@@ -357,8 +359,15 @@ func (s *Server) handleForecast(ctx context.Context, args struct{}) (any, error)
 }
 
 func (s *Server) handleOrgStatus(ctx context.Context, args struct{}) (any, error) {
-	// Simple string return for this prototype
-	return "Organizational status check initiated. Use CLI for full table view.", nil
+	orgSvc := s.orgSvc
+	if orgSvc == nil {
+		return "Org service not available.", nil
+	}
+	metrics, err := orgSvc.AggregateMetrics()
+	if err != nil {
+		return nil, mcpErr("Failed to aggregate org metrics.")
+	}
+	return metrics, nil
 }
 
 func (s *Server) handleGitSync(ctx context.Context, args struct{}) (any, error) {

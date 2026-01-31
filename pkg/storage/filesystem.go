@@ -11,6 +11,7 @@ import (
 
 	"github.com/felixgeelhaar/fortify/retry"
 	"github.com/felixgeelhaar/roady/pkg/domain"
+	"github.com/felixgeelhaar/roady/pkg/domain/events"
 	"github.com/felixgeelhaar/roady/pkg/domain/spec"
 	"gopkg.in/yaml.v3"
 )
@@ -23,6 +24,8 @@ const PolicyFile = "policy.yaml"
 const StateFile = "state.json"
 const EventsFile = "events.jsonl"
 const UsageFile = "usage.json"
+const WebhookFile = "webhooks.yaml"
+const DeadLetterFile = "deadletters.jsonl"
 
 type FilesystemRepository struct {
 	root        string
@@ -175,4 +178,40 @@ func (r *FilesystemRepository) LoadUsage() (*domain.UsageStats, error) {
 	}
 
 	return &stats, nil
+}
+
+// SaveWebhookConfig saves the webhook configuration to .roady/webhooks.yaml.
+func (r *FilesystemRepository) SaveWebhookConfig(config *events.WebhookConfig) error {
+	path, err := r.ResolvePath(WebhookFile)
+	if err != nil {
+		return err
+	}
+
+	data, err := yaml.Marshal(config)
+	if err != nil {
+		return fmt.Errorf("failed to marshal webhook config: %w", err)
+	}
+
+	return os.WriteFile(path, data, 0600)
+}
+
+// LoadWebhookConfig loads the webhook configuration from .roady/webhooks.yaml.
+func (r *FilesystemRepository) LoadWebhookConfig() (*events.WebhookConfig, error) {
+	path, err := r.ResolvePath(WebhookFile)
+	if err != nil {
+		return nil, err
+	}
+
+	// #nosec G304 -- Path is resolved and validated via ResolvePath
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read webhook config: %w", err)
+	}
+
+	var config events.WebhookConfig
+	if err := yaml.Unmarshal(data, &config); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal webhook config: %w", err)
+	}
+
+	return &config, nil
 }

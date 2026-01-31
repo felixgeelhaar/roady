@@ -1,6 +1,7 @@
 package wiring
 
 import (
+	"context"
 	"fmt"
 	"path/filepath"
 
@@ -112,6 +113,15 @@ func buildServicesWithProvider(workspace *Workspace, root string, provider domai
 	publisher.Subscribe(func(e *events.BaseEvent) error {
 		return velocityProjection.Apply(e)
 	})
+
+	// Subscribe webhook notifier to live events if configured
+	if workspace.Notifier != nil {
+		notifier := workspace.Notifier
+		publisher.Subscribe(func(e *events.BaseEvent) error {
+			notifier.Notify(context.Background(), e)
+			return nil
+		})
+	}
 
 	forecastSvc := application.NewForecastService(velocityProjection, workspace.Repo)
 
