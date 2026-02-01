@@ -99,13 +99,13 @@ function renderBurndownChart(container: HTMLElement, data: BurndownPoint[], tota
     .attr("font-size", "10px")
     .text("Tasks remaining");
 
-  // Actual burndown line
-  const actualPoints = points.filter(d => d.actual > 0);
+  // Actual burndown line — a point is "actual" unless it's projected-only (actual=0 AND projected>0)
+  const actualPoints = points.filter(d => !(d.actual === 0 && d.projected > 0));
   if (actualPoints.length > 0) {
     const line = d3.line<typeof actualPoints[0]>()
       .x(d => x(d.date))
       .y(d => y(d.actual))
-      .curve(d3.curveMonotoneX);
+      .curve(d3.curveLinear);
 
     svg.append("path")
       .datum(actualPoints)
@@ -131,7 +131,7 @@ function renderBurndownChart(container: HTMLElement, data: BurndownPoint[], tota
     const projLine = d3.line<typeof projectedPoints[0]>()
       .x(d => x(d.date))
       .y(d => y(d.projected))
-      .curve(d3.curveMonotoneX);
+      .curve(d3.curveLinear);
 
     svg.append("path")
       .datum(projectedPoints)

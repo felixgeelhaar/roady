@@ -371,6 +371,9 @@ func (p *ExtendedVelocityProjection) getHistoricalBurndown(totalTasks int) []ana
 			currentDay = day
 		}
 		remaining--
+		if remaining < 0 {
+			remaining = 0
+		}
 	}
 
 	// Add final day
