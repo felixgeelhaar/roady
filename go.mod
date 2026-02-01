@@ -8,7 +8,7 @@ require (
 	github.com/charmbracelet/lipgloss v1.1.0
 	github.com/felixgeelhaar/fortify v1.1.2
 	github.com/felixgeelhaar/jirasdk v1.5.2
-	github.com/felixgeelhaar/mcp-go v1.6.2
+	github.com/felixgeelhaar/mcp-go v1.6.3
 	github.com/felixgeelhaar/statekit v1.0.1
 	github.com/fsnotify/fsnotify v1.9.0
 	github.com/google/go-github/v69 v69.2.0

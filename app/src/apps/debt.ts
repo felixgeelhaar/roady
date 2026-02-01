@@ -109,7 +109,7 @@ const RoadyDebt = defineComponent({
         <button v-for="tab in ['summary', 'report', 'sticky', 'trend']" :key="tab"
           :class="activeTab === tab ? 'bg-blue-500 text-white' : 'bg-gray-200'"
           class="px-3 py-1 text-xs rounded hover:opacity-80"
-          @click="loadTab(tab as any)">
+          @click="loadTab(tab)">
           {{ tab }}
         </button>
       </div>
@@ -120,16 +120,16 @@ const RoadyDebt = defineComponent({
           <div class="flex gap-6 items-start mb-3">
             <div ref="chartEl" style="position:relative"></div>
             <div class="grid grid-cols-2 gap-3 flex-1">
-              <div class="border rounded p-2 text-center" v-if="(data as any).total_items != null">
-                <div class="text-lg font-bold">{{ (data as any).total_items }}</div>
+              <div class="border rounded p-2 text-center" v-if="data.total_items != null">
+                <div class="text-lg font-bold">{{ data.total_items }}</div>
                 <div class="text-xs text-gray-500">Total Items</div>
               </div>
-              <div class="border rounded p-2 text-center" v-if="(data as any).sticky_items != null">
-                <div class="text-lg font-bold">{{ (data as any).sticky_items }}</div>
+              <div class="border rounded p-2 text-center" v-if="data.sticky_items != null">
+                <div class="text-lg font-bold">{{ data.sticky_items }}</div>
                 <div class="text-xs text-gray-500">Sticky Items</div>
               </div>
-              <div class="border rounded p-2 text-center" v-if="(data as any).health_level">
-                <StatusBadge :status="(data as any).health_level" />
+              <div class="border rounded p-2 text-center" v-if="data.health_level">
+                <StatusBadge :status="data.health_level" />
                 <div class="text-xs text-gray-500 mt-1">Health Level</div>
               </div>
             </div>
@@ -147,16 +147,16 @@ const RoadyDebt = defineComponent({
         <!-- Trend tab: line chart -->
         <template v-else-if="activeTab === 'trend'">
           <div ref="chartEl" style="position:relative" class="mb-3"></div>
-          <div v-if="(data as any).direction" class="text-sm text-gray-600">
-            Direction: <strong>{{ (data as any).direction }}</strong>
-            <span v-if="(data as any).change != null"> (change: {{ (data as any).change }})</span>
+          <div v-if="data.direction" class="text-sm text-gray-600">
+            Direction: <strong>{{ data.direction }}</strong>
+            <span v-if="data.change != null"> (change: {{ data.change }})</span>
           </div>
         </template>
 
         <!-- Sticky tab: card list -->
         <template v-else-if="activeTab === 'sticky'">
           <div v-if="Array.isArray(data)" class="space-y-2">
-            <div v-for="(item, i) in (data as any[])" :key="i" class="border rounded p-2">
+            <div v-for="(item, i) in data" :key="i" class="border rounded p-2">
               <div class="font-medium text-sm">{{ item.type || item.id || 'Issue ' + (i+1) }}</div>
               <div class="text-xs text-gray-500">{{ item.description || item.message || JSON.stringify(item) }}</div>
             </div>

@@ -86,7 +86,7 @@ const RoadySync = defineComponent({
           <div ref="donutEl" style="position:relative;flex-shrink:0"></div>
           <div class="flex-1">
             <div v-if="data.results" class="space-y-1">
-              <div v-for="r in (data.results as any[])" :key="r.task_id" class="border rounded p-2 flex items-center gap-2">
+              <div v-for="r in data.results" :key="r.task_id" class="border rounded p-2 flex items-center gap-2">
                 <StatusBadge :status="r.status === 'synced' ? 'done' : r.status === 'failed' ? 'blocked' : 'pending'" />
                 <span class="text-sm">{{ r.task_id }}</span>
                 <span v-if="r.message" class="text-xs text-gray-400 ml-auto">{{ r.message }}</span>

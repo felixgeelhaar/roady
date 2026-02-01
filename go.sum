@@ -36,8 +36,8 @@ github.com/felixgeelhaar/fortify v1.1.2 h1:v/413a60nA9dusR0jOrI7wtaL67gtyH4nUO0x
 github.com/felixgeelhaar/fortify v1.1.2/go.mod h1:SXyIu11ChgBHTX+7gmVdUwIcpC0udaH8tRp05tUl3S4=
 github.com/felixgeelhaar/jirasdk v1.5.2 h1:Q7P/wbF2ptQH8EBI+iqPXyLlYSdQ3L+YYCWW3NLV7XU=
 github.com/felixgeelhaar/jirasdk v1.5.2/go.mod h1:qYjNotQkGQKuwCuz/BJ6y68Xanbqejldd4ur2wlO7i4=
-github.com/felixgeelhaar/mcp-go v1.6.2 h1:ZH6CbaetZEWiONqPKEsk8Aq1eDuMBdp3CzqlZYnzb6Y=
-github.com/felixgeelhaar/mcp-go v1.6.2/go.mod h1:YQo2nWhXhJcu/b9QO65kz50fV3+1f5B+cg73dGLCeL8=
+github.com/felixgeelhaar/mcp-go v1.6.3 h1:2KX1A9uJpQDqiOJ36WVr44btt+UktFAWpgrAEJrlMhs=
+github.com/felixgeelhaar/mcp-go v1.6.3/go.mod h1:YQo2nWhXhJcu/b9QO65kz50fV3+1f5B+cg73dGLCeL8=
 github.com/felixgeelhaar/statekit v1.0.1 h1:tW1QnLQOKC1L4cXR/lqhLLv/KoKtNTa9Kfaj2psjiiM=
 github.com/felixgeelhaar/statekit v1.0.1/go.mod h1:dg0ZE7IKw8E+KNdYit8hqpNZXlanokaWLB1FB/TdDWs=
 github.com/fsnotify/fsnotify v1.9.0 h1:2Ml+OJNzbYCTzsxtv8vKSFD9PbJjmhYF14k/jKC7S9k=

@@ -2,7 +2,7 @@ import "@/style.css";
 import { createApp as createVueApp } from "vue";
 import { createApp, extractText, callTool, type ToolResult } from "@/lib/mcp";
 import StatusBadge from "@/components/StatusBadge.vue";
-import { defineComponent, ref, watch, nextTick } from "vue";
+import { defineComponent, ref, watch, nextTick, onMounted } from "vue";
 import { renderDonut, type DonutDatum } from "@/lib/d3-charts";
 
 const app = createApp("Roady Status");
@@ -13,6 +13,7 @@ const RoadyStatus = defineComponent({
     const data = ref<Record<string, unknown> | null>(null);
     const raw = ref("");
     const loading = ref(true);
+    const error = ref("");
     const filter = ref<string | null>(null);
     const donutEl = ref<HTMLElement | null>(null);
 
@@ -27,7 +28,9 @@ const RoadyStatus = defineComponent({
       }
     }
 
-    app.ontoolresult = load;
+    app.ontoolresult = (result: ToolResult) => {
+      load(result);
+    };
 
     async function refresh() {
       loading.value = true;
@@ -46,9 +49,15 @@ const RoadyStatus = defineComponent({
       renderDonut(donutEl.value, donutData, { width: 200, height: 200, onClick: onDonutClick });
     });
 
-    app.connect();
+    // Connect after Vue has mounted to avoid blocking render
+    onMounted(() => {
+      app.connect().catch((e: unknown) => {
+        error.value = String(e);
+        console.error("MCP connect failed:", e);
+      });
+    });
 
-    return { data, raw, loading, refresh, filter, donutEl };
+    return { data, raw, loading, error, refresh, filter, donutEl };
   },
   template: `
     <div>
@@ -56,6 +65,7 @@ const RoadyStatus = defineComponent({
         <h1>Project Status</h1>
         <button class="px-3 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600" @click="refresh">Refresh</button>
       </div>
+      <div v-if="error" class="text-red-500 text-xs mb-2">Error: {{ error }}</div>
       <div v-if="loading" class="text-gray-400">Loading...</div>
       <template v-else-if="data">
         <div class="flex gap-6 mb-4">
@@ -75,7 +85,7 @@ const RoadyStatus = defineComponent({
           </div>
         </div>
         <div v-if="data.tasks && filter" class="space-y-1">
-          <div v-for="t in (data.tasks as any[]).filter((t: any) => t.status === filter)" :key="t.id" class="border rounded p-2 flex items-center gap-2">
+          <div v-for="t in data.tasks.filter(t => t.status === filter)" :key="t.id" class="border rounded p-2 flex items-center gap-2">
             <StatusBadge :status="t.status" />
             <span class="text-sm">{{ t.title || t.id }}</span>
           </div>
