@@ -1,102 +1,128 @@
 {
   "project_id": "test-refactor",
   "task_states": {
-    "task-dx-shell-completions": {
-      "status": "pending",
-      "path": "",
-      "owner": "",
-      "evidence": []
-    },
-    "task-dx-error-messages": {
-      "status": "pending",
-      "path": "",
-      "owner": "",
-      "evidence": []
-    },
-    "task-dx-config-wizard": {
-      "status": "pending",
-      "path": "",
-      "owner": "",
-      "evidence": []
-    },
-    "task-dx-onboarding": {
-      "status": "pending",
-      "path": "",
-      "owner": "",
-      "evidence": []
-    },
-    "task-sdk-mcp-schema": {
-      "status": "pending",
-      "path": "",
-      "owner": "",
-      "evidence": []
-    },
-    "task-sdk-go-client": {
-      "status": "pending",
-      "path": "",
-      "owner": "",
-      "evidence": []
-    },
-    "task-sdk-openapi": {
-      "status": "pending",
-      "path": "",
-      "owner": "",
-      "evidence": []
-    },
-    "task-sdk-client-helpers": {
-      "status": "pending",
-      "path": "",
-      "owner": "",
-      "evidence": []
-    },
-    "task-collab-assignment": {
-      "status": "pending",
-      "path": "",
-      "owner": "",
-      "evidence": []
-    },
-    "task-collab-team-roles": {
-      "status": "pending",
-      "path": "",
-      "owner": "",
-      "evidence": []
-    },
-    "task-collab-conflict": {
-      "status": "pending",
-      "path": "",
-      "owner": "",
-      "evidence": []
-    },
-    "task-collab-shared": {
-      "status": "pending",
-      "path": "",
-      "owner": "",
-      "evidence": []
-    },
-    "task-ai-spec-review": {
-      "status": "pending",
-      "path": "",
-      "owner": "",
-      "evidence": []
-    },
     "task-ai-auto-prioritize": {
-      "status": "pending",
+      "status": "done",
       "path": "",
-      "owner": "",
-      "evidence": []
-    },
-    "task-ai-smart-decompose": {
-      "status": "pending",
-      "path": "",
-      "owner": "",
-      "evidence": []
+      "owner": "ai-agent",
+      "evidence": [
+        "Added SuggestPriorities to AIPlanningService, PrioritySuggestions domain types, MCP tool roady_suggest_priorities, CLI roady plan prioritize, SDK method and types"
+      ]
     },
     "task-ai-natural-language": {
-      "status": "pending",
+      "status": "done",
       "path": "",
-      "owner": "",
-      "evidence": []
+      "owner": "ai-agent",
+      "evidence": [
+        "Added QueryProject to AIPlanningService, MCP tool roady_query, CLI roady query command, SDK method QueryProject"
+      ]
+    },
+    "task-ai-smart-decompose": {
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "Added SmartDecompose with codebase scanner, file-level suggestions, complexity estimates. CLI: roady plan smart-decompose. MCP: roady_smart_decompose. SDK method added."
+      ]
+    },
+    "task-ai-spec-review": {
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "Implemented ReviewSpec in ai_planning_service.go, MCP tool roady_review_spec, CLI roady spec review, SDK method, domain types, and tests"
+      ]
+    },
+    "task-collab-assignment": {
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "Implemented AssignTask in TaskService, MCP tool roady_assign_task, CLI roady task assign, SDK AssignTask, actor passthrough on transition, owner in status JSON"
+      ]
+    },
+    "task-collab-conflict": {
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "Added Version field to ExecutionState, optimistic locking in SaveState with ConflictError, tests for conflict detection"
+      ]
+    },
+    "task-collab-shared": {
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "Added git-based workspace sync: WorkspaceSyncService with push/pull, conflict detection via stash/pop, CLI (roady workspace push/pull), MCP tools, SDK methods"
+      ]
+    },
+    "task-collab-team-roles": {
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "Implemented team domain types, storage, service, CLI (roady team add/list/remove), MCP tools, and SDK methods"
+      ]
+    },
+    "task-dx-config-wizard": {
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "Added roady config wizard CLI command with interactive stdin-based setup for ai.yaml and policy.yaml configuration"
+      ]
+    },
+    "task-dx-error-messages": {
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent"
+    },
+    "task-dx-onboarding": {
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "Added starter templates (minimal, web-api, cli-tool, library), --template flag, guided onboarding with --interactive, next-steps walkthrough"
+      ]
+    },
+    "task-dx-shell-completions": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar"
+    },
+    "task-sdk-client-helpers": {
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "Added pkg/sdk/helpers.go with typed request/response helpers: StatusTyped, TransitionTaskTyped, DebtReportTyped, DebtSummaryTyped, DebtTrendTyped, DepsGraphTyped, OrgStatusTyped, OrgPolicyTyped, CheckPolicyTyped"
+      ]
+    },
+    "task-sdk-go-client": {
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "pkg/sdk/ — doc.go, options.go, errors.go, types.go, client.go, client_test.go"
+      ]
+    },
+    "task-sdk-mcp-schema": {
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "Implemented SchemaInfo types, GetSchema(), Compatible(), version.go, and tests in pkg/sdk/"
+      ]
+    },
+    "task-sdk-openapi": {
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "Added openapi.go with GenerateOpenAPI() that introspects MCP tools, openapi_test.go, CLI roady openapi command, and Server.OpenAPI() method"
+      ]
     }
   },
-  "updated_at": "2026-01-31T18:00:00+01:00"
+  "updated_at": "2026-02-01T11:46:12.036446+01:00"
 }

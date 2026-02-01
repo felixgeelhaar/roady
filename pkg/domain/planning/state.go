@@ -1,12 +1,26 @@
 package planning
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
 
 // ExecutionState represents the current reality of the project execution.
 type ExecutionState struct {
 	ProjectID  string                `json:"project_id"`
+	Version    int                   `json:"version"`
 	TaskStates map[string]TaskResult `json:"task_states"` // TaskID -> Result
 	UpdatedAt  time.Time             `json:"updated_at"`
+}
+
+// ConflictError is returned when a save fails due to a version mismatch.
+type ConflictError struct {
+	Expected int
+	Actual   int
+}
+
+func (e *ConflictError) Error() string {
+	return fmt.Sprintf("conflict: expected version %d but found %d; reload and retry", e.Expected, e.Actual)
 }
 
 // TaskResult captures the progress of a single task.

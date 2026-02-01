@@ -45,7 +45,7 @@
     },
     {
       "id": "task-sdk-mcp-schema",
-      "title": "Versioned MCP tool schema (API & SDK Stability)",
+      "title": "Versioned MCP tool schema (API \u0026 SDK Stability)",
       "description": "Versioned MCP tool schema with backward-compatible evolution. Add schema version field, support schema negotiation, document migration paths.",
       "priority": "high",
       "estimate": "",
@@ -54,7 +54,7 @@
     },
     {
       "id": "task-sdk-go-client",
-      "title": "Public Go SDK client package (API & SDK Stability)",
+      "title": "Public Go SDK client package (API \u0026 SDK Stability)",
       "description": "Public Go client package wrapping MCP JSON-RPC calls. Typed methods for each MCP tool, connection management, retry support.",
       "priority": "high",
       "estimate": "",
@@ -63,7 +63,7 @@
     },
     {
       "id": "task-sdk-openapi",
-      "title": "OpenAPI 3.0 spec generation (API & SDK Stability)",
+      "title": "OpenAPI 3.0 spec generation (API \u0026 SDK Stability)",
       "description": "OpenAPI 3.0 spec generation from MCP tool registrations. Auto-generate OpenAPI spec from registered MCP tools, serve via HTTP endpoint.",
       "priority": "medium",
       "estimate": "",
@@ -74,7 +74,7 @@
     },
     {
       "id": "task-sdk-client-helpers",
-      "title": "Typed SDK request/response helpers (API & SDK Stability)",
+      "title": "Typed SDK request/response helpers (API \u0026 SDK Stability)",
       "description": "Typed request/response helpers for SDK consumers. Code-generated types from MCP schema, marshaling utilities, error type mapping.",
       "priority": "medium",
       "estimate": "",
@@ -169,7 +169,7 @@
       "feature_id": "ai-powered-workflows"
     }
   ],
-  "approval_status": "pending",
+  "approval_status": "approved",
   "created_at": "2026-01-31T18:00:00+01:00",
   "updated_at": "2026-01-31T18:00:00+01:00"
 }

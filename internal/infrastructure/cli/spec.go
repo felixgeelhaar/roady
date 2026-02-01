@@ -32,7 +32,7 @@ var specExplainCmd = &cobra.Command{
 
 		explanation, err := service.ExplainSpec(cmd.Context())
 		if err != nil {
-			return fmt.Errorf("failed to explain spec: %w", err)
+			return MapError(fmt.Errorf("failed to explain spec: %w", err))
 		}
 
 		fmt.Println("\n--- Spec Explanation ---")
@@ -54,7 +54,7 @@ var specImportCmd = &cobra.Command{
 
 		spec, err := service.ImportFromMarkdown(filePath)
 		if err != nil {
-			return fmt.Errorf("failed to import spec: %w", err)
+			return MapError(fmt.Errorf("failed to import spec: %w", err))
 		}
 
 		fmt.Printf("Successfully imported spec '%s' with %d features.\n", spec.Title, len(spec.Features))
@@ -71,7 +71,7 @@ var specValidateCmd = &cobra.Command{
 		repo := wiring.NewWorkspace(cwd).Repo
 		spec, err := repo.LoadSpec()
 		if err != nil {
-			return fmt.Errorf("failed to load/parse spec: %w", err)
+			return MapError(fmt.Errorf("failed to load/parse spec: %w", err))
 		}
 
 		errs := spec.Validate()
@@ -106,7 +106,7 @@ var specAnalyzeCmd = &cobra.Command{
 
 		spec, err := service.AnalyzeDirectory(dir)
 		if err != nil {
-			return fmt.Errorf("failed to analyze directory: %w", err)
+			return MapError(fmt.Errorf("failed to analyze directory: %w", err))
 		}
 
 		if reconcileSpec {
@@ -142,11 +142,50 @@ var specAddCmd = &cobra.Command{
 		title, desc := args[0], args[1]
 		spec, err := service.AddFeature(title, desc)
 		if err != nil {
-			return fmt.Errorf("failed to add feature: %w", err)
+			return MapError(fmt.Errorf("failed to add feature: %w", err))
 		}
 
 		fmt.Printf("Successfully added feature '%s'. (Total features: %d)\n", title, len(spec.Features))
 		fmt.Println("Intent synced to docs/backlog.md")
+		return nil
+	},
+}
+
+var specReviewCmd = &cobra.Command{
+	Use:   "review",
+	Short: "Perform an AI-powered quality review of the current spec",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		cwd, _ := os.Getwd()
+		workspace := wiring.NewWorkspace(cwd)
+		repo := workspace.Repo
+		audit := workspace.Audit
+
+		provider, err := wiring.LoadAIProvider(cwd)
+		if err != nil {
+			return err
+		}
+		planSvc := application.NewPlanService(repo, audit)
+		service := application.NewAIPlanningService(repo, provider, audit, planSvc)
+
+		review, err := service.ReviewSpec(cmd.Context())
+		if err != nil {
+			return MapError(fmt.Errorf("failed to review spec: %w", err))
+		}
+
+		fmt.Printf("\n--- Spec Quality Review (Score: %d/100) ---\n", review.Score)
+		fmt.Println(review.Summary)
+		if len(review.Findings) > 0 {
+			fmt.Println("\nFindings:")
+			for _, f := range review.Findings {
+				featureTag := ""
+				if f.FeatureID != "" {
+					featureTag = fmt.Sprintf(" [%s]", f.FeatureID)
+				}
+				fmt.Printf("  [%s] %s%s: %s\n", f.Severity, f.Category, featureTag, f.Title)
+				fmt.Printf("         → %s\n", f.Suggestion)
+			}
+		}
+		fmt.Println("-------------------------------------------")
 		return nil
 	},
 }
@@ -157,6 +196,7 @@ func init() {
 	specCmd.AddCommand(specImportCmd)
 	specCmd.AddCommand(specValidateCmd)
 	specCmd.AddCommand(specExplainCmd)
+	specCmd.AddCommand(specReviewCmd)
 	specCmd.AddCommand(specAnalyzeCmd)
 	RootCmd.AddCommand(specCmd)
 }

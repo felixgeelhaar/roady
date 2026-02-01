@@ -646,6 +646,244 @@ func (s *AIPlanningService) ExplainSpec(ctx context.Context) (string, error) {
 	return resp.Text, nil
 }
 
+func (s *AIPlanningService) ReviewSpec(ctx context.Context) (*spec.SpecReview, error) {
+	// 1. Check Policy
+	cfg, err := s.repo.LoadPolicy()
+	if err != nil {
+		return nil, err
+	}
+	if !cfg.AllowAI {
+		return nil, fmt.Errorf("AI usage is disabled by project policy")
+	}
+
+	// 2. Load Spec
+	productSpec, err := s.repo.LoadSpec()
+	if err != nil {
+		return nil, fmt.Errorf("load spec: %w", err)
+	}
+
+	// 3. Build Prompt
+	prompt := fmt.Sprintf(`Review the following product specification for quality.
+Evaluate: completeness, clarity, ambiguity, dependencies, priority balance, and testability.
+
+Return ONLY a JSON object with no surrounding text, no markdown, and no code fences.
+
+Format:
+{
+  "score": <0-100>,
+  "summary": "<brief overall assessment>",
+  "findings": [
+    {
+      "category": "<completeness|clarity|ambiguity|dependency|priority|testability>",
+      "severity": "<info|warning|critical>",
+      "feature_id": "<feature ID or empty string if spec-level>",
+      "title": "<short finding title>",
+      "suggestion": "<actionable suggestion>"
+    }
+  ]
+}
+
+Specification: %s
+Description: %s
+Features:
+`, productSpec.Title, productSpec.Description)
+
+	for _, f := range productSpec.Features {
+		prompt += fmt.Sprintf("- Feature: %s (ID: %s)\n  Description: %s\n", f.Title, f.ID, f.Description)
+		for _, r := range f.Requirements {
+			prompt += fmt.Sprintf("  * Requirement: %s (ID: %s, Priority: %s)\n    %s\n", r.Title, r.ID, r.Priority, r.Description)
+		}
+	}
+
+	// 4. Call AI
+	resp, err := s.provider.Complete(ctx, ai.CompletionRequest{
+		Prompt:      prompt,
+		System:      "You are an expert technical lead reviewing a product specification for quality. Return structured JSON only.",
+		Temperature: 0.2,
+		MaxTokens:   2000,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("AI review failed: %w", err)
+	}
+
+	// 5. Parse Response
+	cleanJSON := extractJSONPayload(resp.Text)
+	var review spec.SpecReview
+	if err := json.Unmarshal([]byte(cleanJSON), &review); err != nil {
+		return nil, fmt.Errorf("parse review response: %w", err)
+	}
+
+	// 6. Log Usage
+	if err := s.audit.Log("spec.ai_review", "ai", map[string]interface{}{
+		"model":         resp.Model,
+		"input_tokens":  resp.Usage.InputTokens,
+		"output_tokens": resp.Usage.OutputTokens,
+		"score":         review.Score,
+		"findings":      len(review.Findings),
+	}); err != nil {
+		fmt.Fprintf(os.Stderr, "warning: failed to log audit event: %v\n", err)
+	}
+
+	return &review, nil
+}
+
+func (s *AIPlanningService) SuggestPriorities(ctx context.Context) (*planning.PrioritySuggestions, error) {
+	// 1. Check Policy
+	cfg, err := s.repo.LoadPolicy()
+	if err != nil {
+		return nil, err
+	}
+	if !cfg.AllowAI {
+		return nil, fmt.Errorf("AI usage is disabled by project policy")
+	}
+
+	// 2. Load Spec and Plan
+	productSpec, err := s.repo.LoadSpec()
+	if err != nil {
+		return nil, fmt.Errorf("load spec: %w", err)
+	}
+
+	plan, err := s.repo.LoadPlan()
+	if err != nil {
+		return nil, fmt.Errorf("load plan: %w", err)
+	}
+
+	// 3. Build Prompt
+	prompt := `Analyze the following tasks and their dependencies to suggest priority adjustments.
+Consider: dependency chains (blockers should be high priority), feature importance,
+and balanced workload distribution.
+
+Return ONLY a JSON object with no surrounding text, no markdown, and no code fences.
+
+Format:
+{
+  "suggestions": [
+    {
+      "task_id": "<task ID>",
+      "current_priority": "<current priority>",
+      "suggested_priority": "<low|medium|high>",
+      "reason": "<brief explanation>"
+    }
+  ],
+  "summary": "<overall assessment>"
+}
+
+Only include tasks whose priority should change. If all priorities are appropriate, return an empty suggestions array.
+
+`
+	prompt += fmt.Sprintf("Specification: %s\n\nTasks:\n", productSpec.Title)
+
+	for _, t := range plan.Tasks {
+		deps := "none"
+		if len(t.DependsOn) > 0 {
+			deps = strings.Join(t.DependsOn, ", ")
+		}
+		prompt += fmt.Sprintf("- %s (ID: %s, Priority: %s, Feature: %s, DependsOn: %s)\n  %s\n",
+			t.Title, t.ID, t.Priority, t.FeatureID, deps, t.Description)
+	}
+
+	// 4. Call AI
+	resp, err := s.provider.Complete(ctx, ai.CompletionRequest{
+		Prompt:      prompt,
+		System:      "You are an expert technical lead analyzing task priorities. Return structured JSON only.",
+		Temperature: 0.2,
+		MaxTokens:   2000,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("AI prioritization failed: %w", err)
+	}
+
+	// 5. Parse Response
+	cleanJSON := extractJSONPayload(resp.Text)
+	var suggestions planning.PrioritySuggestions
+	if err := json.Unmarshal([]byte(cleanJSON), &suggestions); err != nil {
+		return nil, fmt.Errorf("parse priority suggestions: %w", err)
+	}
+
+	// 6. Log Usage
+	if err := s.audit.Log("plan.ai_prioritize", "ai", map[string]interface{}{
+		"model":         resp.Model,
+		"input_tokens":  resp.Usage.InputTokens,
+		"output_tokens": resp.Usage.OutputTokens,
+		"suggestions":   len(suggestions.Suggestions),
+	}); err != nil {
+		fmt.Fprintf(os.Stderr, "warning: failed to log audit event: %v\n", err)
+	}
+
+	return &suggestions, nil
+}
+
+func (s *AIPlanningService) QueryProject(ctx context.Context, question string) (string, error) {
+	// 1. Check Policy
+	cfg, err := s.repo.LoadPolicy()
+	if err != nil {
+		return "", err
+	}
+	if !cfg.AllowAI {
+		return "", fmt.Errorf("AI usage is disabled by project policy")
+	}
+
+	// 2. Load context: spec, plan, state
+	productSpec, err := s.repo.LoadSpec()
+	if err != nil {
+		return "", fmt.Errorf("load spec: %w", err)
+	}
+
+	plan, _ := s.repo.LoadPlan()
+	state, _ := s.repo.LoadState()
+
+	// 3. Build context prompt
+	context := fmt.Sprintf("Project: %s\nDescription: %s\n\n", productSpec.Title, productSpec.Description)
+
+	context += "Features:\n"
+	for _, f := range productSpec.Features {
+		context += fmt.Sprintf("- %s (ID: %s): %s\n", f.Title, f.ID, f.Description)
+	}
+
+	if plan != nil && len(plan.Tasks) > 0 {
+		context += fmt.Sprintf("\nPlan (%d tasks, approval: %s):\n", len(plan.Tasks), plan.ApprovalStatus)
+		for _, t := range plan.Tasks {
+			status := "pending"
+			owner := ""
+			if state != nil {
+				if ts, ok := state.TaskStates[t.ID]; ok {
+					status = string(ts.Status)
+					owner = ts.Owner
+				}
+			}
+			ownerStr := ""
+			if owner != "" {
+				ownerStr = fmt.Sprintf(", owner: %s", owner)
+			}
+			context += fmt.Sprintf("- %s (ID: %s, status: %s, priority: %s%s)\n", t.Title, t.ID, status, t.Priority, ownerStr)
+		}
+	}
+
+	prompt := fmt.Sprintf("%s\nUser question: %s", context, question)
+
+	// 4. Call AI
+	resp, err := s.provider.Complete(ctx, ai.CompletionRequest{
+		Prompt:      prompt,
+		System:      "You are a project management assistant. Answer questions about the project based on the provided context. Be concise and specific. If the answer cannot be determined from the context, say so.",
+		Temperature: 0.3,
+		MaxTokens:   1000,
+	})
+	if err != nil {
+		return "", fmt.Errorf("AI query failed: %w", err)
+	}
+
+	// 5. Log Usage
+	if err := s.audit.Log("project.ai_query", "ai", map[string]interface{}{
+		"model":         resp.Model,
+		"input_tokens":  resp.Usage.InputTokens,
+		"output_tokens": resp.Usage.OutputTokens,
+	}); err != nil {
+		fmt.Fprintf(os.Stderr, "warning: failed to log audit event: %v\n", err)
+	}
+
+	return resp.Text, nil
+}
+
 func (s *AIPlanningService) ExplainDrift(ctx context.Context, report *drift.Report) (string, error) {
 	if len(report.Issues) == 0 {
 		return "No drift detected. Project is healthy.", nil
@@ -696,4 +934,84 @@ func (s *AIPlanningService) ExplainDrift(ctx context.Context, report *drift.Repo
 	}
 
 	return resp.Text, nil
+}
+
+// SmartDecompose performs context-aware task decomposition using codebase structure.
+func (s *AIPlanningService) SmartDecompose(ctx context.Context, codebaseRoot string) (*planning.SmartPlan, error) {
+	cfg, err := s.repo.LoadPolicy()
+	if err != nil {
+		return nil, err
+	}
+	if !cfg.AllowAI {
+		return nil, fmt.Errorf("AI usage is disabled by project policy")
+	}
+
+	productSpec, err := s.repo.LoadSpec()
+	if err != nil {
+		return nil, fmt.Errorf("load spec: %w", err)
+	}
+	if productSpec == nil {
+		return nil, fmt.Errorf("spec is nil")
+	}
+
+	// Scan codebase for structure context
+	fileTree := ScanCodebaseTree(codebaseRoot, 200)
+
+	// Build prompt with codebase context
+	prompt := `Task: Decompose the following features into atomic engineering tasks, using the existing codebase structure to inform your task breakdown.
+
+For each task, suggest which existing files would need modification and estimate complexity (low, medium, high).
+
+Return ONLY a JSON object with no surrounding text, no markdown, and no code fences.
+The JSON must have this shape:
+{
+  "tasks": [
+    {
+      "id": "task-<id>",
+      "feature_id": "<feature-id>",
+      "title": "<title>",
+      "description": "<description>",
+      "files": ["path/to/file.go", ...],
+      "complexity": "low|medium|high"
+    }
+  ],
+  "summary": "<brief summary of the decomposition strategy>"
+}
+
+Features to decompose:
+`
+
+	for _, f := range productSpec.Features {
+		prompt += fmt.Sprintf("- Feature: %s (ID: %s)\n", f.Title, f.ID)
+		if f.Description != "" {
+			prompt += fmt.Sprintf("  Description: %s\n", f.Description)
+		}
+		for _, r := range f.Requirements {
+			prompt += fmt.Sprintf("  * Requirement: %s (ID: %s)\n", r.Title, r.ID)
+		}
+	}
+
+	prompt += "\nExisting codebase structure:\n" + fileTree + "\n"
+
+	resp, err := s.provider.Complete(ctx, ai.CompletionRequest{
+		Prompt: prompt,
+		System: "You are an expert software architect. Analyze the codebase structure and decompose features into concrete, file-level engineering tasks.",
+	})
+	if err != nil {
+		return nil, fmt.Errorf("AI smart decomposition failed: %w", err)
+	}
+
+	clean := extractJSONPayload(resp.Text)
+
+	var result planning.SmartPlan
+	if err := json.Unmarshal([]byte(clean), &result); err != nil {
+		return nil, fmt.Errorf("failed to parse smart decomposition: %w", err)
+	}
+
+	_ = s.audit.Log("plan.ai_smart_decompose", "ai", map[string]interface{}{
+		"task_count":        len(result.Tasks),
+		"files_in_codebase": len(strings.Split(fileTree, "\n")),
+	})
+
+	return &result, nil
 }

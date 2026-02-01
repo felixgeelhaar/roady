@@ -39,7 +39,7 @@ func createTaskCommand(use, short, event string) *cobra.Command {
 
 			err := service.TransitionTask(taskID, event, actor, evidence)
 			if err != nil {
-				return fmt.Errorf("failed to transition task: %w", err)
+				return MapError(fmt.Errorf("failed to transition task: %w", err))
 			}
 			fmt.Printf("Task %s transition '%s' successful.\n", taskID, event)
 			return nil
@@ -76,7 +76,7 @@ func runTaskReady(cmd *cobra.Command, args []string) error {
 	}
 	tasks, err := services.Plan.GetReadyTasks(cmd.Context())
 	if err != nil {
-		return fmt.Errorf("get ready tasks: %w", err)
+		return MapError(fmt.Errorf("get ready tasks: %w", err))
 	}
 	return outputTaskSummaries("Ready Tasks", tasks, taskQueryJSON)
 }
@@ -88,7 +88,7 @@ func runTaskBlocked(cmd *cobra.Command, args []string) error {
 	}
 	tasks, err := services.Plan.GetBlockedTasks(cmd.Context())
 	if err != nil {
-		return fmt.Errorf("get blocked tasks: %w", err)
+		return MapError(fmt.Errorf("get blocked tasks: %w", err))
 	}
 	return outputTaskSummaries("Blocked Tasks", tasks, taskQueryJSON)
 }
@@ -100,7 +100,7 @@ func runTaskInProgress(cmd *cobra.Command, args []string) error {
 	}
 	tasks, err := services.Plan.GetInProgressTasks(cmd.Context())
 	if err != nil {
-		return fmt.Errorf("get in-progress tasks: %w", err)
+		return MapError(fmt.Errorf("get in-progress tasks: %w", err))
 	}
 	return outputTaskSummaries("In-Progress Tasks", tasks, taskQueryJSON)
 }
@@ -116,6 +116,9 @@ func outputTaskSummaries(title string, tasks []project.TaskSummary, jsonOut bool
 	fmt.Println(strings.Repeat("-", len(title)+10))
 	for _, t := range tasks {
 		fmt.Printf("  %-30s [%s] %s\n", t.ID, t.Priority, t.Title)
+		if t.Owner != "" {
+			fmt.Printf("    → assigned: %s\n", t.Owner)
+		}
 	}
 	if len(tasks) == 0 {
 		fmt.Println("  (none)")
@@ -123,7 +126,29 @@ func outputTaskSummaries(title string, tasks []project.TaskSummary, jsonOut bool
 	return nil
 }
 
+var taskAssignCmd = &cobra.Command{
+	Use:   "assign <task-id> <assignee>",
+	Short: "Assign a task to a person or agent",
+	Args:  cobra.ExactArgs(2),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		cwd, _ := os.Getwd()
+		workspace := wiring.NewWorkspace(cwd)
+		repo := workspace.Repo
+		audit := workspace.Audit
+		policy := application.NewPolicyService(repo)
+		service := application.NewTaskService(repo, audit, policy)
+
+		err := service.AssignTask(cmd.Context(), args[0], args[1])
+		if err != nil {
+			return MapError(fmt.Errorf("failed to assign task: %w", err))
+		}
+		fmt.Printf("Task %s assigned to %s\n", args[0], args[1])
+		return nil
+	},
+}
+
 func init() {
+	taskCmd.AddCommand(taskAssignCmd)
 	taskCmd.AddCommand(createTaskCommand("start", "Start a task", "start"))
 	taskCmd.AddCommand(createTaskCommand("block", "Block a task", "block"))
 	taskCmd.AddCommand(createTaskCommand("unblock", "Unblock a task", "unblock"))

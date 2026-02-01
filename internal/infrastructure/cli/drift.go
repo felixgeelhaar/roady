@@ -23,12 +23,12 @@ var driftExplainCmd = &cobra.Command{
 
 		report, err := services.Drift.DetectDrift(cmd.Context())
 		if err != nil {
-			return fmt.Errorf("failed to detect drift: %w", err)
+			return MapError(fmt.Errorf("failed to detect drift: %w", err))
 		}
 
 		explanation, err := services.AI.ExplainDrift(cmd.Context(), report)
 		if err != nil {
-			return fmt.Errorf("failed to explain drift: %w", err)
+			return MapError(fmt.Errorf("failed to explain drift: %w", err))
 		}
 
 		fmt.Println("\n--- Drift Analysis ---")
@@ -51,7 +51,7 @@ var driftDetectCmd = &cobra.Command{
 
 		report, err := services.Drift.DetectDrift(cmd.Context())
 		if err != nil {
-			return fmt.Errorf("failed to detect drift: %w", err)
+			return MapError(fmt.Errorf("failed to detect drift: %w", err))
 		}
 
 		if outputFormat == "json" {
@@ -90,7 +90,7 @@ var driftAcceptCmd = &cobra.Command{
 		}
 
 		if err := services.Drift.AcceptDrift(); err != nil {
-			return fmt.Errorf("failed to accept drift: %w", err)
+			return MapError(fmt.Errorf("failed to accept drift: %w", err))
 		}
 
 		fmt.Println("Drift accepted. Spec snapshot locked.")

@@ -43,6 +43,11 @@ func NewFilesystemRepository(root string) *FilesystemRepository {
 	}
 }
 
+// Root returns the workspace root directory.
+func (r *FilesystemRepository) Root() string {
+	return r.root
+}
+
 // ResolvePath ensures the path is within the .roady directory and prevents traversal.
 func (r *FilesystemRepository) ResolvePath(filename string) (string, error) {
 	if filename == "" {

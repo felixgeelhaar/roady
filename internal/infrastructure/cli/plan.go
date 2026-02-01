@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/felixgeelhaar/roady/pkg/domain/planning"
 	"github.com/spf13/cobra"
@@ -31,8 +32,7 @@ var planGenerateCmd = &cobra.Command{
 		}
 
 		if err != nil {
-			fmt.Printf("Error: %v\n", err)
-			return err
+			return MapError(err)
 		}
 
 		if plan == nil {
@@ -68,7 +68,7 @@ var planApproveCmd = &cobra.Command{
 		}
 
 		if err := services.Plan.ApprovePlan(); err != nil {
-			return fmt.Errorf("failed to approve plan: %w", err)
+			return MapError(fmt.Errorf("failed to approve plan: %w", err))
 		}
 
 		fmt.Println("Plan approved. You can now start tasks.")
@@ -89,7 +89,7 @@ var planRejectCmd = &cobra.Command{
 		}
 
 		if err := services.Plan.RejectPlan(); err != nil {
-			return fmt.Errorf("failed to reject plan: %w", err)
+			return MapError(fmt.Errorf("failed to reject plan: %w", err))
 		}
 
 		fmt.Println("Plan rejected.")
@@ -110,10 +110,83 @@ var planPruneCmd = &cobra.Command{
 		}
 
 		if err := services.Plan.PrunePlan(); err != nil {
-			return fmt.Errorf("failed to prune plan: %w", err)
+			return MapError(fmt.Errorf("failed to prune plan: %w", err))
 		}
 
 		fmt.Println("Plan pruned. Orphan tasks removed.")
+		return nil
+	},
+}
+
+var planPrioritizeCmd = &cobra.Command{
+	Use:   "prioritize",
+	Short: "Get AI-powered priority suggestions for plan tasks",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		services, err := loadServicesForCurrentDir()
+		if err != nil {
+			return err
+		}
+		if services.AI == nil {
+			return MapError(fmt.Errorf("AI service not available; configure an AI provider"))
+		}
+
+		suggestions, err := services.AI.SuggestPriorities(cmd.Context())
+		if err != nil {
+			return MapError(fmt.Errorf("failed to suggest priorities: %w", err))
+		}
+
+		fmt.Println("\n--- AI Priority Suggestions ---")
+		fmt.Println(suggestions.Summary)
+		if len(suggestions.Suggestions) > 0 {
+			fmt.Println("\nSuggested changes:")
+			for _, s := range suggestions.Suggestions {
+				fmt.Printf("  %s: %s → %s\n    %s\n", s.TaskID, s.CurrentPriority, s.SuggestedPriority, s.Reason)
+			}
+		} else {
+			fmt.Println("\nAll task priorities look appropriate.")
+		}
+		fmt.Println("-------------------------------")
+		return nil
+	},
+}
+
+var planSmartDecomposeCmd = &cobra.Command{
+	Use:   "smart-decompose",
+	Short: "AI-powered context-aware task decomposition using codebase analysis",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		services, err := loadServicesForCurrentDir()
+		if err != nil {
+			return err
+		}
+		if services.AI == nil {
+			return MapError(fmt.Errorf("AI service not available; configure an AI provider"))
+		}
+
+		cwd, _ := cmd.Flags().GetString("root")
+		if cwd == "" {
+			cwd, _ = cmd.Root().Flags().GetString("root")
+		}
+		if cwd == "" {
+			cwd, _ = os.Getwd()
+		}
+
+		result, err := services.AI.SmartDecompose(cmd.Context(), cwd)
+		if err != nil {
+			return MapError(fmt.Errorf("smart decompose failed: %w", err))
+		}
+
+		fmt.Println("\n--- Smart Decomposition ---")
+		fmt.Println(result.Summary)
+		fmt.Printf("\nTasks (%d):\n", len(result.Tasks))
+		for _, t := range result.Tasks {
+			fmt.Printf("  %-30s [%s] %s\n", t.ID, t.Complexity, t.Title)
+			if len(t.Files) > 0 {
+				for _, f := range t.Files {
+					fmt.Printf("    → %s\n", f)
+				}
+			}
+		}
+		fmt.Println("---------------------------")
 		return nil
 	},
 }
@@ -129,6 +202,10 @@ func init() {
 	planCmd.AddCommand(planRejectCmd)
 
 	planCmd.AddCommand(planPruneCmd)
+
+	planCmd.AddCommand(planPrioritizeCmd)
+
+	planCmd.AddCommand(planSmartDecomposeCmd)
 
 	RootCmd.AddCommand(planCmd)
 

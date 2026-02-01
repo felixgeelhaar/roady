@@ -14,6 +14,21 @@ func (r *FilesystemRepository) SaveState(s *planning.ExecutionState) error {
 		return err
 	}
 
+	// Optimistic locking: read current version from disk and compare.
+	// #nosec G304 -- Path is resolved and validated via ResolvePath
+	existing, err := os.ReadFile(path)
+	if err == nil {
+		var disk planning.ExecutionState
+		if jsonErr := json.Unmarshal(existing, &disk); jsonErr == nil {
+			if disk.Version != s.Version {
+				return &planning.ConflictError{Expected: s.Version, Actual: disk.Version}
+			}
+		}
+	}
+	// If file doesn't exist, no conflict possible.
+
+	s.Version++
+
 	data, err := json.MarshalIndent(s, "", "  ")
 	if err != nil {
 		return fmt.Errorf("failed to marshal state: %w", err)

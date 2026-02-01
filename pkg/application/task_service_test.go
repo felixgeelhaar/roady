@@ -363,6 +363,64 @@ func TestTaskService_VerifyTask_Context(t *testing.T) {
 	}
 }
 
+func TestTaskService_AssignTask(t *testing.T) {
+	repo := &MockRepo{
+		Plan: &planning.Plan{
+			Tasks: []planning.Task{{ID: "t1"}},
+		},
+		State: &planning.ExecutionState{
+			TaskStates: map[string]planning.TaskResult{
+				"t1": {Status: planning.StatusPending},
+			},
+		},
+	}
+	audit := application.NewAuditService(repo)
+	policy := application.NewPolicyService(repo)
+	service := application.NewTaskService(repo, audit, policy)
+
+	err := service.AssignTask(nil, "t1", "alice")
+	if err != nil {
+		t.Fatalf("AssignTask failed: %v", err)
+	}
+	if repo.State.TaskStates["t1"].Owner != "alice" {
+		t.Errorf("expected owner alice, got %s", repo.State.TaskStates["t1"].Owner)
+	}
+}
+
+func TestTaskService_AssignTask_NotFound(t *testing.T) {
+	repo := &MockRepo{
+		Plan: &planning.Plan{
+			Tasks: []planning.Task{{ID: "t1"}},
+		},
+		State: &planning.ExecutionState{
+			TaskStates: map[string]planning.TaskResult{},
+		},
+	}
+	audit := application.NewAuditService(repo)
+	policy := application.NewPolicyService(repo)
+	service := application.NewTaskService(repo, audit, policy)
+
+	err := service.AssignTask(nil, "missing", "alice")
+	if err == nil {
+		t.Error("expected error for missing task")
+	}
+}
+
+func TestTaskService_AssignTask_NoPlan(t *testing.T) {
+	repo := &MockRepo{
+		Plan:  nil,
+		State: &planning.ExecutionState{TaskStates: map[string]planning.TaskResult{}},
+	}
+	audit := application.NewAuditService(repo)
+	policy := application.NewPolicyService(repo)
+	service := application.NewTaskService(repo, audit, policy)
+
+	err := service.AssignTask(nil, "t1", "alice")
+	if err == nil {
+		t.Error("expected error when no plan exists")
+	}
+}
+
 func TestTaskService_GetCoordinator(t *testing.T) {
 	repo := &MockRepo{}
 	audit := application.NewAuditService(repo)

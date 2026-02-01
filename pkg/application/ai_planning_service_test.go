@@ -11,6 +11,7 @@ import (
 	"github.com/felixgeelhaar/roady/pkg/domain"
 	"github.com/felixgeelhaar/roady/pkg/domain/ai"
 	"github.com/felixgeelhaar/roady/pkg/domain/drift"
+	"github.com/felixgeelhaar/roady/pkg/domain/planning"
 	"github.com/felixgeelhaar/roady/pkg/domain/spec"
 	"github.com/felixgeelhaar/roady/pkg/storage"
 )
@@ -147,6 +148,114 @@ func TestAIPlanningService_ExplainSpec(t *testing.T) {
 	}
 	if out != "Explanation" {
 		t.Fatalf("expected explanation, got %q", out)
+	}
+}
+
+func TestAIPlanningService_QueryProject(t *testing.T) {
+	repo := &MockRepo{
+		Policy: &domain.PolicyConfig{AllowAI: true},
+		Spec: &spec.ProductSpec{
+			ID:    "s1",
+			Title: "Test Spec",
+			Features: []spec.Feature{
+				{ID: "f1", Title: "Auth", Description: "Authentication system"},
+			},
+		},
+		Plan: &planning.Plan{
+			ID:    "plan-1",
+			Tasks: []planning.Task{{ID: "t1", Title: "Setup DB", Priority: "medium"}},
+		},
+	}
+	audit := application.NewAuditService(repo)
+	planSvc := application.NewPlanService(repo, audit)
+	service := application.NewAIPlanningService(repo, &MockProvider{Text: "There is 1 task pending."}, audit, planSvc)
+
+	answer, err := service.QueryProject(context.Background(), "How many tasks are pending?")
+	if err != nil {
+		t.Fatalf("QueryProject failed: %v", err)
+	}
+	if answer != "There is 1 task pending." {
+		t.Errorf("unexpected answer: %q", answer)
+	}
+}
+
+func TestAIPlanningService_SuggestPriorities(t *testing.T) {
+	repo := &MockRepo{
+		Policy: &domain.PolicyConfig{AllowAI: true},
+		Spec: &spec.ProductSpec{
+			ID:    "s1",
+			Title: "Test Spec",
+		},
+		Plan: &planning.Plan{
+			ID: "plan-1",
+			Tasks: []planning.Task{
+				{ID: "t1", Title: "Setup DB", Priority: "low", FeatureID: "f1"},
+				{ID: "t2", Title: "Build API", Priority: "medium", FeatureID: "f1", DependsOn: []string{"t1"}},
+			},
+		},
+	}
+	audit := application.NewAuditService(repo)
+	planSvc := application.NewPlanService(repo, audit)
+
+	suggestJSON := `{"suggestions":[{"task_id":"t1","current_priority":"low","suggested_priority":"high","reason":"Blocks t2"}],"summary":"t1 should be high priority as it blocks other work."}`
+	service := application.NewAIPlanningService(repo, &MockProvider{Text: suggestJSON}, audit, planSvc)
+
+	result, err := service.SuggestPriorities(context.Background())
+	if err != nil {
+		t.Fatalf("SuggestPriorities failed: %v", err)
+	}
+	if len(result.Suggestions) != 1 {
+		t.Errorf("expected 1 suggestion, got %d", len(result.Suggestions))
+	}
+	if result.Suggestions[0].SuggestedPriority != "high" {
+		t.Errorf("expected high, got %q", result.Suggestions[0].SuggestedPriority)
+	}
+}
+
+func TestAIPlanningService_ReviewSpec(t *testing.T) {
+	repo := &MockRepo{
+		Policy: &domain.PolicyConfig{AllowAI: true},
+		Spec: &spec.ProductSpec{
+			ID:    "s1",
+			Title: "Test Spec",
+			Features: []spec.Feature{
+				{ID: "f1", Title: "Auth", Description: "Authentication system"},
+			},
+		},
+	}
+	audit := application.NewAuditService(repo)
+	planSvc := application.NewPlanService(repo, audit)
+
+	reviewJSON := `{"score":78,"summary":"Good spec with minor gaps.","findings":[{"category":"completeness","severity":"warning","feature_id":"f1","title":"Missing error cases","suggestion":"Add error handling requirements."}]}`
+	service := application.NewAIPlanningService(repo, &MockProvider{Text: reviewJSON}, audit, planSvc)
+
+	review, err := service.ReviewSpec(context.Background())
+	if err != nil {
+		t.Fatalf("ReviewSpec failed: %v", err)
+	}
+	if review.Score != 78 {
+		t.Errorf("expected score 78, got %d", review.Score)
+	}
+	if len(review.Findings) != 1 {
+		t.Errorf("expected 1 finding, got %d", len(review.Findings))
+	}
+	if review.Findings[0].Category != "completeness" {
+		t.Errorf("expected category completeness, got %q", review.Findings[0].Category)
+	}
+}
+
+func TestAIPlanningService_ReviewSpec_PolicyDisabled(t *testing.T) {
+	repo := &MockRepo{
+		Policy: &domain.PolicyConfig{AllowAI: false},
+		Spec:   &spec.ProductSpec{ID: "s1", Title: "Test"},
+	}
+	audit := application.NewAuditService(repo)
+	planSvc := application.NewPlanService(repo, audit)
+	service := application.NewAIPlanningService(repo, &MockProvider{}, audit, planSvc)
+
+	_, err := service.ReviewSpec(context.Background())
+	if err == nil || !strings.Contains(err.Error(), "disabled") {
+		t.Errorf("expected policy disabled error, got: %v", err)
 	}
 }
 

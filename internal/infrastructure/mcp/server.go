@@ -10,6 +10,7 @@ import (
 	"github.com/felixgeelhaar/roady/internal/infrastructure/wiring"
 	"github.com/felixgeelhaar/roady/pkg/application"
 	"github.com/felixgeelhaar/roady/pkg/domain/planning"
+	"github.com/felixgeelhaar/roady/pkg/domain/team"
 )
 
 type Server struct {
@@ -29,6 +30,7 @@ type Server struct {
 	forecastSvc  *application.ForecastService
 	orgSvc       *application.OrgService
 	pluginSvc    *application.PluginService
+	teamSvc      *application.TeamService
 	root         string
 }
 
@@ -81,11 +83,13 @@ func NewServer(root string) (*Server, error) {
 		forecastSvc: services.Forecast,
 		orgSvc:      application.NewOrgService(root),
 		pluginSvc:   application.NewPluginService(services.Workspace.Repo),
+		teamSvc:     services.Team,
 		root:        root,
 	}
 
 	s.registerTools()
 	s.registerApps()
+	s.registerSchemaResource()
 	return s, nil
 }
 
@@ -300,6 +304,30 @@ func (s *Server) registerTools() {
 		UIResource("ui://roady/messaging").
 		Handler(s.handleMessagingList)
 
+	// Tool: roady_query (v0.8.0)
+	s.mcpServer.Tool("roady_query").
+		Description("Ask a natural language question about the project and get an AI-generated answer").
+		UIResource("ui://roady/status").
+		Handler(s.handleQuery)
+
+	// Tool: roady_suggest_priorities (v0.8.0)
+	s.mcpServer.Tool("roady_suggest_priorities").
+		Description("AI-powered priority suggestions based on spec analysis and task dependencies").
+		UIResource("ui://roady/plan").
+		Handler(s.handleSuggestPriorities)
+
+	// Tool: roady_review_spec (v0.8.0)
+	s.mcpServer.Tool("roady_review_spec").
+		Description("Perform an AI-powered quality review of the current specification, returning a score and structured findings").
+		UIResource("ui://roady/spec").
+		Handler(s.handleReviewSpec)
+
+	// Tool: roady_assign_task (v0.8.0)
+	s.mcpServer.Tool("roady_assign_task").
+		Description("Assign a task to a person or agent without changing its status").
+		UIResource("ui://roady/state").
+		Handler(s.handleAssignTask)
+
 	// Tool: roady_get_snapshot (v0.6.0 - Coordinator)
 	s.mcpServer.Tool("roady_get_snapshot").
 		Description("Get a consistent project snapshot with progress, categorized task counts, and task lists").
@@ -323,6 +351,42 @@ func (s *Server) registerTools() {
 		Description("Get tasks that are currently in progress").
 		UIResource("ui://roady/status").
 		Handler(s.handleGetInProgressTasks)
+
+	// Tool: roady_workspace_push (v0.8.0)
+	s.mcpServer.Tool("roady_workspace_push").
+		Description("Commit and push .roady/ workspace state to git remote").
+		UIResource("ui://roady/workspace").
+		Handler(s.handleWorkspacePush)
+
+	// Tool: roady_workspace_pull (v0.8.0)
+	s.mcpServer.Tool("roady_workspace_pull").
+		Description("Pull remote .roady/ workspace changes and merge with conflict detection").
+		UIResource("ui://roady/workspace").
+		Handler(s.handleWorkspacePull)
+
+	// Tool: roady_smart_decompose (v0.8.0)
+	s.mcpServer.Tool("roady_smart_decompose").
+		Description("AI-powered context-aware task decomposition using codebase structure analysis").
+		UIResource("ui://roady/plan").
+		Handler(s.handleSmartDecompose)
+
+	// Tool: roady_team_list (v0.8.0)
+	s.mcpServer.Tool("roady_team_list").
+		Description("List all team members and their roles").
+		UIResource("ui://roady/team").
+		Handler(s.handleTeamList)
+
+	// Tool: roady_team_add (v0.8.0)
+	s.mcpServer.Tool("roady_team_add").
+		Description("Add or update a team member with a role (admin, member, viewer)").
+		UIResource("ui://roady/team").
+		Handler(s.handleTeamAdd)
+
+	// Tool: roady_team_remove (v0.8.0)
+	s.mcpServer.Tool("roady_team_remove").
+		Description("Remove a team member").
+		UIResource("ui://roady/team").
+		Handler(s.handleTeamRemove)
 }
 
 func (s *Server) handleForecast(ctx context.Context, args struct{}) (any, error) {
@@ -482,10 +546,47 @@ func (s *Server) handleExplainSpec(ctx context.Context, args struct{}) (string, 
 	return result, nil
 }
 
+type QueryArgs struct {
+	Question string `json:"question" jsonschema:"description=A natural language question about the project"`
+}
+
+func (s *Server) handleQuery(ctx context.Context, args QueryArgs) (string, error) {
+	if args.Question == "" {
+		return "", mcpErr("A question is required.")
+	}
+	answer, err := s.aiSvc.QueryProject(ctx, args.Question)
+	if err != nil {
+		return "", mcpErr("Failed to answer query. Check your AI provider configuration.")
+	}
+	return answer, nil
+}
+
+func (s *Server) handleSuggestPriorities(ctx context.Context, args struct{}) (any, error) {
+	suggestions, err := s.aiSvc.SuggestPriorities(ctx)
+	if err != nil {
+		return nil, mcpErr("Failed to suggest priorities. Check your AI provider configuration and ensure a plan exists.")
+	}
+	return suggestions, nil
+}
+
+func (s *Server) handleReviewSpec(ctx context.Context, args struct{}) (any, error) {
+	review, err := s.aiSvc.ReviewSpec(ctx)
+	if err != nil {
+		return nil, mcpErr("Failed to review spec. Check your AI provider configuration.")
+	}
+	return review, nil
+}
+
 type TransitionTaskArgs struct {
 	TaskID   string `json:"task_id" jsonschema:"description=The ID of the task to transition"`
 	Event    string `json:"event" jsonschema:"description=The transition event (start, complete, block, stop, unblock, reopen)"`
 	Evidence string `json:"evidence,omitempty" jsonschema:"description=Optional evidence for the transition (e.g. commit hash)"`
+	Actor    string `json:"actor,omitempty" jsonschema:"description=The actor performing the transition (defaults to ai-agent)"`
+}
+
+type AssignTaskArgs struct {
+	TaskID   string `json:"task_id" jsonschema:"description=The ID of the task to assign"`
+	Assignee string `json:"assignee" jsonschema:"description=The person or agent to assign the task to"`
 }
 
 // FlexBool accepts both boolean and string ("true"/"false") JSON values.
@@ -539,8 +640,20 @@ type StatusArgs struct {
 	JSON     FlexBool `json:"json,omitempty" jsonschema:"description=Return structured JSON output instead of text"`
 }
 
+func (s *Server) handleAssignTask(ctx context.Context, args AssignTaskArgs) (string, error) {
+	err := s.taskSvc.AssignTask(ctx, args.TaskID, args.Assignee)
+	if err != nil {
+		return "", mcpErr(fmt.Sprintf("Failed to assign task '%s' to '%s'. Ensure the task exists in the plan.", args.TaskID, args.Assignee))
+	}
+	return fmt.Sprintf("Task %s assigned to %s", args.TaskID, args.Assignee), nil
+}
+
 func (s *Server) handleTransitionTask(ctx context.Context, args TransitionTaskArgs) (string, error) {
-	err := s.taskSvc.TransitionTask(args.TaskID, args.Event, "ai-agent", args.Evidence)
+	actor := args.Actor
+	if actor == "" {
+		actor = "ai-agent"
+	}
+	err := s.taskSvc.TransitionTask(args.TaskID, args.Event, actor, args.Evidence)
 	if err != nil {
 		return "", mcpErr(fmt.Sprintf("Failed to transition task '%s' with event '%s'. Ensure the task exists and the transition is valid.", args.TaskID, args.Event))
 	}
@@ -695,20 +808,24 @@ func (s *Server) handleStatus(ctx context.Context, args StatusArgs) (any, error)
 			Title    string `json:"title"`
 			Status   string `json:"status"`
 			Priority string `json:"priority"`
+			Owner    string `json:"owner,omitempty"`
 			Unlocked bool   `json:"unlocked,omitempty"`
 		}
 
 		tasks := make([]taskOutput, 0, len(filtered))
 		for _, t := range filtered {
 			status := planning.StatusPending
+			owner := ""
 			if res, ok := state.TaskStates[t.ID]; ok {
 				status = res.Status
+				owner = res.Owner
 			}
 			tasks = append(tasks, taskOutput{
 				ID:       t.ID,
 				Title:    t.Title,
 				Status:   string(status),
 				Priority: string(t.Priority),
+				Owner:    owner,
 				Unlocked: status == planning.StatusPending && isTaskUnlockedByDeps(t, state),
 			})
 		}
@@ -972,6 +1089,85 @@ func (s *Server) handleGetInProgressTasks(ctx context.Context, args struct{}) (a
 		return nil, mcpErr("Failed to get in-progress tasks. Ensure a plan and state exist.")
 	}
 	return tasks, nil
+}
+
+// --- Workspace Sync Handlers ---
+
+func (s *Server) handleWorkspacePush(ctx context.Context, args struct{}) (any, error) {
+	svc := application.NewWorkspaceSyncService(s.root, s.auditSvc)
+	result, err := svc.Push(ctx)
+	if err != nil {
+		return nil, mcpErr(fmt.Sprintf("workspace push failed: %s", err))
+	}
+	return result, nil
+}
+
+func (s *Server) handleWorkspacePull(ctx context.Context, args struct{}) (any, error) {
+	svc := application.NewWorkspaceSyncService(s.root, s.auditSvc)
+	result, err := svc.Pull(ctx)
+	if err != nil {
+		return nil, mcpErr(fmt.Sprintf("workspace pull failed: %s", err))
+	}
+	return result, nil
+}
+
+// --- Smart Decompose Handler ---
+
+func (s *Server) handleSmartDecompose(ctx context.Context, args struct{}) (any, error) {
+	if s.aiSvc == nil {
+		return nil, mcpErr("AI service not available")
+	}
+	result, err := s.aiSvc.SmartDecompose(ctx, s.root)
+	if err != nil {
+		return nil, mcpErr(fmt.Sprintf("smart decompose failed: %s", err))
+	}
+	return result, nil
+}
+
+// --- Team Handlers ---
+
+type TeamAddArgs struct {
+	Name string `json:"name" jsonschema:"description=The name of the team member"`
+	Role string `json:"role" jsonschema:"description=The role: admin, member, or viewer"`
+}
+
+type TeamRemoveArgs struct {
+	Name string `json:"name" jsonschema:"description=The name of the team member to remove"`
+}
+
+func (s *Server) handleTeamList(ctx context.Context, args struct{}) (any, error) {
+	cfg, err := s.teamSvc.ListMembers()
+	if err != nil {
+		return nil, mcpErr("failed to list team members")
+	}
+	return cfg, nil
+}
+
+func (s *Server) handleTeamAdd(ctx context.Context, args TeamAddArgs) (string, error) {
+	if args.Name == "" {
+		return "", mcpErr("name is required")
+	}
+	if args.Role == "" {
+		return "", mcpErr("role is required")
+	}
+	if err := s.teamSvc.AddMember(args.Name, teamRole(args.Role)); err != nil {
+		return "", mcpErr(fmt.Sprintf("failed to add member: %s", err))
+	}
+	return fmt.Sprintf("Member %s added with role %s", args.Name, args.Role), nil
+}
+
+func (s *Server) handleTeamRemove(ctx context.Context, args TeamRemoveArgs) (string, error) {
+	if args.Name == "" {
+		return "", mcpErr("name is required")
+	}
+	if err := s.teamSvc.RemoveMember(args.Name); err != nil {
+		return "", mcpErr(fmt.Sprintf("failed to remove member: %s", err))
+	}
+	return fmt.Sprintf("Member %s removed", args.Name), nil
+}
+
+func teamRole(s string) team.Role {
+	return team.Role(s)
 }
 
 // orEmpty returns the slice or an empty slice if nil (for clean JSON output).

@@ -310,6 +310,48 @@ func (s *TaskService) VerifyTask(ctx context.Context, taskID, verifier string) e
 	return nil
 }
 
+// AssignTask sets the owner on a task without requiring a status transition.
+func (s *TaskService) AssignTask(ctx context.Context, taskID, assignee string) error {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+
+	plan, err := s.repo.LoadPlan()
+	if err != nil {
+		return err
+	}
+	if plan == nil {
+		return fmt.Errorf("no plan found")
+	}
+
+	found := false
+	for _, t := range plan.Tasks {
+		if t.ID == taskID {
+			found = true
+			break
+		}
+	}
+	if !found {
+		return fmt.Errorf("task not found in plan: %s", taskID)
+	}
+
+	state, err := s.repo.LoadState()
+	if err != nil {
+		return err
+	}
+
+	state.SetTaskOwner(taskID, assignee)
+
+	if err := s.repo.SaveState(state); err != nil {
+		return err
+	}
+
+	return s.audit.Log("task.assign", assignee, map[string]interface{}{
+		"task_id":  taskID,
+		"assignee": assignee,
+	})
+}
+
 // GetCoordinator returns the underlying project coordinator for advanced operations.
 func (s *TaskService) GetCoordinator() *project.Coordinator {
 	return s.coordinator
