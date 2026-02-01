@@ -261,7 +261,40 @@ features:
     - id: interactive-d3-mcp-app-visualizations
       title: Interactive D3 MCP App Visualizations
       description: 'Rich, browser-based D3.js charts embedded in all MCP apps. A shared d3-charts.ts library provides 6 reusable chart functions (donut, force-directed graph, arc gauge, horizontal bars, line chart, collapsible tree) used across 10 apps: status (donut), plan (force DAG), state (donut + swimlanes), drift (severity bars), debt (gauge + donut + bars + line), deps (force network), usage (token gauge), spec (feature tree), policy (compliance gauge), and git-sync (timeline). All charts include hover tooltips, click-to-filter, drag, and zoom interactions.'
-      requirements: []
+      requirements:
+        - id: d3-org-charts
+          title: Add D3 charts to org dashboard app
+          description: Add donut chart for project status breakdown and horizontal bars for cross-project progress in org.ts
+          priority: high
+          estimate: ""
+          depends_on: []
+        - id: d3-forecast-refactor
+          title: Refactor forecast app to use shared d3-charts
+          description: Replace custom burndown/velocity D3 code in forecast.ts with renderLineChart from d3-charts.ts where applicable
+          priority: medium
+          estimate: ""
+          depends_on: []
+        - id: d3-git-sync-refactor
+          title: Refactor git-sync timeline to use shared d3-charts
+          description: Evaluate if git-sync timeline can use shared library or keep custom (document decision)
+          priority: low
+          estimate: ""
+          depends_on: []
+        - id: d3-sync-charts
+          title: Add D3 status visualization to sync app
+          description: Add status badge donut or horizontal bars showing sync results in sync.ts
+          priority: medium
+          estimate: ""
+          depends_on: []
+        - id: d3-interaction-polish
+          title: Polish chart interactions across all apps
+          description: Ensure consistent hover tooltips, click-to-filter, and zoom behavior across all D3 charts
+          priority: medium
+          estimate: ""
+          depends_on:
+            - d3-org-charts
+            - d3-forecast-refactor
+            - d3-sync-charts
     - id: multi-repo-org
       title: Multi-Repo Organization Dashboard
       description: |

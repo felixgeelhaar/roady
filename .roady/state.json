@@ -1,6 +1,26 @@
 {
   "project_id": "test-refactor",
   "task_states": {
+    "task-agg-coordinator": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar"
+    },
+    "task-agg-integrate": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar"
+    },
+    "task-agg-operations": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar"
+    },
+    "task-agg-snapshot": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar"
+    },
     "task-ai-auto-prioritize": {
       "status": "done",
       "path": "",
@@ -49,6 +69,11 @@
         "Added Version field to ExecutionState, optimistic locking in SaveState with ConflictError, tests for conflict detection"
       ]
     },
+    "task-collab-conflict-resolution": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar"
+    },
     "task-collab-shared": {
       "status": "done",
       "path": "",
@@ -57,6 +82,16 @@
         "Added git-based workspace sync: WorkspaceSyncService with push/pull, conflict detection via stash/pop, CLI (roady workspace push/pull), MCP tools, SDK methods"
       ]
     },
+    "task-collab-shared-workspaces": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar"
+    },
+    "task-collab-task-assignment": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar"
+    },
     "task-collab-team-roles": {
       "status": "done",
       "path": "",
@@ -64,6 +99,106 @@
       "evidence": [
         "Implemented team domain types, storage, service, CLI (roady team add/list/remove), MCP tools, and SDK methods"
       ]
+    },
+    "task-d3-forecast-refactor": {
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "Added renderGauge from d3-charts.ts for confidence display. Kept custom burndown (multi-series) and velocity (vertical bars) as shared library lacks multi-series line and vertical bar charts."
+      ]
+    },
+    "task-d3-git-sync-refactor": {
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "Evaluated: git-sync timeline is a vertical commit timeline with dot+label layout. Shared d3-charts.ts has no timeline chart type. Keeping custom implementation is the correct decision — adding a timeline to d3-charts.ts would be over-engineering for a single use case."
+      ]
+    },
+    "task-d3-interaction-polish": {
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "Added consistent hover tooltips (matching d3-charts.ts style) to forecast velocity bars and git-sync timeline nodes. All 14 apps build successfully."
+      ]
+    },
+    "task-d3-org-charts": {
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "Added donut chart (aggregate status) and horizontal bars (per-project progress) to org.ts using shared d3-charts.ts"
+      ]
+    },
+    "task-d3-sync-charts": {
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "Added donut chart showing sync result breakdown (synced/failed/skipped) to sync.ts using shared d3-charts.ts"
+      ]
+    },
+    "task-debt-cli": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar"
+    },
+    "task-debt-mcp": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar"
+    },
+    "task-debt-projection": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar"
+    },
+    "task-debt-service": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar"
+    },
+    "task-debt-types": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar"
+    },
+    "task-dep-cli": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar"
+    },
+    "task-dep-mcp": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar"
+    },
+    "task-dep-resolver": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar"
+    },
+    "task-dep-service": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar"
+    },
+    "task-dep-storage": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar"
+    },
+    "task-dep-types": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar"
+    },
+    "task-drift-history": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar"
     },
     "task-dx-config-wizard": {
       "status": "done",
@@ -87,6 +222,101 @@
       ]
     },
     "task-dx-shell-completions": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar"
+    },
+    "task-evt-dispatcher": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar"
+    },
+    "task-evt-handlers": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar"
+    },
+    "task-evt-integrate": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar"
+    },
+    "task-evt-notifiers": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar"
+    },
+    "task-evt-production-wiring": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar"
+    },
+    "task-notif-realtime": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar"
+    },
+    "task-notif-slack": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar"
+    },
+    "task-notif-webhooks": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar"
+    },
+    "task-org-cross-drift": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar"
+    },
+    "task-org-dashboard": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar"
+    },
+    "task-org-shared-policies": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar"
+    },
+    "task-plugin-contracts": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar"
+    },
+    "task-plugin-health": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar"
+    },
+    "task-plugin-registry": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar"
+    },
+    "task-pv-cli": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar"
+    },
+    "task-pv-mcp": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar"
+    },
+    "task-pv-projection": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar"
+    },
+    "task-pv-service": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar"
+    },
+    "task-pv-types": {
       "status": "done",
       "path": "",
       "owner": "felixgeelhaar"
@@ -122,7 +352,47 @@
       "evidence": [
         "Added openapi.go with GenerateOpenAPI() that introspects MCP tools, openapi_test.go, CLI roady openapi command, and Server.OpenAPI() method"
       ]
+    },
+    "task-vo-approval": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar"
+    },
+    "task-vo-fsm": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar"
+    },
+    "task-vo-integrate": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar"
+    },
+    "task-vo-priority": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar"
+    },
+    "task-vo-status": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar"
+    },
+    "task-watch-auto-sync": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar"
+    },
+    "task-watch-fsnotify": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar"
+    },
+    "task-watch-patterns": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar"
     }
   },
-  "updated_at": "2026-02-01T11:46:12.036446+01:00"
+  "updated_at": "2026-02-01T12:36:11.55652+01:00"
 }

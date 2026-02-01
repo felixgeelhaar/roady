@@ -5,6 +5,7 @@ import ProgressBar from "@/components/ProgressBar.vue";
 import StatusBadge from "@/components/StatusBadge.vue";
 import { defineComponent, ref, computed, onMounted, watch, nextTick } from "vue";
 import * as d3 from "d3";
+import { renderGauge } from "@/lib/d3-charts";
 
 const app = createApp("Roady Forecast");
 
@@ -250,6 +251,20 @@ function renderVelocityChart(container: HTMLElement, windows: VelocityWindow[]) 
     .call(g => g.select(".domain").attr("stroke", "#d1d5db"))
     .call(g => g.selectAll(".tick text").attr("fill", "#6b7280").attr("font-size", "10px"));
 
+  // Tooltip (consistent with d3-charts.ts style)
+  const tooltip = d3.select(container)
+    .append("div")
+    .style("position", "absolute")
+    .style("background", "rgba(0,0,0,0.8)")
+    .style("color", "white")
+    .style("padding", "6px 10px")
+    .style("border-radius", "4px")
+    .style("font-size", "11px")
+    .style("pointer-events", "none")
+    .style("opacity", 0)
+    .style("z-index", "10")
+    .style("white-space", "nowrap");
+
   svg.selectAll(".bar")
     .data(windows)
     .enter()
@@ -259,7 +274,16 @@ function renderVelocityChart(container: HTMLElement, windows: VelocityWindow[]) 
     .attr("width", x.bandwidth())
     .attr("height", d => height - y(d.velocity))
     .attr("fill", "#6366f1")
-    .attr("rx", 3);
+    .attr("rx", 3)
+    .on("mouseover", (_event, d) => {
+      tooltip.html(`<strong>${d.days}-day window</strong><br/>Velocity: ${d.velocity.toFixed(2)} tasks/day<br/>Completions: ${d.count}`)
+        .style("opacity", 1);
+    })
+    .on("mousemove", (event) => {
+      const [px, py] = d3.pointer(event, container);
+      tooltip.style("left", `${px + 12}px`).style("top", `${py - 10}px`);
+    })
+    .on("mouseout", () => tooltip.style("opacity", 0));
 
   // Value labels on bars
   svg.selectAll(".bar-label")
@@ -283,6 +307,7 @@ const RoadyForecast = defineComponent({
     const message = ref("");
     const burndownEl = ref<HTMLElement | null>(null);
     const velocityEl = ref<HTMLElement | null>(null);
+    const confidenceEl = ref<HTMLElement | null>(null);
 
     function parse(raw: string) {
       try {
@@ -344,6 +369,20 @@ const RoadyForecast = defineComponent({
       if (hasWindows.value && velocityEl.value) {
         renderVelocityChart(velocityEl.value, forecast.value!.windows);
       }
+      if (confidenceEl.value && forecast.value!.confidence > 0) {
+        renderGauge(confidenceEl.value, forecast.value!.confidence * 100, {
+          width: 160,
+          height: 100,
+          label: "Confidence",
+          suffix: "%",
+          thresholds: [
+            { value: 0.4, color: "#ef4444" },
+            { value: 0.6, color: "#f97316" },
+            { value: 0.8, color: "#eab308" },
+            { value: 1.0, color: "#22c55e" },
+          ],
+        });
+      }
     });
 
     app.connect();
@@ -352,7 +391,7 @@ const RoadyForecast = defineComponent({
       forecast, loading, message, refresh,
       trendLabel, trendStatus,
       hasBurndown, hasWindows,
-      burndownEl, velocityEl,
+      burndownEl, velocityEl, confidenceEl,
     };
   },
   template: `
@@ -390,11 +429,13 @@ const RoadyForecast = defineComponent({
           <ProgressBar :value="forecast.completion_rate" :max="100" />
         </div>
 
-        <!-- Confidence interval -->
-        <div v-if="forecast.ci_expected > 0" class="mb-4 text-sm text-gray-600">
-          <span class="font-medium">Confidence interval:</span>
-          {{ forecast.ci_low.toFixed(1) }} – {{ forecast.ci_expected.toFixed(1) }} – {{ forecast.ci_high.toFixed(1) }} days
-          <span class="text-gray-400">({{ (forecast.confidence * 100).toFixed(0) }}% confidence)</span>
+        <!-- Confidence interval with gauge -->
+        <div v-if="forecast.ci_expected > 0" class="mb-4 flex items-center gap-4">
+          <div ref="confidenceEl" style="position:relative;flex-shrink:0"></div>
+          <div class="text-sm text-gray-600">
+            <span class="font-medium">Confidence interval:</span><br/>
+            {{ forecast.ci_low.toFixed(1) }} – {{ forecast.ci_expected.toFixed(1) }} – {{ forecast.ci_high.toFixed(1) }} days
+          </div>
         </div>
 
         <!-- D3 Burndown chart -->

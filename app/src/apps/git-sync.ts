@@ -30,6 +30,20 @@ function renderTimeline(container: HTMLElement, results: SyncResult[]) {
     .append("g")
     .attr("transform", `translate(${margin.left},${margin.top})`);
 
+  // Tooltip (consistent with d3-charts.ts style)
+  const tooltip = d3.select(container)
+    .append("div")
+    .style("position", "absolute")
+    .style("background", "rgba(0,0,0,0.8)")
+    .style("color", "white")
+    .style("padding", "6px 10px")
+    .style("border-radius", "4px")
+    .style("font-size", "11px")
+    .style("pointer-events", "none")
+    .style("opacity", "0")
+    .style("z-index", "10")
+    .style("white-space", "nowrap");
+
   // Vertical line
   svg
     .append("line")
@@ -51,7 +65,17 @@ function renderTimeline(container: HTMLElement, results: SyncResult[]) {
       .attr("r", 5)
       .attr("fill", r.transitioned ? "#22c55e" : "#9ca3af")
       .attr("stroke", "white")
-      .attr("stroke-width", 1.5);
+      .attr("stroke-width", 1.5)
+      .style("cursor", "default")
+      .on("mouseover", () => {
+        tooltip.html(`<strong>${r.task_id}</strong><br/>${r.transitioned ? "Transitioned" : "No transition"}<br/>${r.commit}`)
+          .style("opacity", "1");
+      })
+      .on("mousemove", (event) => {
+        const [px, py] = d3.pointer(event, container);
+        tooltip.style("left", `${px + 12}px`).style("top", `${py - 10}px`);
+      })
+      .on("mouseout", () => tooltip.style("opacity", "0"));
 
     svg
       .append("text")
