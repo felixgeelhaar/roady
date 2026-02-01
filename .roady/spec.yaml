@@ -7,7 +7,9 @@ description: |
       coordinator integration into CLI/MCP with snapshot and task queries.
     - v0.7.0 (complete): Org policy inheritance, cross-project drift, plugin registry and health,
       Slack/realtime notifications, watch auto-sync and patterns.
-    - v0.8.0: Developer experience polish, API/SDK stability, multi-user collaboration, AI-powered workflows.
+    - v0.8.0 (complete): Developer experience polish, API/SDK stability, multi-user collaboration,
+      AI-powered workflows, interactive D3 MCP app visualizations.
+    Released as v0.6.0 (bundling v0.6.0–v0.8.0 features).
 features:
     - id: predictive-velocity
       title: Predictive Velocity Analytics
