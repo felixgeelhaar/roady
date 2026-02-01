@@ -2,23 +2,22 @@
 import { ref, onMounted, onUnmounted } from 'vue';
 
 const lines = [
-  { type: 'command', text: '$ roady status --ready' },
-  { type: 'output', text: 'Project: Roady Core (v1.0.0)' },
+  { type: 'command', text: '$ roady init my-project --template web-api' },
+  { type: 'success', text: '✓ Initialized my-project with web-api template' },
   { type: 'output', text: '' },
-  { type: 'highlight', text: '3 tasks ready to start:' },
-  { type: 'task', text: '  [pending] impl-mcp-tools      MCP tool implementations' },
-  { type: 'task', text: '  [pending] add-debt-analysis   Planning debt service' },
-  { type: 'task', text: '  [pending] velocity-forecast   Enhanced forecasting' },
+  { type: 'command', text: '$ roady spec review' },
+  { type: 'output', text: 'Score: 85/100' },
+  { type: 'highlight', text: '2 findings: 1 warning, 1 info' },
   { type: 'output', text: '' },
-  { type: 'command', text: '$ roady task start impl-mcp-tools' },
-  { type: 'success', text: '✓ Task started: impl-mcp-tools' },
-  { type: 'success', text: '✓ Owner: developer' },
+  { type: 'command', text: '$ roady plan smart-decompose' },
+  { type: 'success', text: '✓ 8 tasks generated from codebase analysis' },
   { type: 'output', text: '' },
-  { type: 'command', text: '$ roady status forecast' },
-  { type: 'output', text: 'Velocity: 2.3 tasks/day (7-day avg)' },
-  { type: 'output', text: 'Remaining: 12 tasks' },
-  { type: 'highlight', text: 'Estimated completion: 5.2 days' },
-  { type: 'dim', text: '  95% confidence: 4-7 days' },
+  { type: 'command', text: '$ roady task assign auth-api alice' },
+  { type: 'success', text: '✓ Assigned auth-api to alice' },
+  { type: 'output', text: '' },
+  { type: 'command', text: '$ roady query "what tasks are blocked?"' },
+  { type: 'output', text: '2 tasks blocked: db-migration, cache-layer' },
+  { type: 'dim', text: '  Waiting on: auth-api (in_progress)' },
 ];
 
 const visibleLines = ref<typeof lines>([]);
@@ -112,6 +111,28 @@ function getLineClass(type: string): string {
               <h4 class="text-white font-semibold mb-1">Plugin Sync</h4>
               <p class="text-sm">
                 Sync tasks with external systems via plugins (GitHub Issues, Jira, Linear).
+              </p>
+            </div>
+          </div>
+          <div class="flex items-start space-x-4">
+            <div class="w-8 h-8 bg-violet-500/20 rounded-lg flex-shrink-0 flex items-center justify-center text-violet-400 mt-1">
+              <i data-lucide="users" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <h4 class="text-white font-semibold mb-1">Team Collaboration</h4>
+              <p class="text-sm">
+                Role-based access, task assignment, optimistic locking, and git-based workspace sync for multi-user workflows.
+              </p>
+            </div>
+          </div>
+          <div class="flex items-start space-x-4">
+            <div class="w-8 h-8 bg-violet-500/20 rounded-lg flex-shrink-0 flex items-center justify-center text-violet-400 mt-1">
+              <i data-lucide="package" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <h4 class="text-white font-semibold mb-1">Go SDK</h4>
+              <p class="text-sm">
+                Public Go client package with typed helpers, versioned MCP schema, and OpenAPI spec generation.
               </p>
             </div>
           </div>
