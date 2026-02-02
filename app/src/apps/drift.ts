@@ -16,8 +16,9 @@ interface DriftIssue {
 }
 
 interface DriftReport {
-  has_drift: boolean;
+  id: string;
   issues: DriftIssue[];
+  created_at: string;
 }
 
 const SEVERITY_COLORS: Record<string, string> = {
@@ -100,8 +101,8 @@ const RoadyDrift = defineComponent({
       <div v-if="loading" class="text-gray-400">Loading...</div>
       <template v-else-if="report">
         <div class="mb-2">
-          <StatusBadge :status="report.has_drift ? 'warning' : 'pass'" />
-          <span class="ml-2 text-sm">{{ report.has_drift ? report.issues.length + ' issues found' : 'No drift detected' }}</span>
+          <StatusBadge :status="report.issues?.length ? 'warning' : 'pass'" />
+          <span class="ml-2 text-sm">{{ report.issues?.length ? report.issues.length + ' issues found' : 'No drift detected' }}</span>
         </div>
         <div v-if="report.issues?.length" class="mb-3" ref="chartEl" style="position:relative"></div>
         <div v-if="filterSev" class="text-xs text-blue-500 mb-2 cursor-pointer" @click="filterSev = null">Filter: {{ filterSev }} (click to clear)</div>
