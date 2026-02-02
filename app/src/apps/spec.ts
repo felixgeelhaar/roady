@@ -14,7 +14,7 @@ interface Feature {
 }
 
 interface Spec {
-  name: string;
+  title: string;
   features: Feature[];
 }
 
@@ -72,7 +72,7 @@ const RoadySpec = defineComponent({
       await nextTick();
       if (!spec.value?.features?.length || !treeEl.value) return;
       const root: TreeNode = {
-        name: spec.value.name || "Project",
+        name: spec.value.title || "Project",
         children: spec.value.features.map((f) => ({
           name: f.title,
           tooltip: f.description,
@@ -96,7 +96,7 @@ const RoadySpec = defineComponent({
       </div>
       <div v-if="loading" class="text-gray-400">Loading...</div>
       <template v-else-if="spec">
-        <p class="text-sm text-gray-600 mb-3">{{ spec.name }} — {{ spec.features?.length ?? 0 }} features</p>
+        <p class="text-sm text-gray-600 mb-3">{{ spec.title }} — {{ spec.features?.length ?? 0 }} features</p>
         <div v-if="spec.features?.length" ref="treeEl" style="position:relative" class="mb-4 border rounded p-2 overflow-x-auto"></div>
         <div v-for="f in spec.features" :key="f.id" class="border rounded p-3 mb-2">
           <div class="font-medium">{{ f.title }}</div>
