@@ -1,76 +1,172 @@
 # Changelog
 
-Release 0.3.0
+All notable changes to this project will be documented in this file.
 
-Release 0.4.1
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.5.0] - Domain Events Wired into Production
-
-### Added
-- **Event-Sourced Audit in Production:** `BuildAppServices` now creates `EventSourcedAuditService` with `FileEventStore` and `InMemoryEventPublisher`, replacing the plain `AuditService` for all wired services.
-- **Domain Event Dispatcher:** `EventDispatcher` with `LoggingHandler`, `DriftWarningHandler`, and `TaskTransitionHandler` registered and active in production.
-- **Live Velocity Projection:** `ExtendedVelocityProjection` subscribes to the event publisher, receiving live events in addition to startup hydration from stored events.
-- **D3.js Interactive Visualizations:** 10 MCP apps with D3 charts — donut, force-directed graph, arc gauge, horizontal bars, line chart, collapsible tree, and swimlane views.
-- **Vue 3 + D3.js App Source:** Full `app/` build pipeline with Vite, Vue 3, D3.js and `apps.go` embed directive for serving interactive visualizations from MCP tools.
-
-### Changed
-- `InitService` and `DebtService` now accept `domain.AuditLogger` interface instead of concrete `*AuditService`, enabling polymorphic audit implementations.
-- `BaseEvent` includes `Action` field for backward-compatible JSON serialization with `domain.Event` readers.
-- `FileEventStore` defers directory creation to first write, avoiding interference with `IsInitialized()` project checks.
-- Deduplicated `BuildAppServices` and `BuildAppServicesWithProvider` into shared `buildServicesWithProvider` helper.
+## [0.6.3] - 2026-02-08
 
 ### Fixed
-- **User-Friendly MCP Errors:** All MCP handler error messages replaced with actionable, human-readable messages instead of raw Go errors.
-- **FlexBool/FlexInt Types:** MCP args now accept both native and string JSON values.
-- Embedded MCP app dist files committed for CI `go:embed` compatibility.
 
-## [0.4.3] - User-Friendly MCP Errors & App Source
+- Propagate actual error details in `roady_transition_task` and `roady_assign_task` MCP handlers instead of returning generic messages ([#3](https://github.com/felixgeelhaar/roady/issues/3))
+- Initialize task status to `pending` when `SetTaskOwner`, `AddEvidence`, or `SetExternalRef` creates a new entry in the task states map, preventing broken transitions on tasks assigned before their first status write
 
-### Added
-- **Vue 3 + D3.js App Source:** Committed full `app/` build pipeline (Vite, Vue 3, D3.js) and `apps.go` embed directive for serving interactive visualizations from MCP tools.
+## [0.6.2] - 2026-02-03
 
 ### Fixed
-- **FlexBool/FlexInt Types:** MCP args now accept both native and string JSON values, fixing `json: cannot unmarshal string` errors from clients that send `"true"` instead of `true`.
-- **User-Friendly MCP Errors:** All MCP handler error messages replaced with actionable, human-readable messages instead of raw Go errors (e.g., "Failed to load plan. Generate a plan first." instead of internal stack traces).
 
-## [0.4.2] - Interactive D3 Visualizations
+- Fix undefined label in spec MCP app visualization (title vs name mismatch)
+- Fix undefined `has_drift` field in drift MCP app (derive from issues array length)
+
+## [0.6.1] - 2026-02-01
+
+### Fixed
+
+- Fix burndown chart dipping below zero on completed projects
+- Enable Vue runtime compiler and remove TypeScript syntax from templates
+
+## [0.6.0] - 2026-02-01
 
 ### Added
-- **Shared D3 Chart Library:** `app/src/lib/d3-charts.ts` with 6 reusable chart functions — donut, force-directed graph, arc gauge, horizontal bars, line chart, and collapsible tree.
-- **Status App:** D3 donut chart for task status distribution with click-to-filter.
-- **Plan App:** Force-directed DAG with nodes colored by status, directed dependency edges, drag and zoom.
-- **State App:** Mini donut chart + swimlane columns (pending/in_progress/blocked/done).
-- **Drift App:** Horizontal severity bar chart with click-to-filter issue list.
-- **Debt App:** Multi-chart dashboard — health gauge (summary), category donut + component bars (report), line chart (trend).
-- **Deps App:** Force-directed dependency network graph with edges colored by type and node sizing.
-- **Usage App:** Token gauge arc (green→red) with threshold coloring.
-- **Spec App:** Collapsible tree diagram (project → features → requirements).
-- **Policy App:** Compliance gauge showing pass/violation state.
-- **Git Sync App:** Vertical D3 timeline with colored dots per sync result.
+
+- Org-level dashboard aggregating status across multiple Roady projects
+- fsnotify-based file watching replacing polling
+- Plugin contract testing for Syncer interface
+- Reliable webhook delivery with retry
+- Org policy inheritance with child project overrides
+- Cross-project drift detection
+- Plugin registry with versioning and health monitoring
+- Pluggable messaging adapters (Slack support)
+- Realtime event streaming via SSE
+- Selective watch patterns with include/exclude globs
+- Auto-sync workflows on file changes
+- Shell completions for bash/zsh/fish/powershell
+- Structured CLI error types with actionable hints
+- Interactive config wizard for `ai.yaml` and `policy.yaml`
+- Guided onboarding with starter templates (minimal, web-api, cli-tool, library)
+- Versioned MCP tool schema with backward-compatible evolution
+- Public Go SDK client package (`pkg/sdk/`)
+- OpenAPI 3.0 spec generation from MCP tools
+- Typed SDK request/response helpers
+- Task assignment with owner field
+- Role-based access control (`team.yaml`)
+- Optimistic locking for concurrent state modifications
+- Git-based workspace sync (push/pull)
+- AI spec quality review with completeness scoring
+- AI priority suggestions from dependency analysis
+- Context-aware task decomposition with codebase scanning
+- Natural language query interface for project status
+- Interactive D3.js MCP app visualizations (org, sync, forecast, git-sync, and 10 others)
+
+### Fixed
+
+- Move roady-sync example out of workflows to prevent CI execution
+
+## [0.5.0] - 2026-01-30
+
+### Added
+
+- Event-sourced audit in production with `FileEventStore` and `InMemoryEventPublisher`
+- Domain event dispatcher with `LoggingHandler`, `DriftWarningHandler`, and `TaskTransitionHandler`
+- Live velocity projection subscribing to event publisher for real-time updates
+- D3.js interactive visualizations across 10 MCP apps (donut, force-directed graph, arc gauge, horizontal bars, line chart, collapsible tree, swimlane)
+- Vue 3 + D3.js app source with Vite build pipeline and `apps.go` embed directive
 
 ### Changed
-- Updated README with D3 visualization feature and architecture note.
-- Updated marketing site MCP section with visualization showcase card.
-- Updated marketing site features section with "Every Tool, Visualized" callout.
 
-## [0.2.0] - Horizon 2: Increase Leverage
+- `InitService` and `DebtService` now accept `domain.AuditLogger` interface instead of concrete `*AuditService`
+- `BaseEvent` includes `Action` field for backward-compatible JSON serialization
+- `FileEventStore` defers directory creation to first write, avoiding interference with `IsInitialized()` checks
+- Deduplicated `BuildAppServices` into shared `buildServicesWithProvider` helper
+
+### Fixed
+
+- User-friendly MCP errors replacing raw Go error strings
+- FlexBool/FlexInt types accepting both native and string JSON values
+- Embedded MCP app dist files committed for CI `go:embed` compatibility
+
+## [0.4.1] - 2026-01-19
+
+### Fixed
+
+- Patch release with minor fixes (see [v0.4.0...v0.4.1](https://github.com/felixgeelhaar/roady/compare/v0.4.0...v0.4.1))
+
+## [0.4.0] - 2026-01-16
 
 ### Added
-- **Interactive Dashboard:** `roady dashboard` TUI for visualizing plans and drift.
-- **Dynamic Policy Engine:** Configurable `.roady/policy.yaml` (e.g., `max_wip`).
-- **Plugin Architecture:** gRPC-based `Syncer` interface for external integrations.
-- **Intelligent Drift:** Now detects empty files (`empty-code-*`) as high-severity drift.
-- **Smart Plan Injection:** `roady_update_plan` MCP tool for AI-driven architecture.
 
-## [0.1.0] - Horizon 1: Core Foundation
+- GitHub Actions CI integration
+- Web dashboard for plan visualization
+- Event sourcing for audit trail
+- gRPC transport for plugin communication and MCP
+- Push method on Syncer interface for bidirectional sync
+- Notion, Asana, and Trello plugins
+- Push support for Linear, GitHub, Jira, and mock plugins
+- Interactive TUI for plugin configuration with auto-install
+- Per-plugin configuration file support
+- HTTP webhook server for real-time sync
+- Marketing website migrated to Astro with Vue
+
+### Changed
+
+- MCP wiring refactored with split AI config
+- Phase 3 and Phase 4 code quality improvements
+
+### Fixed
+
+- CI builds binary to `dist/` for e2e tests
+- Website `.nojekyll` for GitHub Pages compatibility
+
+## [0.3.0] - 2026-01-13
 
 ### Added
-- **Core Domain Models:** Spec, Plan, Task, Drift.
-- **Spec Ingestion:** `roady spec import` from Markdown.
-- **Spec Locking:** `.roady/spec.lock.json` for immutable planning boundaries.
-- **Plan Reconciliation:** Merging new specs without destroying existing task state.
-- **Drift Detection:** Spec vs Plan and Plan vs Code existence checks.
-- **Audit Trail:** Structured logging to `.roady/events.jsonl`.
-- **MCP Server:** `roady mcp` exposing core tools to AI agents.
-- **Resilience:** `fortify` integration for filesystem retries.
-- **State Management:** `statekit` FSM for task transitions.
+
+- Drift accept command for acknowledging intentional spec divergence
+
+## [0.2.1] - 2026-01-13
+
+### Changed
+
+- Expose core packages in `pkg/` to enable library usage
+- Inject version flags in goreleaser config
+
+## [0.2.0] - 2026-01-13
+
+### Added
+
+- Jira plugin for bidirectional sync
+- Linear plugin with external task linking
+- External refs on task state for plugin integration
+- Interactive dashboard (`roady dashboard`) TUI for visualizing plans and drift
+- Dynamic policy engine with configurable `.roady/policy.yaml`
+- Plugin architecture with gRPC-based Syncer interface
+- Smart plan injection via `roady_update_plan` MCP tool
+- GoReleaser for multi-platform builds and Homebrew distribution
+- Release automation for GitHub and Homebrew
+
+## [0.1.0] - 2026-01-13
+
+### Added
+
+- Core domain models: Spec, Plan, Task, Drift
+- Spec ingestion from Markdown (`roady spec import`)
+- Spec locking (`.roady/spec.lock.json`) for immutable planning boundaries
+- Plan reconciliation merging new specs without destroying existing task state
+- Drift detection for Spec vs Plan and Plan vs Code
+- Audit trail with structured logging to `.roady/events.jsonl`
+- MCP server (`roady mcp`) exposing core tools to AI agents
+- Resilience via `fortify` integration for filesystem retries
+- State management via `statekit` FSM for task transitions
+
+[0.6.3]: https://github.com/felixgeelhaar/roady/compare/v0.6.2...v0.6.3
+[0.6.2]: https://github.com/felixgeelhaar/roady/compare/v0.6.1...v0.6.2
+[0.6.1]: https://github.com/felixgeelhaar/roady/compare/v0.6.0...v0.6.1
+[0.6.0]: https://github.com/felixgeelhaar/roady/compare/v0.5.0...v0.6.0
+[0.5.0]: https://github.com/felixgeelhaar/roady/compare/v0.4.1...v0.5.0
+[0.4.1]: https://github.com/felixgeelhaar/roady/compare/v0.4.0...v0.4.1
+[0.4.0]: https://github.com/felixgeelhaar/roady/compare/v0.3.0...v0.4.0
+[0.3.0]: https://github.com/felixgeelhaar/roady/compare/v0.2.1...v0.3.0
+[0.2.1]: https://github.com/felixgeelhaar/roady/compare/v0.2.0...v0.2.1
+[0.2.0]: https://github.com/felixgeelhaar/roady/compare/v0.1.0...v0.2.0
+[0.1.0]: https://github.com/felixgeelhaar/roady/releases/tag/v0.1.0
