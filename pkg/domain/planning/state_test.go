@@ -53,6 +53,36 @@ func TestExecutionState_SetTaskOwner(t *testing.T) {
 	}
 }
 
+func TestSetTaskOwner_InitializesStatusForNewTask(t *testing.T) {
+	state := NewExecutionState("test")
+
+	// Task not in map yet — SetTaskOwner should default Status to pending
+	state.SetTaskOwner("new-task", "alice")
+
+	result := state.TaskStates["new-task"]
+	if result.Status != StatusPending {
+		t.Errorf("expected status %q for new task, got %q", StatusPending, result.Status)
+	}
+	if result.Owner != "alice" {
+		t.Errorf("expected owner alice, got %s", result.Owner)
+	}
+}
+
+func TestSetTaskOwner_PreservesExistingStatus(t *testing.T) {
+	state := NewExecutionState("test")
+	state.TaskStates["t1"] = TaskResult{Status: StatusInProgress, Owner: "bob"}
+
+	state.SetTaskOwner("t1", "alice")
+
+	result := state.TaskStates["t1"]
+	if result.Status != StatusInProgress {
+		t.Errorf("expected status %q to be preserved, got %q", StatusInProgress, result.Status)
+	}
+	if result.Owner != "alice" {
+		t.Errorf("expected owner alice, got %s", result.Owner)
+	}
+}
+
 func TestExecutionState_AddEvidence(t *testing.T) {
 	state := NewExecutionState("test")
 
@@ -64,6 +94,20 @@ func TestExecutionState_AddEvidence(t *testing.T) {
 	}
 }
 
+func TestAddEvidence_InitializesStatusForNewTask(t *testing.T) {
+	state := NewExecutionState("test")
+
+	state.AddEvidence("new-task", "commit-abc")
+
+	result := state.TaskStates["new-task"]
+	if result.Status != StatusPending {
+		t.Errorf("expected status %q for new task, got %q", StatusPending, result.Status)
+	}
+	if len(result.Evidence) != 1 || result.Evidence[0] != "commit-abc" {
+		t.Errorf("expected evidence [commit-abc], got %v", result.Evidence)
+	}
+}
+
 func TestExecutionState_SetExternalRef(t *testing.T) {
 	state := NewExecutionState("test")
 
@@ -71,6 +115,21 @@ func TestExecutionState_SetExternalRef(t *testing.T) {
 	state.SetExternalRef("t1", "jira", ref)
 
 	if state.TaskStates["t1"].ExternalRefs["jira"].Identifier != "JIRA-123" {
+		t.Errorf("expected external ref to be set")
+	}
+}
+
+func TestSetExternalRef_InitializesStatusForNewTask(t *testing.T) {
+	state := NewExecutionState("test")
+
+	ref := ExternalRef{ID: "456", Identifier: "LIN-456", URL: "https://linear.app/456"}
+	state.SetExternalRef("new-task", "linear", ref)
+
+	result := state.TaskStates["new-task"]
+	if result.Status != StatusPending {
+		t.Errorf("expected status %q for new task, got %q", StatusPending, result.Status)
+	}
+	if result.ExternalRefs["linear"].Identifier != "LIN-456" {
 		t.Errorf("expected external ref to be set")
 	}
 }

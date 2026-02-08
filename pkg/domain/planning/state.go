@@ -73,6 +73,9 @@ func (s *ExecutionState) SetTaskStatus(taskID string, status TaskStatus) {
 // SetTaskOwner sets the owner for a task.
 func (s *ExecutionState) SetTaskOwner(taskID string, owner string) {
 	result := s.TaskStates[taskID]
+	if result.Status == "" {
+		result.Status = StatusPending
+	}
 	result.Owner = owner
 	s.TaskStates[taskID] = result
 	s.UpdatedAt = time.Now()
@@ -81,6 +84,9 @@ func (s *ExecutionState) SetTaskOwner(taskID string, owner string) {
 // AddEvidence appends evidence to a task's result.
 func (s *ExecutionState) AddEvidence(taskID string, evidence string) {
 	result := s.TaskStates[taskID]
+	if result.Status == "" {
+		result.Status = StatusPending
+	}
 	result.Evidence = append(result.Evidence, evidence)
 	s.TaskStates[taskID] = result
 	s.UpdatedAt = time.Now()
@@ -89,6 +95,9 @@ func (s *ExecutionState) AddEvidence(taskID string, evidence string) {
 // SetExternalRef sets an external reference for a task.
 func (s *ExecutionState) SetExternalRef(taskID string, provider string, ref ExternalRef) {
 	result := s.TaskStates[taskID]
+	if result.Status == "" {
+		result.Status = StatusPending
+	}
 	if result.ExternalRefs == nil {
 		result.ExternalRefs = make(map[string]ExternalRef)
 	}

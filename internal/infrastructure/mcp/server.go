@@ -643,7 +643,7 @@ type StatusArgs struct {
 func (s *Server) handleAssignTask(ctx context.Context, args AssignTaskArgs) (string, error) {
 	err := s.taskSvc.AssignTask(ctx, args.TaskID, args.Assignee)
 	if err != nil {
-		return "", mcpErr(fmt.Sprintf("Failed to assign task '%s' to '%s'. Ensure the task exists in the plan.", args.TaskID, args.Assignee))
+		return "", mcpErr(fmt.Sprintf("Failed to assign task '%s' to '%s': %v", args.TaskID, args.Assignee, err))
 	}
 	return fmt.Sprintf("Task %s assigned to %s", args.TaskID, args.Assignee), nil
 }
@@ -655,7 +655,7 @@ func (s *Server) handleTransitionTask(ctx context.Context, args TransitionTaskAr
 	}
 	err := s.taskSvc.TransitionTask(args.TaskID, args.Event, actor, args.Evidence)
 	if err != nil {
-		return "", mcpErr(fmt.Sprintf("Failed to transition task '%s' with event '%s'. Ensure the task exists and the transition is valid.", args.TaskID, args.Event))
+		return "", mcpErr(fmt.Sprintf("Failed to transition task '%s' with event '%s': %v", args.TaskID, args.Event, err))
 	}
 	return fmt.Sprintf("Task %s transitioned with event %s successfully", args.TaskID, args.Event), nil
 }
