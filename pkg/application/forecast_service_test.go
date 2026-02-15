@@ -6,6 +6,7 @@ import (
 
 	"github.com/felixgeelhaar/roady/pkg/domain"
 	"github.com/felixgeelhaar/roady/pkg/domain/analytics"
+	"github.com/felixgeelhaar/roady/pkg/domain/billing"
 	"github.com/felixgeelhaar/roady/pkg/domain/events"
 	"github.com/felixgeelhaar/roady/pkg/domain/planning"
 	"github.com/felixgeelhaar/roady/pkg/domain/spec"
@@ -35,6 +36,14 @@ func (m *mockForecastRepo) UpdateUsage(s domain.UsageStats) error     { return n
 func (m *mockForecastRepo) LoadUsage() (*domain.UsageStats, error)    { return nil, nil }
 func (m *mockForecastRepo) SavePolicy(c *domain.PolicyConfig) error   { return nil }
 func (m *mockForecastRepo) LoadPolicy() (*domain.PolicyConfig, error) { return nil, nil }
+func (m *mockForecastRepo) SaveRates(c *billing.RateConfig) error     { return nil }
+func (m *mockForecastRepo) LoadRates() (*billing.RateConfig, error) {
+	return &billing.RateConfig{}, nil
+}
+func (m *mockForecastRepo) SaveTimeEntries(e []billing.TimeEntry) error { return nil }
+func (m *mockForecastRepo) LoadTimeEntries() ([]billing.TimeEntry, error) {
+	return []billing.TimeEntry{}, nil
+}
 
 func TestForecastService_GetForecast_NoPlan(t *testing.T) {
 	projection := events.NewExtendedVelocityProjection()

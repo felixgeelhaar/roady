@@ -252,7 +252,7 @@ func TestTaskService_StartTask_Context(t *testing.T) {
 	policy := application.NewPolicyService(repo)
 	service := application.NewTaskService(repo, audit, policy)
 
-	err := service.StartTask(nil, "t1", "test-user")
+	err := service.StartTask(nil, "t1", "test-user", "")
 	if err != nil {
 		t.Fatalf("StartTask failed: %v", err)
 	}

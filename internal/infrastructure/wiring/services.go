@@ -21,11 +21,12 @@ type AppServices struct {
 	Drift      *application.DriftService
 	Policy     *application.PolicyService
 	Task       *application.TaskService
+	Billing    *application.BillingService
 	AI         *application.AIPlanningService
 	Git        *application.GitService
 	Sync       *application.SyncService
 	Audit      *application.EventSourcedAuditService // Event-sourced audit with dispatcher and projections
-	Usage      *application.UsageService // Usage tracking service (separate from audit)
+	Usage      *application.UsageService             // Usage tracking service (separate from audit)
 	Forecast   *application.ForecastService
 	Dependency *application.DependencyService
 	Debt       *application.DebtService // Debt analysis service (Horizon 5)
@@ -139,6 +140,7 @@ func buildServicesWithProvider(workspace *Workspace, root string, provider domai
 		Drift:      driftSvc,
 		Policy:     policySvc,
 		Task:       taskSvc,
+		Billing:    application.NewBillingService(workspace.Repo),
 		AI:         aiSvc,
 		Git:        application.NewGitService(workspace.Repo, taskSvc),
 		Sync:       application.NewSyncServiceWithPlugins(workspace.Repo, workspace.Repo, taskSvc),

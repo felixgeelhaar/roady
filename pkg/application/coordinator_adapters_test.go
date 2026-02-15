@@ -7,6 +7,7 @@ import (
 
 	"github.com/felixgeelhaar/roady/pkg/application"
 	"github.com/felixgeelhaar/roady/pkg/domain"
+	"github.com/felixgeelhaar/roady/pkg/domain/billing"
 	"github.com/felixgeelhaar/roady/pkg/domain/planning"
 	"github.com/felixgeelhaar/roady/pkg/domain/spec"
 )
@@ -21,22 +22,35 @@ type adapterMockRepo struct {
 	LoadError error
 }
 
-func (m *adapterMockRepo) Initialize() error                            { return nil }
-func (m *adapterMockRepo) IsInitialized() bool                          { return true }
-func (m *adapterMockRepo) SaveSpec(s *spec.ProductSpec) error           { m.Spec = s; return m.SaveError }
-func (m *adapterMockRepo) LoadSpec() (*spec.ProductSpec, error)         { return m.Spec, m.LoadError }
-func (m *adapterMockRepo) SaveSpecLock(s *spec.ProductSpec) error       { return m.SaveError }
-func (m *adapterMockRepo) LoadSpecLock() (*spec.ProductSpec, error)     { return m.Spec, m.LoadError }
-func (m *adapterMockRepo) SavePlan(p *planning.Plan) error              { m.Plan = p; return m.SaveError }
-func (m *adapterMockRepo) LoadPlan() (*planning.Plan, error)            { return m.Plan, m.LoadError }
-func (m *adapterMockRepo) SaveState(s *planning.ExecutionState) error   { m.State = s; return m.SaveError }
+func (m *adapterMockRepo) Initialize() error                        { return nil }
+func (m *adapterMockRepo) IsInitialized() bool                      { return true }
+func (m *adapterMockRepo) SaveSpec(s *spec.ProductSpec) error       { m.Spec = s; return m.SaveError }
+func (m *adapterMockRepo) LoadSpec() (*spec.ProductSpec, error)     { return m.Spec, m.LoadError }
+func (m *adapterMockRepo) SaveSpecLock(s *spec.ProductSpec) error   { return m.SaveError }
+func (m *adapterMockRepo) LoadSpecLock() (*spec.ProductSpec, error) { return m.Spec, m.LoadError }
+func (m *adapterMockRepo) SavePlan(p *planning.Plan) error          { m.Plan = p; return m.SaveError }
+func (m *adapterMockRepo) LoadPlan() (*planning.Plan, error)        { return m.Plan, m.LoadError }
+func (m *adapterMockRepo) SaveState(s *planning.ExecutionState) error {
+	m.State = s
+	return m.SaveError
+}
 func (m *adapterMockRepo) LoadState() (*planning.ExecutionState, error) { return m.State, m.LoadError }
 func (m *adapterMockRepo) SavePolicy(c *domain.PolicyConfig) error      { m.Policy = c; return m.SaveError }
 func (m *adapterMockRepo) LoadPolicy() (*domain.PolicyConfig, error)    { return m.Policy, m.LoadError }
 func (m *adapterMockRepo) RecordEvent(e domain.Event) error             { return m.SaveError }
 func (m *adapterMockRepo) LoadEvents() ([]domain.Event, error)          { return []domain.Event{}, m.LoadError }
 func (m *adapterMockRepo) UpdateUsage(u domain.UsageStats) error        { return m.SaveError }
-func (m *adapterMockRepo) LoadUsage() (*domain.UsageStats, error)       { return &domain.UsageStats{}, m.LoadError }
+func (m *adapterMockRepo) LoadUsage() (*domain.UsageStats, error) {
+	return &domain.UsageStats{}, m.LoadError
+}
+func (m *adapterMockRepo) SaveRates(c *billing.RateConfig) error { return m.SaveError }
+func (m *adapterMockRepo) LoadRates() (*billing.RateConfig, error) {
+	return &billing.RateConfig{}, m.LoadError
+}
+func (m *adapterMockRepo) SaveTimeEntries(e []billing.TimeEntry) error { return m.SaveError }
+func (m *adapterMockRepo) LoadTimeEntries() ([]billing.TimeEntry, error) {
+	return []billing.TimeEntry{}, m.LoadError
+}
 
 type adapterMockAudit struct {
 	logs []map[string]interface{}
@@ -142,7 +156,7 @@ func TestAuditEventPublisher_PublishTaskStarted(t *testing.T) {
 	audit := &adapterMockAudit{}
 	publisher := application.NewAuditEventPublisher(audit)
 
-	err := publisher.PublishTaskStarted(context.Background(), "task-1", "bob")
+	err := publisher.PublishTaskStarted(context.Background(), "task-1", "bob", "senior")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -152,6 +166,10 @@ func TestAuditEventPublisher_PublishTaskStarted(t *testing.T) {
 	}
 	if audit.logs[0]["action"] != "task.started" {
 		t.Errorf("expected action task.started, got %v", audit.logs[0]["action"])
+	}
+	metadata := audit.logs[0]["metadata"].(map[string]interface{})
+	if metadata["rate_id"] != "senior" {
+		t.Errorf("expected rate_id senior, got %v", metadata["rate_id"])
 	}
 }
 

@@ -139,10 +139,10 @@ type VelocityWindow struct {
 
 // StatusResult represents project status output.
 type StatusResult struct {
-	TotalTasks    int          `json:"total_tasks"`
-	FilteredCount int          `json:"filtered_count"`
+	TotalTasks    int            `json:"total_tasks"`
+	FilteredCount int            `json:"filtered_count"`
 	Counts        map[string]int `json:"counts"`
-	Tasks         []StatusTask `json:"tasks"`
+	Tasks         []StatusTask   `json:"tasks"`
 }
 
 // StatusTask is a task entry in status output.
@@ -186,11 +186,11 @@ type SpecReview struct {
 
 // DebtReport represents a comprehensive debt report.
 type DebtReport struct {
-	TotalIssues    int                    `json:"total_issues"`
-	Categories     map[string]int         `json:"categories"`
-	TopDebtors     []any                  `json:"top_debtors"`
-	HealthLevel    string                 `json:"health_level"`
-	Recommendation string                 `json:"recommendation"`
+	TotalIssues    int            `json:"total_issues"`
+	Categories     map[string]int `json:"categories"`
+	TopDebtors     []any          `json:"top_debtors"`
+	HealthLevel    string         `json:"health_level"`
+	Recommendation string         `json:"recommendation"`
 }
 
 // DebtSummary is a quick overview of debt status.
@@ -202,15 +202,15 @@ type DebtSummary struct {
 
 // DebtTrend represents drift trend over time.
 type DebtTrend struct {
-	Days       int              `json:"days"`
-	DataPoints []any            `json:"data_points"`
-	Direction  string           `json:"direction"`
+	Days       int    `json:"days"`
+	DataPoints []any  `json:"data_points"`
+	Direction  string `json:"direction"`
 }
 
 // DependencySummary is a dependency summary.
 type DependencySummary struct {
-	TotalDeps  int `json:"total_deps"`
-	HealthyDeps int `json:"healthy_deps"`
+	TotalDeps     int `json:"total_deps"`
+	HealthyDeps   int `json:"healthy_deps"`
 	UnhealthyDeps int `json:"unhealthy_deps"`
 }
 
@@ -227,9 +227,10 @@ type OrgMetrics struct {
 
 // OrgPolicy represents merged policy for a project.
 type OrgPolicy struct {
-	MaxWIP     int  `json:"max_wip"`
-	AllowAI    bool `json:"allow_ai"`
-	TokenLimit int  `json:"token_limit"`
+	MaxWIP      int  `json:"max_wip"`
+	AllowAI     bool `json:"allow_ai"`
+	TokenLimit  int  `json:"token_limit"`
+	BudgetHours int  `json:"budget_hours"`
 }
 
 // PluginInfo represents plugin information.

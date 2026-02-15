@@ -84,3 +84,77 @@ func TestGenerateOpenAPI_NoArgs(t *testing.T) {
 		t.Error("expected no request body for empty args tool")
 	}
 }
+
+func TestHasProperties(t *testing.T) {
+	tests := []struct {
+		name     string
+		schema   any
+		expected bool
+	}{
+		{
+			name:     "has properties",
+			schema:   map[string]any{"properties": map[string]any{"name": "value"}},
+			expected: true,
+		},
+		{
+			name:     "empty properties",
+			schema:   map[string]any{"properties": map[string]any{}},
+			expected: false,
+		},
+		{
+			name:     "no properties",
+			schema:   map[string]any{"type": "object"},
+			expected: false,
+		},
+		{
+			name:     "nil schema",
+			schema:   nil,
+			expected: false,
+		},
+		{
+			name:     "string schema",
+			schema:   "not a map",
+			expected: false,
+		},
+		{
+			name:     "non-map properties",
+			schema:   map[string]any{"properties": "not a map"},
+			expected: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := hasProperties(tt.schema)
+			if got != tt.expected {
+				t.Errorf("hasProperties() = %v, want %v", got, tt.expected)
+			}
+		})
+	}
+}
+
+func TestServerOpenAPI(t *testing.T) {
+	tempDir := t.TempDir()
+	server, err := NewServer(tempDir)
+	if err != nil {
+		t.Fatalf("failed to create server: %v", err)
+	}
+
+	data, err := server.OpenAPI()
+	if err != nil {
+		t.Fatalf("OpenAPI failed: %v", err)
+	}
+
+	if len(data) == 0 {
+		t.Error("expected non-empty OpenAPI document")
+	}
+
+	var spec OpenAPISpec
+	if err := json.Unmarshal(data, &spec); err != nil {
+		t.Fatalf("unmarshal failed: %v", err)
+	}
+
+	if spec.OpenAPI != "3.0.3" {
+		t.Errorf("expected openapi 3.0.3, got %s", spec.OpenAPI)
+	}
+}

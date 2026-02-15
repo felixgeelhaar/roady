@@ -9,29 +9,31 @@ import (
 	"github.com/felixgeelhaar/mcp-go"
 	"github.com/felixgeelhaar/roady/internal/infrastructure/wiring"
 	"github.com/felixgeelhaar/roady/pkg/application"
+	"github.com/felixgeelhaar/roady/pkg/domain/billing"
 	"github.com/felixgeelhaar/roady/pkg/domain/planning"
 	"github.com/felixgeelhaar/roady/pkg/domain/team"
 )
 
 type Server struct {
-	mcpServer *mcp.Server
-	initSvc   *application.InitService
-	specSvc   *application.SpecService
-	planSvc   *application.PlanService
-	driftSvc  *application.DriftService
-	policySvc *application.PolicyService
-	taskSvc   *application.TaskService
-	aiSvc     *application.AIPlanningService
-	gitSvc    *application.GitService
-	syncSvc   *application.SyncService
-	auditSvc  *application.EventSourcedAuditService
-	depSvc       *application.DependencyService
-	debtSvc      *application.DebtService
-	forecastSvc  *application.ForecastService
-	orgSvc       *application.OrgService
-	pluginSvc    *application.PluginService
-	teamSvc      *application.TeamService
-	root         string
+	mcpServer   *mcp.Server
+	initSvc     *application.InitService
+	specSvc     *application.SpecService
+	planSvc     *application.PlanService
+	driftSvc    *application.DriftService
+	policySvc   *application.PolicyService
+	taskSvc     *application.TaskService
+	billingSvc  *application.BillingService
+	aiSvc       *application.AIPlanningService
+	gitSvc      *application.GitService
+	syncSvc     *application.SyncService
+	auditSvc    *application.EventSourcedAuditService
+	depSvc      *application.DependencyService
+	debtSvc     *application.DebtService
+	forecastSvc *application.ForecastService
+	orgSvc      *application.OrgService
+	pluginSvc   *application.PluginService
+	teamSvc     *application.TeamService
+	root        string
 }
 
 var (
@@ -68,16 +70,17 @@ func NewServer(root string) (*Server, error) {
 			mcp.WithBuildInfo(BuildCommit, BuildDate),
 			mcp.WithInstructions("Use tools to read spec/plan, generate plans, detect drift, and transition tasks."),
 		),
-		initSvc:   services.Init,
-		specSvc:   services.Spec,
-		planSvc:   services.Plan,
-		driftSvc:  services.Drift,
-		policySvc: services.Policy,
-		taskSvc:   services.Task,
-		aiSvc:     services.AI,
-		gitSvc:    services.Git,
-		syncSvc:   services.Sync,
-		auditSvc:  services.Audit,
+		initSvc:     services.Init,
+		specSvc:     services.Spec,
+		planSvc:     services.Plan,
+		driftSvc:    services.Drift,
+		policySvc:   services.Policy,
+		taskSvc:     services.Task,
+		billingSvc:  services.Billing,
+		aiSvc:       services.AI,
+		gitSvc:      services.Git,
+		syncSvc:     services.Sync,
+		auditSvc:    services.Audit,
 		depSvc:      services.Dependency,
 		debtSvc:     services.Debt,
 		forecastSvc: services.Forecast,
@@ -387,6 +390,55 @@ func (s *Server) registerTools() {
 		Description("Remove a team member").
 		UIResource("ui://roady/team").
 		Handler(s.handleTeamRemove)
+
+	// Billing tools
+	// Tool: roady_rate_list
+	s.mcpServer.Tool("roady_rate_list").
+		Description("List all billing rates").
+		UIResource("ui://roady/billing").
+		Handler(s.handleRateList)
+
+	// Tool: roady_rate_add
+	s.mcpServer.Tool("roady_rate_add").
+		Description("Add a new billing rate").
+		UIResource("ui://roady/billing").
+		Handler(s.handleRateAdd)
+
+	// Tool: roady_task_log_time
+	s.mcpServer.Tool("roady_task_log_time").
+		Description("Log time to a task for billing").
+		UIResource("ui://roady/billing").
+		Handler(s.handleTaskLogTime)
+
+	// Tool: roady_cost_report
+	s.mcpServer.Tool("roady_cost_report").
+		Description("Generate a cost report for time tracking").
+		UIResource("ui://roady/billing").
+		Handler(s.handleCostReport)
+
+	// Tool: roady_cost_budget
+	s.mcpServer.Tool("roady_cost_budget").
+		Description("Show budget status based on budget_hours in policy").
+		UIResource("ui://roady/billing").
+		Handler(s.handleCostBudget)
+
+	// Tool: roady_rate_remove
+	s.mcpServer.Tool("roady_rate_remove").
+		Description("Remove a billing rate").
+		UIResource("ui://roady/billing").
+		Handler(s.handleRateRemove)
+
+	// Tool: roady_rate_set_default
+	s.mcpServer.Tool("roady_rate_set_default").
+		Description("Set the default billing rate").
+		UIResource("ui://roady/billing").
+		Handler(s.handleRateSetDefault)
+
+	// Tool: roady_rate_tax
+	s.mcpServer.Tool("roady_rate_tax").
+		Description("Configure tax settings for billing").
+		UIResource("ui://roady/billing").
+		Handler(s.handleRateTax)
 }
 
 func (s *Server) handleForecast(ctx context.Context, args struct{}) (any, error) {
@@ -1164,6 +1216,138 @@ func (s *Server) handleTeamRemove(ctx context.Context, args TeamRemoveArgs) (str
 		return "", mcpErr(fmt.Sprintf("failed to remove member: %s", err))
 	}
 	return fmt.Sprintf("Member %s removed", args.Name), nil
+}
+
+type RateListArgs struct{}
+
+func (s *Server) handleRateList(ctx context.Context, args RateListArgs) (any, error) {
+	config, err := s.billingSvc.ListRates()
+	if err != nil {
+		return nil, mcpErr(fmt.Sprintf("failed to list rates: %s", err))
+	}
+	return config, nil
+}
+
+type RateAddArgs struct {
+	ID         string  `json:"id" jsonschema:"description=Rate ID (e.g., senior, junior)"`
+	Name       string  `json:"name" jsonschema:"description=Rate name"`
+	HourlyRate float64 `json:"hourly_rate" jsonschema:"description=Hourly rate amount"`
+	IsDefault  bool    `json:"is_default" jsonschema:"description=Set as default rate"`
+}
+
+func (s *Server) handleRateAdd(ctx context.Context, args RateAddArgs) (string, error) {
+	if args.ID == "" || args.Name == "" {
+		return "", mcpErr("id and name are required")
+	}
+	rate := billing.Rate{
+		ID:         args.ID,
+		Name:       args.Name,
+		HourlyRate: args.HourlyRate,
+		IsDefault:  args.IsDefault,
+	}
+	if err := s.billingSvc.AddRate(rate); err != nil {
+		return "", mcpErr(fmt.Sprintf("failed to add rate: %s", err))
+	}
+	return fmt.Sprintf("Rate %s added: %s - $%.2f/hr", args.ID, args.Name, args.HourlyRate), nil
+}
+
+type TaskLogTimeArgs struct {
+	TaskID      string `json:"task_id" jsonschema:"description=Task ID"`
+	Minutes     int    `json:"minutes" jsonschema:"description=Minutes to log"`
+	RateID      string `json:"rate_id" jsonschema:"description=Rate ID (optional)"`
+	Description string `json:"description" jsonschema:"description=Description (optional)"`
+}
+
+func (s *Server) handleTaskLogTime(ctx context.Context, args TaskLogTimeArgs) (string, error) {
+	if args.TaskID == "" || args.Minutes <= 0 {
+		return "", mcpErr("task_id and minutes are required")
+	}
+	if err := s.billingSvc.LogTime(args.TaskID, args.RateID, args.Minutes, args.Description); err != nil {
+		return "", mcpErr(fmt.Sprintf("failed to log time: %s", err))
+	}
+	return fmt.Sprintf("Logged %d minutes to task %s", args.Minutes, args.TaskID), nil
+}
+
+type CostReportArgs struct {
+	TaskID string `json:"task_id" jsonschema:"description=Filter by task ID (optional)"`
+	Period string `json:"period" jsonschema:"description=Filter by period (optional)"`
+	Format string `json:"format" jsonschema:"description=Output format: text, json, csv, markdown"`
+}
+
+func (s *Server) handleCostReport(ctx context.Context, args CostReportArgs) (any, error) {
+	opts := application.CostReportOpts{
+		TaskID: args.TaskID,
+		Period: args.Period,
+		Format: args.Format,
+	}
+	report, err := s.billingSvc.GetCostReport(opts)
+	if err != nil {
+		return nil, mcpErr(fmt.Sprintf("failed to generate cost report: %s", err))
+	}
+	if report == nil {
+		return "No time entries found", nil
+	}
+	return report, nil
+}
+
+type CostBudgetArgs struct{}
+
+func (s *Server) handleCostBudget(ctx context.Context, args CostBudgetArgs) (any, error) {
+	status, err := s.billingSvc.GetBudgetStatus()
+	if err != nil {
+		return nil, mcpErr(fmt.Sprintf("failed to get budget status: %s", err))
+	}
+	if status == nil {
+		return "No budget configured. Set budget_hours in policy.yaml.", nil
+	}
+	return status, nil
+}
+
+type RateRemoveArgs struct {
+	ID string `json:"id" jsonschema:"description=Rate ID to remove"`
+}
+
+func (s *Server) handleRateRemove(ctx context.Context, args RateRemoveArgs) (string, error) {
+	if args.ID == "" {
+		return "", mcpErr("rate id is required")
+	}
+	if err := s.billingSvc.RemoveRate(args.ID); err != nil {
+		return "", mcpErr(fmt.Sprintf("failed to remove rate: %s", err))
+	}
+	return fmt.Sprintf("Rate %s removed", args.ID), nil
+}
+
+type RateSetDefaultArgs struct {
+	ID string `json:"id" jsonschema:"description=Rate ID to set as default"`
+}
+
+func (s *Server) handleRateSetDefault(ctx context.Context, args RateSetDefaultArgs) (string, error) {
+	if args.ID == "" {
+		return "", mcpErr("rate id is required")
+	}
+	if err := s.billingSvc.SetDefaultRate(args.ID); err != nil {
+		return "", mcpErr(fmt.Sprintf("failed to set default rate: %s", err))
+	}
+	return fmt.Sprintf("Rate %s set as default", args.ID), nil
+}
+
+type RateTaxArgs struct {
+	Name     string  `json:"name" jsonschema:"description=Tax name (e.g., VAT, Sales Tax)"`
+	Percent  float64 `json:"percent" jsonschema:"description=Tax percentage (e.g., 20 for 20%%)"`
+	Included bool    `json:"included" jsonschema:"description=Tax is included in rate"`
+}
+
+func (s *Server) handleRateTax(ctx context.Context, args RateTaxArgs) (string, error) {
+	if args.Name == "" {
+		return "", mcpErr("tax name is required")
+	}
+	if args.Percent < 0 || args.Percent > 100 {
+		return "", mcpErr("tax percent must be between 0 and 100")
+	}
+	if err := s.billingSvc.SetTax(args.Name, args.Percent, args.Included); err != nil {
+		return "", mcpErr(fmt.Sprintf("failed to set tax: %s", err))
+	}
+	return fmt.Sprintf("Tax configured: %s at %.1f%%", args.Name, args.Percent), nil
 }
 
 func teamRole(s string) team.Role {

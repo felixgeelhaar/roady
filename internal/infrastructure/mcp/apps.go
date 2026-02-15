@@ -31,6 +31,7 @@ var appEntries = []appEntry{
 	{uri: "ui://roady/deps", filePath: "dist/deps.html"},
 	{uri: "ui://roady/debt", filePath: "dist/debt.html"},
 	{uri: "ui://roady/init", filePath: "dist/init.html"},
+	{uri: "ui://roady/billing", filePath: "dist/billing.html"},
 }
 
 func (s *Server) registerApps() {

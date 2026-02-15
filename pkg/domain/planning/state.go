@@ -30,6 +30,12 @@ type TaskResult struct {
 	Owner        string                 `json:"owner,omitempty"`    // Who is currently working on this?
 	Evidence     []string               `json:"evidence,omitempty"` // List of evidence (commit hashes, links, etc.)
 	ExternalRefs map[string]ExternalRef `json:"external_refs,omitempty"`
+
+	// Time tracking fields
+	StartedAt      *time.Time `json:"started_at,omitempty"`   // When task moved to in_progress
+	CompletedAt    *time.Time `json:"completed_at,omitempty"` // When task moved to done/verified
+	ElapsedMinutes int        `json:"elapsed_minutes"`        // Total elapsed time in minutes
+	RateID         string     `json:"rate_id,omitempty"`      // Rate used for billing
 }
 
 // ExternalRef links a Roady task to an external system (Linear, Jira, etc.)
@@ -180,4 +186,43 @@ func (s *ExecutionState) HasUnfinishedDependencies(taskID string, plan *Plan) bo
 		}
 	}
 	return false
+}
+
+// StartTask records the start time for a task.
+func (s *ExecutionState) StartTask(taskID string) {
+	result := s.TaskStates[taskID]
+	if result.Status == "" {
+		result.Status = StatusPending
+	}
+	now := time.Now()
+	result.StartedAt = &now
+	s.TaskStates[taskID] = result
+	s.UpdatedAt = now
+}
+
+// CompleteTask records the completion time and calculates elapsed minutes.
+func (s *ExecutionState) CompleteTask(taskID string) {
+	result := s.TaskStates[taskID]
+	now := time.Now()
+	result.CompletedAt = &now
+
+	if result.StartedAt != nil {
+		result.ElapsedMinutes = int(now.Sub(*result.StartedAt).Minutes())
+	}
+
+	s.TaskStates[taskID] = result
+	s.UpdatedAt = now
+}
+
+// SetTaskRate sets the rate ID for a task.
+func (s *ExecutionState) SetTaskRate(taskID string, rateID string) {
+	result := s.TaskStates[taskID]
+	result.RateID = rateID
+	s.TaskStates[taskID] = result
+	s.UpdatedAt = time.Now()
+}
+
+// GetElapsedHours returns the elapsed time in hours.
+func (tr *TaskResult) GetElapsedHours() float64 {
+	return float64(tr.ElapsedMinutes) / 60.0
 }

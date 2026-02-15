@@ -40,7 +40,7 @@ func (s *TaskService) TransitionTask(taskID string, event string, actor string, 
 	// Use coordinator for supported operations
 	switch event {
 	case "start":
-		err := s.coordinator.StartTask(ctx, taskID, actor)
+		err := s.coordinator.StartTask(ctx, taskID, actor, "")
 		if err != nil {
 			return s.mapCoordinatorError(err, event)
 		}
@@ -241,7 +241,7 @@ func (s *TaskService) LinkTask(taskID string, provider string, ref planning.Exte
 }
 
 // StartTask starts a task using the coordinator with proper dependency validation.
-func (s *TaskService) StartTask(ctx context.Context, taskID, owner string) error {
+func (s *TaskService) StartTask(ctx context.Context, taskID, owner, rateID string) error {
 	if ctx == nil {
 		ctx = context.Background()
 	}
@@ -250,7 +250,7 @@ func (s *TaskService) StartTask(ctx context.Context, taskID, owner string) error
 			return err
 		}
 	}
-	err := s.coordinator.StartTask(ctx, taskID, owner)
+	err := s.coordinator.StartTask(ctx, taskID, owner, rateID)
 	if err != nil {
 		return s.mapCoordinatorError(err, "start")
 	}

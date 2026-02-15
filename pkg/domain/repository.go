@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"github.com/felixgeelhaar/roady/pkg/domain/billing"
 	"github.com/felixgeelhaar/roady/pkg/domain/planning"
 	"github.com/felixgeelhaar/roady/pkg/domain/policy"
 	"github.com/felixgeelhaar/roady/pkg/domain/spec"
@@ -37,6 +38,12 @@ type WorkspaceRepository interface {
 	LoadEvents() ([]Event, error)
 	UpdateUsage(stats UsageStats) error
 	LoadUsage() (*UsageStats, error)
+
+	// Billing operations (use for time tracking and cost reporting)
+	SaveRates(config *billing.RateConfig) error
+	LoadRates() (*billing.RateConfig, error)
+	SaveTimeEntries(entries []billing.TimeEntry) error
+	LoadTimeEntries() ([]billing.TimeEntry, error)
 }
 
 // PolicyConfig is the serialized representation of policy.yaml
