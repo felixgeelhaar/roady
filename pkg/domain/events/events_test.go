@@ -9,12 +9,12 @@ import (
 
 func TestBaseEvent_CalculateHash(t *testing.T) {
 	event := &BaseEvent{
-		ID:            "evt-123",
-		Type:          EventTypeTaskCompleted,
-		AggregateID_:  "task-1",
+		ID:             "evt-123",
+		Type:           EventTypeTaskCompleted,
+		AggregateID_:   "task-1",
 		AggregateType_: AggregateTypeTask,
-		Timestamp:     time.Date(2024, 1, 15, 10, 30, 0, 0, time.UTC),
-		Actor:         "alice",
+		Timestamp:      time.Date(2024, 1, 15, 10, 30, 0, 0, time.UTC),
+		Actor:          "alice",
 		Metadata: map[string]interface{}{
 			"task_id": "task-1",
 		},
@@ -84,16 +84,16 @@ func TestCanonicalJSON_Empty(t *testing.T) {
 func TestDomainEventInterface(t *testing.T) {
 	now := time.Now()
 	event := BaseEvent{
-		ID:            "evt-123",
-		Type:          EventTypeTaskCompleted,
-		AggregateID_:  "task-1",
+		ID:             "evt-123",
+		Type:           EventTypeTaskCompleted,
+		AggregateID_:   "task-1",
 		AggregateType_: AggregateTypeTask,
-		Timestamp:     now,
-		Ver:           1,
+		Timestamp:      now,
+		Version_:       1,
 	}
 
 	// Verify interface implementation
-	var de DomainEvent = event
+	var de DomainEvent = &event
 	if de.EventType() != EventTypeTaskCompleted {
 		t.Errorf("Expected %s, got %s", EventTypeTaskCompleted, de.EventType())
 	}

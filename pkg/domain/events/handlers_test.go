@@ -266,7 +266,7 @@ func TestLoggingHandler_Handle(t *testing.T) {
 			AggregateID_:   "plan-1",
 			AggregateType_: AggregateTypePlan,
 			Timestamp:      time.Now(),
-			Ver:            1,
+			Version_:       1,
 		},
 		PlanID: "plan-1",
 	}
