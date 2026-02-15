@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/felixgeelhaar/roady/internal/infrastructure/wiring"
 	"github.com/felixgeelhaar/roady/pkg/application"
 	"github.com/felixgeelhaar/roady/pkg/domain/billing"
 	"github.com/spf13/cobra"
@@ -20,9 +19,11 @@ var costReportCmd = &cobra.Command{
 	Use:   "report",
 	Short: "Generate a cost report",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		cwd, _ := os.Getwd()
-		svc := wiring.NewWorkspace(cwd).Repo
-		billingSvc := application.NewBillingService(svc)
+		services, err := loadServicesForCurrentDir()
+		if err != nil {
+			return err
+		}
+		billingSvc := services.Billing
 
 		opts := application.CostReportOpts{
 			TaskID: costTaskID,
@@ -82,9 +83,11 @@ var costBudgetCmd = &cobra.Command{
 	Use:   "budget",
 	Short: "Show budget status",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		cwd, _ := os.Getwd()
-		svc := wiring.NewWorkspace(cwd).Repo
-		billingSvc := application.NewBillingService(svc)
+		services, err := loadServicesForCurrentDir()
+		if err != nil {
+			return err
+		}
+		billingSvc := services.Billing
 
 		status, err := billingSvc.GetBudgetStatus()
 		if err != nil {

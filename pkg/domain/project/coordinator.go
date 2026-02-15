@@ -4,6 +4,7 @@ package project
 import (
 	"context"
 	"sync"
+	"time"
 
 	"github.com/felixgeelhaar/roady/pkg/domain/planning"
 )
@@ -168,7 +169,10 @@ func (c *Coordinator) StartTask(ctx context.Context, taskID, owner, rateID strin
 	state.SetTaskOwner(taskID, owner)
 	state.StartTask(taskID)
 	if rateID != "" {
-		state.SetTaskRate(taskID, rateID)
+		result := state.TaskStates[taskID]
+		result.RateID = rateID
+		state.TaskStates[taskID] = result
+		state.UpdatedAt = time.Now()
 	}
 
 	if err := c.stateRepo.Save(ctx, state); err != nil {

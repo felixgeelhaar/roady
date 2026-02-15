@@ -1,5 +1,26 @@
 package billing
 
+import "fmt"
+
+// NewRate creates a validated Rate value object.
+func NewRate(id, name string, hourlyRate float64, isDefault bool) (Rate, error) {
+	if id == "" {
+		return Rate{}, fmt.Errorf("rate ID must not be empty")
+	}
+	if name == "" {
+		return Rate{}, fmt.Errorf("rate name must not be empty")
+	}
+	if hourlyRate < 0 {
+		return Rate{}, fmt.Errorf("hourly rate must be >= 0")
+	}
+	return Rate{
+		ID:         id,
+		Name:       name,
+		HourlyRate: hourlyRate,
+		IsDefault:  isDefault,
+	}, nil
+}
+
 type Rate struct {
 	ID         string  `yaml:"id" json:"id"`
 	Name       string  `yaml:"name" json:"name"`
@@ -17,6 +38,57 @@ type RateConfig struct {
 	Currency string     `yaml:"currency" json:"currency"`
 	Tax      *TaxConfig `yaml:"tax,omitempty" json:"tax,omitempty"`
 	Rates    []Rate     `yaml:"rates" json:"rates"`
+}
+
+// AddRate adds a rate to the config, enforcing uniqueness and single-default.
+func (rc *RateConfig) AddRate(rate Rate) error {
+	for _, r := range rc.Rates {
+		if r.ID == rate.ID {
+			return fmt.Errorf("rate %s already exists", rate.ID)
+		}
+	}
+	if rate.IsDefault {
+		for i := range rc.Rates {
+			rc.Rates[i].IsDefault = false
+		}
+	}
+	rc.Rates = append(rc.Rates, rate)
+	return nil
+}
+
+// RemoveRate removes a rate by ID.
+func (rc *RateConfig) RemoveRate(rateID string) error {
+	newRates := make([]Rate, 0, len(rc.Rates))
+	found := false
+	for _, r := range rc.Rates {
+		if r.ID == rateID {
+			found = true
+			continue
+		}
+		newRates = append(newRates, r)
+	}
+	if !found {
+		return fmt.Errorf("rate %s not found", rateID)
+	}
+	rc.Rates = newRates
+	return nil
+}
+
+// SetDefault marks the given rate as default, clearing default from all others.
+func (rc *RateConfig) SetDefault(rateID string) error {
+	found := false
+	for i, r := range rc.Rates {
+		if r.ID == rateID {
+			found = true
+			rc.Rates[i].IsDefault = true
+		} else {
+			rc.Rates[i].IsDefault = false
+		}
+	}
+	if !found {
+		return fmt.Errorf("rate %s not found", rateID)
+	}
+	return nil
 }
 
 func (rc *RateConfig) GetDefault() *Rate {

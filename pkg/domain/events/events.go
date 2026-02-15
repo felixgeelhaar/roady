@@ -248,11 +248,21 @@ const (
 	EventTypeDriftAccepted     = "drift.accepted"
 	EventTypeDriftResolved     = "drift.resolved"
 	EventTypeFileChanged       = "file.changed"
+
+	// Billing events
+	EventTypeRateAdded      = "billing.rate_added"
+	EventTypeRateRemoved    = "billing.rate_removed"
+	EventTypeDefaultRateSet = "billing.default_rate_set"
+	EventTypeTaxConfigured  = "billing.tax_configured"
+	EventTypeTimeLogged     = "billing.time_logged"
+	EventTypeTaskStarted_Billing   = "billing.task_started"
+	EventTypeTaskCompleted_Billing = "billing.task_completed"
 )
 
 // AggregateTypes
 const (
-	AggregateTypePlan = "plan"
-	AggregateTypeTask = "task"
-	AggregateTypeSync = "sync"
+	AggregateTypePlan    = "plan"
+	AggregateTypeTask    = "task"
+	AggregateTypeSync    = "sync"
+	AggregateTypeBilling = "billing"
 )

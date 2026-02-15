@@ -140,7 +140,7 @@ func buildServicesWithProvider(workspace *Workspace, root string, provider domai
 		Drift:      driftSvc,
 		Policy:     policySvc,
 		Task:       taskSvc,
-		Billing:    application.NewBillingService(workspace.Repo),
+		Billing:    application.NewBillingService(workspace.Repo, auditSvc),
 		AI:         aiSvc,
 		Git:        application.NewGitService(workspace.Repo, taskSvc),
 		Sync:       application.NewSyncServiceWithPlugins(workspace.Repo, workspace.Repo, taskSvc),

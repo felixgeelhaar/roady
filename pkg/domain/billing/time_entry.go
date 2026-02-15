@@ -1,6 +1,33 @@
 package billing
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
+
+// NewTimeEntry creates a validated TimeEntry.
+func NewTimeEntry(id, taskID, rateID string, minutes int, description string, createdAt time.Time) (TimeEntry, error) {
+	if id == "" {
+		return TimeEntry{}, fmt.Errorf("time entry ID must not be empty")
+	}
+	if taskID == "" {
+		return TimeEntry{}, fmt.Errorf("task ID must not be empty")
+	}
+	if rateID == "" {
+		return TimeEntry{}, fmt.Errorf("rate ID must not be empty")
+	}
+	if minutes <= 0 {
+		return TimeEntry{}, fmt.Errorf("minutes must be positive")
+	}
+	return TimeEntry{
+		ID:          id,
+		TaskID:      taskID,
+		RateID:      rateID,
+		Minutes:     minutes,
+		Description: description,
+		CreatedAt:   createdAt,
+	}, nil
+}
 
 type TimeEntry struct {
 	ID          string    `yaml:"id" json:"id"`

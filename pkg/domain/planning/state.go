@@ -214,15 +214,3 @@ func (s *ExecutionState) CompleteTask(taskID string) {
 	s.UpdatedAt = now
 }
 
-// SetTaskRate sets the rate ID for a task.
-func (s *ExecutionState) SetTaskRate(taskID string, rateID string) {
-	result := s.TaskStates[taskID]
-	result.RateID = rateID
-	s.TaskStates[taskID] = result
-	s.UpdatedAt = time.Now()
-}
-
-// GetElapsedHours returns the elapsed time in hours.
-func (tr *TaskResult) GetElapsedHours() float64 {
-	return float64(tr.ElapsedMinutes) / 60.0
-}

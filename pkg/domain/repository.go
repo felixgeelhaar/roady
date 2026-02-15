@@ -39,7 +39,7 @@ type WorkspaceRepository interface {
 	UpdateUsage(stats UsageStats) error
 	LoadUsage() (*UsageStats, error)
 
-	// Billing operations (use for time tracking and cost reporting)
+	// Billing operations (use billing.Repository for new code)
 	SaveRates(config *billing.RateConfig) error
 	LoadRates() (*billing.RateConfig, error)
 	SaveTimeEntries(entries []billing.TimeEntry) error

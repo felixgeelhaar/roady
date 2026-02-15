@@ -10,12 +10,14 @@ import (
 )
 
 type BillingService struct {
-	repo domain.WorkspaceRepository
+	repo  domain.WorkspaceRepository
+	audit domain.AuditLogger
 }
 
-func NewBillingService(repo domain.WorkspaceRepository) *BillingService {
+func NewBillingService(repo domain.WorkspaceRepository, audit domain.AuditLogger) *BillingService {
 	return &BillingService{
-		repo: repo,
+		repo:  repo,
+		audit: audit,
 	}
 }
 
@@ -42,10 +44,22 @@ func (s *BillingService) StartTask(taskID string, rateID string) error {
 		rateID = s.getDefaultRateID()
 	}
 	if rateID != "" {
-		state.SetTaskRate(taskID, rateID)
+		result := state.TaskStates[taskID]
+		result.RateID = rateID
+		state.TaskStates[taskID] = result
+		state.UpdatedAt = time.Now()
 	}
 
-	return s.repo.SaveState(state)
+	if err := s.repo.SaveState(state); err != nil {
+		return err
+	}
+
+	s.audit.Log("billing.task_started", "system", map[string]interface{}{
+		"task_id": taskID,
+		"rate_id": rateID,
+	})
+
+	return nil
 }
 
 func (s *BillingService) CompleteTask(taskID string) error {
@@ -69,14 +83,18 @@ func (s *BillingService) CompleteTask(taskID string) error {
 		return fmt.Errorf("failed to save state: %w", err)
 	}
 
+	// Re-read the result after CompleteTask to get elapsed minutes
+	result = state.TaskStates[taskID]
+
+	s.audit.Log("billing.task_completed", "system", map[string]interface{}{
+		"task_id":         taskID,
+		"elapsed_minutes": result.ElapsedMinutes,
+	})
+
 	return s.createTimeEntryFromTask(taskID, &result, state)
 }
 
 func (s *BillingService) LogTime(taskID string, rateID string, minutes int, description string) error {
-	if minutes <= 0 {
-		return fmt.Errorf("minutes must be positive")
-	}
-
 	if rateID == "" {
 		rateID = s.getDefaultRateID()
 	}
@@ -84,13 +102,10 @@ func (s *BillingService) LogTime(taskID string, rateID string, minutes int, desc
 		return fmt.Errorf("no rate specified and no default rate configured")
 	}
 
-	entry := billing.TimeEntry{
-		ID:          generateTimeEntryID(),
-		TaskID:      taskID,
-		RateID:      rateID,
-		Minutes:     minutes,
-		Description: description,
-		CreatedAt:   time.Now(),
+	entryID := generateTimeEntryID()
+	entry, err := billing.NewTimeEntry(entryID, taskID, rateID, minutes, description, time.Now())
+	if err != nil {
+		return err
 	}
 
 	entries, err := s.repo.LoadTimeEntries()
@@ -99,7 +114,17 @@ func (s *BillingService) LogTime(taskID string, rateID string, minutes int, desc
 	}
 
 	entries = append(entries, entry)
-	return s.repo.SaveTimeEntries(entries)
+	if err := s.repo.SaveTimeEntries(entries); err != nil {
+		return err
+	}
+
+	s.audit.Log("billing.time_logged", "system", map[string]interface{}{
+		"task_id": taskID,
+		"rate_id": rateID,
+		"minutes": minutes,
+	})
+
+	return nil
 }
 
 func (s *BillingService) GetRate(rateID string) (*billing.Rate, error) {
@@ -166,10 +191,16 @@ func (s *BillingService) GetCostReport(opts CostReportOpts) (*billing.CostReport
 		return nil, fmt.Errorf("failed to load time entries: %w", err)
 	}
 
+	// Track tasks that already have time entries to avoid double-counting
+	// with elapsed minutes still present in task state.
+	tasksWithEntries := make(map[string]bool)
+
 	for _, entry := range entries {
 		if opts.TaskID != "" && entry.TaskID != opts.TaskID {
 			continue
 		}
+
+		tasksWithEntries[entry.TaskID] = true
 
 		rate := config.GetByID(entry.RateID)
 		if rate == nil {
@@ -196,7 +227,7 @@ func (s *BillingService) GetCostReport(opts CostReportOpts) (*billing.CostReport
 			continue
 		}
 
-		if result.ElapsedMinutes == 0 {
+		if result.ElapsedMinutes == 0 || tasksWithEntries[taskID] {
 			continue
 		}
 
@@ -213,7 +244,7 @@ func (s *BillingService) GetCostReport(opts CostReportOpts) (*billing.CostReport
 			continue
 		}
 
-		hours := result.GetElapsedHours()
+		hours := float64(result.ElapsedMinutes) / 60.0
 		cost := hours * rate.HourlyRate
 
 		report.AddEntry(billing.CostReportEntry{
@@ -236,20 +267,21 @@ func (s *BillingService) AddRate(rate billing.Rate) error {
 		return fmt.Errorf("failed to load rates: %w", err)
 	}
 
-	if rate.IsDefault {
-		for i := range config.Rates {
-			config.Rates[i].IsDefault = false
-		}
+	if err := config.AddRate(rate); err != nil {
+		return err
 	}
 
-	for _, r := range config.Rates {
-		if r.ID == rate.ID {
-			return fmt.Errorf("rate %s already exists", rate.ID)
-		}
+	if err := s.repo.SaveRates(config); err != nil {
+		return err
 	}
 
-	config.Rates = append(config.Rates, rate)
-	return s.repo.SaveRates(config)
+	s.audit.Log("billing.rate_added", "system", map[string]interface{}{
+		"rate_id":     rate.ID,
+		"rate_name":   rate.Name,
+		"hourly_rate": rate.HourlyRate,
+	})
+
+	return nil
 }
 
 func (s *BillingService) RemoveRate(rateID string) error {
@@ -258,22 +290,19 @@ func (s *BillingService) RemoveRate(rateID string) error {
 		return fmt.Errorf("failed to load rates: %w", err)
 	}
 
-	found := false
-	newRates := []billing.Rate{}
-	for _, r := range config.Rates {
-		if r.ID == rateID {
-			found = true
-			continue
-		}
-		newRates = append(newRates, r)
+	if err := config.RemoveRate(rateID); err != nil {
+		return err
 	}
 
-	if !found {
-		return fmt.Errorf("rate %s not found", rateID)
+	if err := s.repo.SaveRates(config); err != nil {
+		return err
 	}
 
-	config.Rates = newRates
-	return s.repo.SaveRates(config)
+	s.audit.Log("billing.rate_removed", "system", map[string]interface{}{
+		"rate_id": rateID,
+	})
+
+	return nil
 }
 
 func (s *BillingService) ListRates() (*billing.RateConfig, error) {
@@ -286,21 +315,19 @@ func (s *BillingService) SetDefaultRate(rateID string) error {
 		return fmt.Errorf("failed to load rates: %w", err)
 	}
 
-	found := false
-	for i, r := range config.Rates {
-		if r.ID == rateID {
-			found = true
-			config.Rates[i].IsDefault = true
-		} else {
-			config.Rates[i].IsDefault = false
-		}
+	if err := config.SetDefault(rateID); err != nil {
+		return err
 	}
 
-	if !found {
-		return fmt.Errorf("rate %s not found", rateID)
+	if err := s.repo.SaveRates(config); err != nil {
+		return err
 	}
 
-	return s.repo.SaveRates(config)
+	s.audit.Log("billing.default_rate_set", "system", map[string]interface{}{
+		"rate_id": rateID,
+	})
+
+	return nil
 }
 
 func (s *BillingService) SetTax(name string, percent float64, included bool) error {
@@ -315,7 +342,17 @@ func (s *BillingService) SetTax(name string, percent float64, included bool) err
 		Included: included,
 	}
 
-	return s.repo.SaveRates(config)
+	if err := s.repo.SaveRates(config); err != nil {
+		return err
+	}
+
+	s.audit.Log("billing.tax_configured", "system", map[string]interface{}{
+		"tax_name":    name,
+		"tax_percent": percent,
+		"included":    included,
+	})
+
+	return nil
 }
 
 func (s *BillingService) createTimeEntryFromTask(taskID string, result *planning.TaskResult, state *planning.ExecutionState) error {
@@ -331,13 +368,10 @@ func (s *BillingService) createTimeEntryFromTask(taskID string, result *planning
 		return nil
 	}
 
-	entry := billing.TimeEntry{
-		ID:          generateTimeEntryID(),
-		TaskID:      taskID,
-		RateID:      rateID,
-		Minutes:     result.ElapsedMinutes,
-		Description: "",
-		CreatedAt:   time.Now(),
+	entryID := generateTimeEntryID()
+	entry, err := billing.NewTimeEntry(entryID, taskID, rateID, result.ElapsedMinutes, "", time.Now())
+	if err != nil {
+		return err
 	}
 
 	entries, err := s.repo.LoadTimeEntries()
@@ -367,15 +401,7 @@ func generateTimeEntryID() string {
 	return fmt.Sprintf("te-%d", time.Now().UnixNano())
 }
 
-type BudgetStatus struct {
-	BudgetHours int     `json:"budget_hours"`
-	UsedHours   float64 `json:"used_hours"`
-	Remaining   float64 `json:"remaining"`
-	PercentUsed float64 `json:"percent_used"`
-	OverBudget  bool    `json:"over_budget"`
-}
-
-func (s *BillingService) GetBudgetStatus() (*BudgetStatus, error) {
+func (s *BillingService) GetBudgetStatus() (*billing.BudgetStatus, error) {
 	policy, err := s.repo.LoadPolicy()
 	if err != nil {
 		return nil, fmt.Errorf("failed to load policy: %w", err)
@@ -386,33 +412,27 @@ func (s *BillingService) GetBudgetStatus() (*BudgetStatus, error) {
 	}
 
 	totalMinutes := s.getTotalMinutes()
-	usedHours := float64(totalMinutes) / 60.0
-	remaining := float64(policy.BudgetHours) - usedHours
-	percentUsed := (usedHours / float64(policy.BudgetHours)) * 100
-
-	return &BudgetStatus{
-		BudgetHours: policy.BudgetHours,
-		UsedHours:   usedHours,
-		Remaining:   remaining,
-		PercentUsed: percentUsed,
-		OverBudget:  remaining < 0,
-	}, nil
+	return billing.NewBudgetStatus(policy.BudgetHours, totalMinutes), nil
 }
 
 func (s *BillingService) getTotalMinutes() int {
 	totalMinutes := 0
+	tasksWithEntries := make(map[string]bool)
 
 	entries, err := s.repo.LoadTimeEntries()
 	if err == nil {
 		for _, entry := range entries {
 			totalMinutes += entry.Minutes
+			tasksWithEntries[entry.TaskID] = true
 		}
 	}
 
 	state, err := s.repo.LoadState()
 	if err == nil {
-		for _, result := range state.TaskStates {
-			totalMinutes += result.ElapsedMinutes
+		for taskID, result := range state.TaskStates {
+			if !tasksWithEntries[taskID] {
+				totalMinutes += result.ElapsedMinutes
+			}
 		}
 	}
 

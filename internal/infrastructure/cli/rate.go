@@ -2,10 +2,7 @@ package cli
 
 import (
 	"fmt"
-	"os"
 
-	"github.com/felixgeelhaar/roady/internal/infrastructure/wiring"
-	"github.com/felixgeelhaar/roady/pkg/application"
 	"github.com/felixgeelhaar/roady/pkg/domain/billing"
 	"github.com/spf13/cobra"
 )
@@ -19,9 +16,11 @@ var rateAddCmd = &cobra.Command{
 	Use:   "add",
 	Short: "Add a new billing rate",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		cwd, _ := os.Getwd()
-		svc := wiring.NewWorkspace(cwd).Repo
-		billingSvc := application.NewBillingService(svc)
+		services, err := loadServicesForCurrentDir()
+		if err != nil {
+			return err
+		}
+		billingSvc := services.Billing
 
 		rate := billing.Rate{
 			ID:         rateID,
@@ -43,9 +42,11 @@ var rateListCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List all billing rates",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		cwd, _ := os.Getwd()
-		svc := wiring.NewWorkspace(cwd).Repo
-		billingSvc := application.NewBillingService(svc)
+		services, err := loadServicesForCurrentDir()
+		if err != nil {
+			return err
+		}
+		billingSvc := services.Billing
 
 		config, err := billingSvc.ListRates()
 		if err != nil {
@@ -78,9 +79,11 @@ var rateRemoveCmd = &cobra.Command{
 	Short: "Remove a billing rate",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		cwd, _ := os.Getwd()
-		svc := wiring.NewWorkspace(cwd).Repo
-		billingSvc := application.NewBillingService(svc)
+		services, err := loadServicesForCurrentDir()
+		if err != nil {
+			return err
+		}
+		billingSvc := services.Billing
 
 		rateID := args[0]
 		if err := billingSvc.RemoveRate(rateID); err != nil {
@@ -97,9 +100,11 @@ var rateSetDefaultCmd = &cobra.Command{
 	Short: "Set the default billing rate",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		cwd, _ := os.Getwd()
-		svc := wiring.NewWorkspace(cwd).Repo
-		billingSvc := application.NewBillingService(svc)
+		services, err := loadServicesForCurrentDir()
+		if err != nil {
+			return err
+		}
+		billingSvc := services.Billing
 
 		rateID := args[0]
 		if err := billingSvc.SetDefaultRate(rateID); err != nil {
@@ -120,9 +125,11 @@ var rateTaxSetCmd = &cobra.Command{
 	Use:   "set",
 	Short: "Set tax configuration",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		cwd, _ := os.Getwd()
-		svc := wiring.NewWorkspace(cwd).Repo
-		billingSvc := application.NewBillingService(svc)
+		services, err := loadServicesForCurrentDir()
+		if err != nil {
+			return err
+		}
+		billingSvc := services.Billing
 
 		if err := billingSvc.SetTax(taxName, taxPercent, taxIncluded); err != nil {
 			return fmt.Errorf("failed to set tax: %w", err)

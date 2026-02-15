@@ -165,14 +165,15 @@ var taskLogCmd = &cobra.Command{
 	Short: "Log time manually to a task",
 	Args:  cobra.ExactArgs(2),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		cwd, _ := os.Getwd()
-		workspace := wiring.NewWorkspace(cwd)
-		repo := workspace.Repo
-		billingSvc := application.NewBillingService(repo)
+		services, err := loadServicesForCurrentDir()
+		if err != nil {
+			return err
+		}
+		billingSvc := services.Billing
 
 		taskID := args[0]
 		var minutes int
-		_, err := fmt.Sscanf(args[1], "%d", &minutes)
+		_, err = fmt.Sscanf(args[1], "%d", &minutes)
 		if err != nil {
 			return fmt.Errorf("invalid minutes: %w", err)
 		}
