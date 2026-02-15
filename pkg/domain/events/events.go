@@ -29,11 +29,28 @@ type BaseEvent struct {
 	AggregateID_   string                 `json:"aggregate_id"`
 	AggregateType_ string                 `json:"aggregate_type"`
 	Timestamp      time.Time              `json:"timestamp"`
-	Ver            int                    `json:"version"`
+	Version_       interface{}            `json:"version"`
 	Actor          string                 `json:"actor"`
 	Metadata       map[string]interface{} `json:"metadata,omitempty"`
 	PrevHash       string                 `json:"prev_hash,omitempty"`
 	Hash           string                 `json:"hash,omitempty"`
+}
+
+// Version returns the event version as an int.
+func (e *BaseEvent) Version() int {
+	if e.Version_ == nil {
+		return 0
+	}
+	switch v := e.Version_.(type) {
+	case float64:
+		return int(v)
+	case int:
+		return v
+	case string:
+		return 0
+	default:
+		return 0
+	}
 }
 
 // EnsureAction sets Action to match Type for backward-compatible JSON serialization.
@@ -43,11 +60,10 @@ func (e *BaseEvent) EnsureAction() {
 	}
 }
 
-func (e BaseEvent) EventType() string      { return e.Type }
-func (e BaseEvent) AggregateID() string    { return e.AggregateID_ }
-func (e BaseEvent) AggregateType() string  { return e.AggregateType_ }
-func (e BaseEvent) OccurredAt() time.Time  { return e.Timestamp }
-func (e BaseEvent) Version() int           { return e.Ver }
+func (e BaseEvent) EventType() string     { return e.Type }
+func (e BaseEvent) AggregateID() string   { return e.AggregateID_ }
+func (e BaseEvent) AggregateType() string { return e.AggregateType_ }
+func (e BaseEvent) OccurredAt() time.Time { return e.Timestamp }
 
 // CalculateHash generates a deterministic SHA256 hash of the event.
 func (e *BaseEvent) CalculateHash() string {
@@ -157,9 +173,9 @@ type TaskUnblocked struct {
 // TaskTransitioned is emitted for any status change.
 type TaskTransitioned struct {
 	BaseEvent
-	TaskID     string               `json:"task_id"`
-	FromStatus planning.TaskStatus  `json:"from_status"`
-	ToStatus   planning.TaskStatus  `json:"to_status"`
+	TaskID     string              `json:"task_id"`
+	FromStatus planning.TaskStatus `json:"from_status"`
+	ToStatus   planning.TaskStatus `json:"to_status"`
 }
 
 // =============================================================================
@@ -217,21 +233,21 @@ type FileChanged struct {
 // =============================================================================
 
 const (
-	EventTypePlanCreated      = "plan.created"
-	EventTypePlanApproved     = "plan.approved"
-	EventTypePlanRejected     = "plan.rejected"
-	EventTypeTaskStarted      = "task.started"
-	EventTypeTaskCompleted    = "task.completed"
-	EventTypeTaskVerified     = "task.verified"
-	EventTypeTaskBlocked      = "task.blocked"
-	EventTypeTaskUnblocked    = "task.unblocked"
-	EventTypeTaskTransitioned = "task.transitioned"
+	EventTypePlanCreated       = "plan.created"
+	EventTypePlanApproved      = "plan.approved"
+	EventTypePlanRejected      = "plan.rejected"
+	EventTypeTaskStarted       = "task.started"
+	EventTypeTaskCompleted     = "task.completed"
+	EventTypeTaskVerified      = "task.verified"
+	EventTypeTaskBlocked       = "task.blocked"
+	EventTypeTaskUnblocked     = "task.unblocked"
+	EventTypeTaskTransitioned  = "task.transitioned"
 	EventTypeExternalRefLinked = "external_ref.linked"
-	EventTypeSyncCompleted    = "sync.completed"
-	EventTypeDriftDetected    = "drift.detected"
-	EventTypeDriftAccepted    = "drift.accepted"
-	EventTypeDriftResolved    = "drift.resolved"
-	EventTypeFileChanged      = "file.changed"
+	EventTypeSyncCompleted     = "sync.completed"
+	EventTypeDriftDetected     = "drift.detected"
+	EventTypeDriftAccepted     = "drift.accepted"
+	EventTypeDriftResolved     = "drift.resolved"
+	EventTypeFileChanged       = "file.changed"
 )
 
 // AggregateTypes
