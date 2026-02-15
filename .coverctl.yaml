@@ -1,5 +1,6 @@
 version: 1
 language: go
+# Coverage policy configuration
 policy:
   default:
     min: 60
