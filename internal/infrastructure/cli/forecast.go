@@ -31,7 +31,10 @@ Flags:
 }
 
 func runForecast(cmd *cobra.Command, args []string) error {
-	cwd, _ := os.Getwd()
+	cwd, err := getProjectRoot()
+	if err != nil {
+		return fmt.Errorf("resolve project path: %w", err)
+	}
 	services, err := wiring.BuildAppServices(cwd)
 	if err != nil {
 		// Non-fatal - we can still try to forecast

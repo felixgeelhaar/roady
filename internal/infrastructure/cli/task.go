@@ -25,7 +25,10 @@ func createTaskCommand(use, short, event string) *cobra.Command {
 		Short: short,
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cwd, _ := os.Getwd()
+			cwd, cErr := getProjectRoot()
+			if cErr != nil {
+				return fmt.Errorf("resolve project path: %w", cErr)
+			}
 			workspace := wiring.NewWorkspace(cwd)
 			repo := workspace.Repo
 			audit := workspace.Audit
@@ -142,7 +145,10 @@ var taskAssignCmd = &cobra.Command{
 	Short: "Assign a task to a person or agent",
 	Args:  cobra.ExactArgs(2),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		cwd, _ := os.Getwd()
+		cwd, cErr := getProjectRoot()
+		if cErr != nil {
+			return fmt.Errorf("resolve project path: %w", cErr)
+		}
 		workspace := wiring.NewWorkspace(cwd)
 		repo := workspace.Repo
 		audit := workspace.Audit

@@ -21,9 +21,9 @@ var mcpCmd = &cobra.Command{
 		if os.Getenv("ROADY_SKIP_MCP_START") == "true" {
 			return nil
 		}
-		cwd, err := os.Getwd()
+		cwd, err := getProjectRoot()
 		if err != nil {
-			return fmt.Errorf("get working directory: %w", err)
+			return fmt.Errorf("resolve project path: %w", err)
 		}
 		server, err := inframcp.NewServer(cwd)
 		if err != nil {

@@ -30,7 +30,10 @@ var aiConfigureCmd = &cobra.Command{
 	Use:   "configure",
 	Short: "Configure AI provider and policy settings",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		cwd, _ := os.Getwd()
+		cwd, cErr := getProjectRoot()
+		if cErr != nil {
+			return fmt.Errorf("resolve project path: %w", cErr)
+		}
 		repo := storage.NewFilesystemRepository(cwd)
 		if !repo.IsInitialized() {
 			return fmt.Errorf("roady is not initialized in this directory")
@@ -90,7 +93,10 @@ func runAIConfigureInteractive(repo *storage.FilesystemRepository) error {
 		cfg = &domain.PolicyConfig{}
 	}
 
-	cwd, _ := os.Getwd()
+	cwd, cErr := getProjectRoot()
+	if cErr != nil {
+		return fmt.Errorf("resolve project path: %w", cErr)
+	}
 	aiCfg, err := config.LoadAIConfig(cwd)
 	if err != nil {
 		return fmt.Errorf("failed to load AI config: %w", err)

@@ -9,9 +9,10 @@ import (
 )
 
 var (
-	Version = "dev"
-	Commit  = "none"
-	Date    = "unknown"
+	Version     = "dev"
+	Commit      = "none"
+	Date        = "unknown"
+	projectPath string
 )
 
 // RootCmd represents the base command when called without any subcommands
@@ -50,5 +51,6 @@ func Execute() error {
 }
 
 func init() {
-	// Global flags can be defined here
+	RootCmd.PersistentFlags().StringVarP(&projectPath, "path", "C", "",
+		"Path to the roady project directory (defaults to current directory)")
 }

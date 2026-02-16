@@ -93,7 +93,7 @@ func TestServer_HandleSuggestPriorities(t *testing.T) {
 
 	server := &Server{aiSvc: aiSvc}
 
-	result, err := server.handleSuggestPriorities(context.Background(), struct{}{})
+	result, err := server.handleSuggestPriorities(context.Background(), SuggestPrioritiesArgs{})
 	if err != nil {
 		t.Fatalf("handleSuggestPriorities failed: %v", err)
 	}
@@ -112,7 +112,7 @@ func TestServer_HandleReviewSpec(t *testing.T) {
 
 	server := &Server{aiSvc: aiSvc}
 
-	result, err := server.handleReviewSpec(context.Background(), struct{}{})
+	result, err := server.handleReviewSpec(context.Background(), ReviewSpecArgs{})
 	if err != nil {
 		t.Fatalf("handleReviewSpec failed: %v", err)
 	}

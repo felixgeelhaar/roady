@@ -78,7 +78,7 @@ func TestServer_HandleOrgDetectDrift(t *testing.T) {
 		t.Fatalf("create server: %v", err)
 	}
 
-	result, err := server.handleOrgDetectDrift(context.Background(), struct{}{})
+	result, err := server.handleOrgDetectDrift(context.Background(), GetSpecArgs{})
 	if err != nil {
 		t.Fatalf("handleOrgDetectDrift failed: %v", err)
 	}
@@ -102,7 +102,7 @@ func TestServer_HandlePluginList(t *testing.T) {
 		t.Fatalf("create server: %v", err)
 	}
 
-	result, err := server.handlePluginList(context.Background(), struct{}{})
+	result, err := server.handlePluginList(context.Background(), GetSpecArgs{})
 	if err != nil {
 		t.Fatalf("handlePluginList failed: %v", err)
 	}
@@ -174,7 +174,7 @@ func TestServer_HandleMessagingList(t *testing.T) {
 		t.Fatalf("create server: %v", err)
 	}
 
-	result, err := server.handleMessagingList(context.Background(), struct{}{})
+	result, err := server.handleMessagingList(context.Background(), GetSpecArgs{})
 	if err != nil {
 		t.Fatalf("handleMessagingList failed: %v", err)
 	}
@@ -198,7 +198,7 @@ func TestServer_HandleTeamList(t *testing.T) {
 		t.Fatalf("create server: %v", err)
 	}
 
-	result, err := server.handleTeamList(context.Background(), struct{}{})
+	result, err := server.handleTeamList(context.Background(), GetSpecArgs{})
 	if err != nil {
 		t.Fatalf("handleTeamList failed: %v", err)
 	}
@@ -826,17 +826,17 @@ func TestServer_HandleWorkspacePushPull_Error(t *testing.T) {
 		t.Fatalf("create server: %v", err)
 	}
 
-	if _, err := server.handleWorkspacePush(context.Background(), struct{}{}); err == nil {
+	if _, err := server.handleWorkspacePush(context.Background(), WorkspacePushArgs{}); err == nil {
 		t.Error("expected error for workspace push without git")
 	}
-	if _, err := server.handleWorkspacePull(context.Background(), struct{}{}); err == nil {
+	if _, err := server.handleWorkspacePull(context.Background(), WorkspacePullArgs{}); err == nil {
 		t.Error("expected error for workspace pull without git")
 	}
 }
 
 func TestServer_HandleSmartDecompose_NoService(t *testing.T) {
 	server := &Server{root: t.TempDir()}
-	_, err := server.handleSmartDecompose(context.Background(), struct{}{})
+	_, err := server.handleSmartDecompose(context.Background(), SmartDecomposeArgs{})
 	if err == nil {
 		t.Error("expected error when AI service is nil")
 	}

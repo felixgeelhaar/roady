@@ -69,7 +69,7 @@ func TestHandleGetSnapshot(t *testing.T) {
 	server := setupCoordinatorTestServer(t)
 	ctx := context.Background()
 
-	result, err := server.handleGetSnapshot(ctx, struct{}{})
+	result, err := server.handleGetSnapshot(ctx, GetSnapshotArgs{})
 	if err != nil {
 		t.Fatalf("handleGetSnapshot: %v", err)
 	}
@@ -82,7 +82,7 @@ func TestHandleGetReadyTasks(t *testing.T) {
 	server := setupCoordinatorTestServer(t)
 	ctx := context.Background()
 
-	result, err := server.handleGetReadyTasks(ctx, struct{}{})
+	result, err := server.handleGetReadyTasks(ctx, GetReadyTasksArgs{})
 	if err != nil {
 		t.Fatalf("handleGetReadyTasks: %v", err)
 	}
@@ -95,7 +95,7 @@ func TestHandleGetBlockedTasks(t *testing.T) {
 	server := setupCoordinatorTestServer(t)
 	ctx := context.Background()
 
-	result, err := server.handleGetBlockedTasks(ctx, struct{}{})
+	result, err := server.handleGetBlockedTasks(ctx, GetBlockedTasksArgs{})
 	if err != nil {
 		t.Fatalf("handleGetBlockedTasks: %v", err)
 	}
@@ -108,7 +108,7 @@ func TestHandleGetInProgressTasks(t *testing.T) {
 	server := setupCoordinatorTestServer(t)
 	ctx := context.Background()
 
-	result, err := server.handleGetInProgressTasks(ctx, struct{}{})
+	result, err := server.handleGetInProgressTasks(ctx, GetInProgressTasksArgs{})
 	if err != nil {
 		t.Fatalf("handleGetInProgressTasks: %v", err)
 	}

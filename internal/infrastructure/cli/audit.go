@@ -18,7 +18,10 @@ var auditVerifyCmd = &cobra.Command{
 	Use:   "verify",
 	Short: "Verify the integrity of the project audit trail",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		cwd, _ := os.Getwd()
+		cwd, err := getProjectRoot()
+		if err != nil {
+			return fmt.Errorf("resolve project path: %w", err)
+		}
 		workspace := wiring.NewWorkspace(cwd)
 		service := application.NewAuditService(workspace.Repo)
 

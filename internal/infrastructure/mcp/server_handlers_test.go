@@ -53,15 +53,15 @@ func TestServer_HandleTransitionalTools(t *testing.T) {
 	}
 	ctx := context.Background()
 
-	if _, err := server.handleGetUsage(ctx, struct{}{}); err != nil {
+	if _, err := server.handleGetUsage(ctx, GetUsageArgs{}); err != nil {
 		t.Fatalf("handleGetUsage failed: %v", err)
 	}
 
-	if _, err := server.handleGetPlan(ctx, struct{}{}); err != nil {
+	if _, err := server.handleGetPlan(ctx, GetPlanArgs{}); err != nil {
 		t.Fatalf("handleGetPlan failed: %v", err)
 	}
 
-	if _, err := server.handleGetState(ctx, struct{}{}); err != nil {
+	if _, err := server.handleGetState(ctx, GetStateArgs{}); err != nil {
 		t.Fatalf("handleGetState failed: %v", err)
 	}
 
@@ -73,15 +73,15 @@ func TestServer_HandleTransitionalTools(t *testing.T) {
 		t.Fatalf("handleTransitionTask failed: %v", err)
 	}
 
-	if _, err := server.handleCheckPolicy(ctx, struct{}{}); err != nil {
+	if _, err := server.handleCheckPolicy(ctx, CheckPolicyArgs{}); err != nil {
 		t.Fatalf("handleCheckPolicy failed: %v", err)
 	}
 
-	if _, err := server.handleDetectDrift(ctx, struct{}{}); err != nil {
+	if _, err := server.handleDetectDrift(ctx, DetectDriftArgs{}); err != nil {
 		t.Fatalf("handleDetectDrift failed: %v", err)
 	}
 
-	if _, err := server.handleAcceptDrift(ctx, struct{}{}); err != nil {
+	if _, err := server.handleAcceptDrift(ctx, AcceptDriftArgs{}); err != nil {
 		t.Fatalf("handleAcceptDrift failed: %v", err)
 	}
 }
@@ -341,7 +341,7 @@ func TestServerHandleCheckPolicyViolations(t *testing.T) {
 	if err != nil {
 		t.Fatalf("create server: %v", err)
 	}
-	result, err := server.handleCheckPolicy(context.Background(), struct{}{})
+	result, err := server.handleCheckPolicy(context.Background(), CheckPolicyArgs{})
 	if err != nil {
 		t.Fatalf("handleCheckPolicy failed: %v", err)
 	}
@@ -382,7 +382,7 @@ func TestServerHandleDepsList(t *testing.T) {
 		t.Fatalf("create server: %v", err)
 	}
 
-	result, err := server.handleDepsList(context.Background(), struct{}{})
+	result, err := server.handleDepsList(context.Background(), GetSpecArgs{})
 	if err != nil {
 		t.Fatalf("handleDepsList failed: %v", err)
 	}
@@ -419,7 +419,7 @@ func TestServerHandleDepsScan(t *testing.T) {
 		t.Fatalf("create server: %v", err)
 	}
 
-	result, err := server.handleDepsScan(context.Background(), struct{}{})
+	result, err := server.handleDepsScan(context.Background(), GetSpecArgs{})
 	if err != nil {
 		t.Fatalf("handleDepsScan failed: %v", err)
 	}
@@ -507,7 +507,7 @@ func TestServerHandleDebtReport(t *testing.T) {
 		t.Fatalf("create server: %v", err)
 	}
 
-	result, err := server.handleDebtReport(context.Background(), struct{}{})
+	result, err := server.handleDebtReport(context.Background(), GetSpecArgs{})
 	if err != nil {
 		t.Fatalf("handleDebtReport failed: %v", err)
 	}
@@ -544,7 +544,7 @@ func TestServerHandleDebtSummary(t *testing.T) {
 		t.Fatalf("create server: %v", err)
 	}
 
-	result, err := server.handleDebtSummary(context.Background(), struct{}{})
+	result, err := server.handleDebtSummary(context.Background(), GetSpecArgs{})
 	if err != nil {
 		t.Fatalf("handleDebtSummary failed: %v", err)
 	}
@@ -581,7 +581,7 @@ func TestServerHandleStickyDrift(t *testing.T) {
 		t.Fatalf("create server: %v", err)
 	}
 
-	result, err := server.handleStickyDrift(context.Background(), struct{}{})
+	result, err := server.handleStickyDrift(context.Background(), GetSpecArgs{})
 	if err != nil {
 		t.Fatalf("handleStickyDrift failed: %v", err)
 	}

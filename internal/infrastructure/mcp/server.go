@@ -16,6 +16,7 @@ import (
 
 type Server struct {
 	mcpServer   *mcp.Server
+	services    *wiring.AppServices
 	initSvc     *application.InitService
 	specSvc     *application.SpecService
 	planSvc     *application.PlanService
@@ -48,6 +49,35 @@ func mcpErr(friendly string) error {
 	return fmt.Errorf("%s", friendly)
 }
 
+// servicesForPath returns the default services for the server root,
+// or builds a fresh set of services for the given override path.
+func (s *Server) servicesForPath(override string) (*wiring.AppServices, error) {
+	if override == "" || override == s.root {
+		if s.services != nil {
+			return s.services, nil
+		}
+		// Fallback for servers constructed without services (e.g. tests).
+		return &wiring.AppServices{
+			Init:       s.initSvc,
+			Spec:       s.specSvc,
+			Plan:       s.planSvc,
+			Drift:      s.driftSvc,
+			Policy:     s.policySvc,
+			Task:       s.taskSvc,
+			Billing:    s.billingSvc,
+			AI:         s.aiSvc,
+			Git:        s.gitSvc,
+			Sync:       s.syncSvc,
+			Audit:      s.auditSvc,
+			Forecast:   s.forecastSvc,
+			Dependency: s.depSvc,
+			Debt:       s.debtSvc,
+			Team:       s.teamSvc,
+		}, nil
+	}
+	return wiring.BuildAppServices(override)
+}
+
 func NewServer(root string) (*Server, error) {
 	services, err := wiring.BuildAppServices(root)
 	if err != nil {
@@ -70,6 +100,7 @@ func NewServer(root string) (*Server, error) {
 			mcp.WithBuildInfo(BuildCommit, BuildDate),
 			mcp.WithInstructions("Use tools to read spec/plan, generate plans, detect drift, and transition tasks."),
 		),
+		services:    services,
 		initSvc:     services.Init,
 		specSvc:     services.Spec,
 		planSvc:     services.Plan,
@@ -97,15 +128,108 @@ func NewServer(root string) (*Server, error) {
 }
 
 type InitArgs struct {
-	Name string `json:"name" jsonschema:"description=The name of the project"`
+	Name        string `json:"name" jsonschema:"description=The name of the project"`
+	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
 }
 
 type UpdatePlanArgs struct {
-	Tasks []planning.Task `json:"tasks" jsonschema:"description=The list of tasks to define the plan"`
+	Tasks       []planning.Task `json:"tasks" jsonschema:"description=The list of tasks to define the plan"`
+	ProjectPath string          `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
+}
+
+// Args structs for handlers that previously used struct{}
+
+type GetSpecArgs struct {
+	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
+}
+
+type GetPlanArgs struct {
+	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
+}
+
+type GetStateArgs struct {
+	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
+}
+
+type GeneratePlanArgs struct {
+	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
+}
+
+type DetectDriftArgs struct {
+	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
+}
+
+type ApprovePlanArgs struct {
+	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
+}
+
+type ExplainSpecArgs struct {
+	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
+}
+
+type ExplainDriftArgs struct {
+	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
+}
+
+type AcceptDriftArgs struct {
+	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
+}
+
+type GetUsageArgs struct {
+	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
+}
+
+type CheckPolicyArgs struct {
+	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
+}
+
+type ForecastArgs struct {
+	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
+}
+
+type GitSyncArgs struct {
+	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
+}
+
+type SuggestPrioritiesArgs struct {
+	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
+}
+
+type ReviewSpecArgs struct {
+	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
+}
+
+type GetSnapshotArgs struct {
+	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
+}
+
+type GetReadyTasksArgs struct {
+	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
+}
+
+type GetBlockedTasksArgs struct {
+	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
+}
+
+type GetInProgressTasksArgs struct {
+	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
+}
+
+type SmartDecomposeArgs struct {
+	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
+}
+
+type WorkspacePushArgs struct {
+	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
+}
+
+type WorkspacePullArgs struct {
+	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
 }
 
 type SyncArgs struct {
-	PluginPath string `json:"plugin_path" jsonschema:"description=Path to the syncer plugin binary"`
+	PluginPath  string `json:"plugin_path" jsonschema:"description=Path to the syncer plugin binary"`
+	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
 }
 
 func (s *Server) registerTools() {
@@ -441,8 +565,12 @@ func (s *Server) registerTools() {
 		Handler(s.handleRateTax)
 }
 
-func (s *Server) handleForecast(ctx context.Context, args struct{}) (any, error) {
-	forecast, err := s.forecastSvc.GetForecast()
+func (s *Server) handleForecast(ctx context.Context, args ForecastArgs) (any, error) {
+	svc, err := s.servicesForPath(args.ProjectPath)
+	if err != nil {
+		return nil, mcpErr("Failed to load project at the given path.")
+	}
+	forecast, err := svc.Forecast.GetForecast()
 	if err != nil {
 		return nil, mcpErr("Unable to generate forecast. Ensure a plan exists and tasks have been transitioned.")
 	}
@@ -514,7 +642,7 @@ func (s *Server) handleForecast(ctx context.Context, args struct{}) (any, error)
 	return resp, nil
 }
 
-func (s *Server) handleOrgStatus(ctx context.Context, args struct{}) (any, error) {
+func (s *Server) handleOrgStatus(ctx context.Context, args GetSpecArgs) (any, error) {
 	orgSvc := s.orgSvc
 	if orgSvc == nil {
 		return "Org service not available.", nil
@@ -526,8 +654,12 @@ func (s *Server) handleOrgStatus(ctx context.Context, args struct{}) (any, error
 	return metrics, nil
 }
 
-func (s *Server) handleGitSync(ctx context.Context, args struct{}) (any, error) {
-	results, err := s.gitSvc.SyncMarkers(10)
+func (s *Server) handleGitSync(ctx context.Context, args GitSyncArgs) (any, error) {
+	svc, err := s.servicesForPath(args.ProjectPath)
+	if err != nil {
+		return nil, mcpErr("Failed to load project at the given path.")
+	}
+	results, err := svc.Git.SyncMarkers(10)
 	if err != nil {
 		return nil, mcpErr("Failed to sync git markers. Ensure you are in a git repository with commit history.")
 	}
@@ -535,27 +667,39 @@ func (s *Server) handleGitSync(ctx context.Context, args struct{}) (any, error) 
 }
 
 func (s *Server) handleSync(ctx context.Context, args SyncArgs) (any, error) {
-	results, err := s.syncSvc.SyncWithPlugin(args.PluginPath)
+	svc, err := s.servicesForPath(args.ProjectPath)
+	if err != nil {
+		return nil, mcpErr("Failed to load project at the given path.")
+	}
+	results, err := svc.Sync.SyncWithPlugin(args.PluginPath)
 	if err != nil {
 		return nil, mcpErr("Failed to sync with plugin. Ensure the plugin binary exists and is executable.")
 	}
 	return results, nil
 }
 
-func (s *Server) handleExplainDrift(ctx context.Context, args struct{}) (string, error) {
-	report, err := s.driftSvc.DetectDrift(ctx)
+func (s *Server) handleExplainDrift(ctx context.Context, args ExplainDriftArgs) (string, error) {
+	svc, err := s.servicesForPath(args.ProjectPath)
+	if err != nil {
+		return "", mcpErr("Failed to load project at the given path.")
+	}
+	report, err := svc.Drift.DetectDrift(ctx)
 	if err != nil {
 		return "", mcpErr("Failed to detect drift. Ensure both spec and plan exist.")
 	}
-	result, err := s.aiSvc.ExplainDrift(ctx, report)
+	result, err := svc.AI.ExplainDrift(ctx, report)
 	if err != nil {
 		return "", mcpErr("Failed to generate drift explanation. Check your AI provider configuration.")
 	}
 	return result, nil
 }
 
-func (s *Server) handleAcceptDrift(ctx context.Context, args struct{}) (string, error) {
-	if err := s.driftSvc.AcceptDrift(); err != nil {
+func (s *Server) handleAcceptDrift(ctx context.Context, args AcceptDriftArgs) (string, error) {
+	svc, err := s.servicesForPath(args.ProjectPath)
+	if err != nil {
+		return "", mcpErr("Failed to load project at the given path.")
+	}
+	if err := svc.Drift.AcceptDrift(); err != nil {
 		return "", mcpErr("Failed to accept drift. Ensure a spec exists.")
 	}
 	return "Drift accepted and spec snapshot locked.", nil
@@ -564,34 +708,51 @@ func (s *Server) handleAcceptDrift(ctx context.Context, args struct{}) (string, 
 type AddFeatureArgs struct {
 	Title       string `json:"title" jsonschema:"description=The title of the new feature"`
 	Description string `json:"description" jsonschema:"description=A detailed description of the feature"`
+	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
 }
 
 func (s *Server) handleAddFeature(ctx context.Context, args AddFeatureArgs) (string, error) {
-	spec, err := s.specSvc.AddFeature(args.Title, args.Description)
+	svc, err := s.servicesForPath(args.ProjectPath)
+	if err != nil {
+		return "", mcpErr("Failed to load project at the given path.")
+	}
+	spec, err := svc.Spec.AddFeature(args.Title, args.Description)
 	if err != nil {
 		return "", mcpErr("Failed to add feature. Ensure the project is initialized with a valid spec.")
 	}
 	return fmt.Sprintf("Successfully added feature '%s'. Intent synced to docs/backlog.md. Total features: %d", args.Title, len(spec.Features)), nil
 }
 
-func (s *Server) handleGetUsage(ctx context.Context, args struct{}) (any, error) {
-	usage, err := s.planSvc.GetUsage()
+func (s *Server) handleGetUsage(ctx context.Context, args GetUsageArgs) (any, error) {
+	svc, err := s.servicesForPath(args.ProjectPath)
+	if err != nil {
+		return nil, mcpErr("Failed to load project at the given path.")
+	}
+	usage, err := svc.Plan.GetUsage()
 	if err != nil {
 		return nil, mcpErr("Failed to retrieve usage data. Ensure the project is initialized.")
 	}
 	return usage, nil
 }
 
-func (s *Server) handleApprovePlan(ctx context.Context, args struct{}) (string, error) {
-	err := s.planSvc.ApprovePlan()
+func (s *Server) handleApprovePlan(ctx context.Context, args ApprovePlanArgs) (string, error) {
+	svc, err := s.servicesForPath(args.ProjectPath)
+	if err != nil {
+		return "", mcpErr("Failed to load project at the given path.")
+	}
+	err = svc.Plan.ApprovePlan()
 	if err != nil {
 		return "", mcpErr("Failed to approve plan. Ensure a plan has been generated.")
 	}
 	return "Plan approved successfully", nil
 }
 
-func (s *Server) handleExplainSpec(ctx context.Context, args struct{}) (string, error) {
-	result, err := s.aiSvc.ExplainSpec(ctx)
+func (s *Server) handleExplainSpec(ctx context.Context, args ExplainSpecArgs) (string, error) {
+	svc, err := s.servicesForPath(args.ProjectPath)
+	if err != nil {
+		return "", mcpErr("Failed to load project at the given path.")
+	}
+	result, err := svc.AI.ExplainSpec(ctx)
 	if err != nil {
 		return "", mcpErr("Failed to explain spec. Check your AI provider configuration.")
 	}
@@ -599,30 +760,43 @@ func (s *Server) handleExplainSpec(ctx context.Context, args struct{}) (string, 
 }
 
 type QueryArgs struct {
-	Question string `json:"question" jsonschema:"description=A natural language question about the project"`
+	Question    string `json:"question" jsonschema:"description=A natural language question about the project"`
+	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
 }
 
 func (s *Server) handleQuery(ctx context.Context, args QueryArgs) (string, error) {
 	if args.Question == "" {
 		return "", mcpErr("A question is required.")
 	}
-	answer, err := s.aiSvc.QueryProject(ctx, args.Question)
+	svc, err := s.servicesForPath(args.ProjectPath)
+	if err != nil {
+		return "", mcpErr("Failed to load project at the given path.")
+	}
+	answer, err := svc.AI.QueryProject(ctx, args.Question)
 	if err != nil {
 		return "", mcpErr("Failed to answer query. Check your AI provider configuration.")
 	}
 	return answer, nil
 }
 
-func (s *Server) handleSuggestPriorities(ctx context.Context, args struct{}) (any, error) {
-	suggestions, err := s.aiSvc.SuggestPriorities(ctx)
+func (s *Server) handleSuggestPriorities(ctx context.Context, args SuggestPrioritiesArgs) (any, error) {
+	svc, err := s.servicesForPath(args.ProjectPath)
+	if err != nil {
+		return nil, mcpErr("Failed to load project at the given path.")
+	}
+	suggestions, err := svc.AI.SuggestPriorities(ctx)
 	if err != nil {
 		return nil, mcpErr("Failed to suggest priorities. Check your AI provider configuration and ensure a plan exists.")
 	}
 	return suggestions, nil
 }
 
-func (s *Server) handleReviewSpec(ctx context.Context, args struct{}) (any, error) {
-	review, err := s.aiSvc.ReviewSpec(ctx)
+func (s *Server) handleReviewSpec(ctx context.Context, args ReviewSpecArgs) (any, error) {
+	svc, err := s.servicesForPath(args.ProjectPath)
+	if err != nil {
+		return nil, mcpErr("Failed to load project at the given path.")
+	}
+	review, err := svc.AI.ReviewSpec(ctx)
 	if err != nil {
 		return nil, mcpErr("Failed to review spec. Check your AI provider configuration.")
 	}
@@ -630,15 +804,17 @@ func (s *Server) handleReviewSpec(ctx context.Context, args struct{}) (any, erro
 }
 
 type TransitionTaskArgs struct {
-	TaskID   string `json:"task_id" jsonschema:"description=The ID of the task to transition"`
-	Event    string `json:"event" jsonschema:"description=The transition event (start, complete, block, stop, unblock, reopen)"`
-	Evidence string `json:"evidence,omitempty" jsonschema:"description=Optional evidence for the transition (e.g. commit hash)"`
-	Actor    string `json:"actor,omitempty" jsonschema:"description=The actor performing the transition (defaults to ai-agent)"`
+	TaskID      string `json:"task_id" jsonschema:"description=The ID of the task to transition"`
+	Event       string `json:"event" jsonschema:"description=The transition event (start, complete, block, stop, unblock, reopen)"`
+	Evidence    string `json:"evidence,omitempty" jsonschema:"description=Optional evidence for the transition (e.g. commit hash)"`
+	Actor       string `json:"actor,omitempty" jsonschema:"description=The actor performing the transition (defaults to ai-agent)"`
+	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
 }
 
 type AssignTaskArgs struct {
-	TaskID   string `json:"task_id" jsonschema:"description=The ID of the task to assign"`
-	Assignee string `json:"assignee" jsonschema:"description=The person or agent to assign the task to"`
+	TaskID      string `json:"task_id" jsonschema:"description=The ID of the task to assign"`
+	Assignee    string `json:"assignee" jsonschema:"description=The person or agent to assign the task to"`
+	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
 }
 
 // FlexBool accepts both boolean and string ("true"/"false") JSON values.
@@ -683,17 +859,22 @@ func (fi *FlexInt) UnmarshalJSON(data []byte) error {
 
 // StatusArgs defines filter parameters for roady_status tool
 type StatusArgs struct {
-	Status   string   `json:"status,omitempty" jsonschema:"description=Filter by status (comma-separated: pending,blocked,in_progress,done,verified)"`
-	Priority string   `json:"priority,omitempty" jsonschema:"description=Filter by priority (comma-separated: high,medium,low)"`
-	Ready    FlexBool `json:"ready,omitempty" jsonschema:"description=Show only tasks ready to start (unlocked + pending)"`
-	Blocked  FlexBool `json:"blocked,omitempty" jsonschema:"description=Show only blocked tasks"`
-	Active   FlexBool `json:"active,omitempty" jsonschema:"description=Show only in-progress tasks"`
-	Limit    FlexInt  `json:"limit,omitempty" jsonschema:"description=Limit number of tasks returned"`
-	JSON     FlexBool `json:"json,omitempty" jsonschema:"description=Return structured JSON output instead of text"`
+	Status      string   `json:"status,omitempty" jsonschema:"description=Filter by status (comma-separated: pending,blocked,in_progress,done,verified)"`
+	Priority    string   `json:"priority,omitempty" jsonschema:"description=Filter by priority (comma-separated: high,medium,low)"`
+	Ready       FlexBool `json:"ready,omitempty" jsonschema:"description=Show only tasks ready to start (unlocked + pending)"`
+	Blocked     FlexBool `json:"blocked,omitempty" jsonschema:"description=Show only blocked tasks"`
+	Active      FlexBool `json:"active,omitempty" jsonschema:"description=Show only in-progress tasks"`
+	Limit       FlexInt  `json:"limit,omitempty" jsonschema:"description=Limit number of tasks returned"`
+	JSON        FlexBool `json:"json,omitempty" jsonschema:"description=Return structured JSON output instead of text"`
+	ProjectPath string   `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
 }
 
 func (s *Server) handleAssignTask(ctx context.Context, args AssignTaskArgs) (string, error) {
-	err := s.taskSvc.AssignTask(ctx, args.TaskID, args.Assignee)
+	svc, err := s.servicesForPath(args.ProjectPath)
+	if err != nil {
+		return "", mcpErr("Failed to load project at the given path.")
+	}
+	err = svc.Task.AssignTask(ctx, args.TaskID, args.Assignee)
 	if err != nil {
 		return "", mcpErr(fmt.Sprintf("Failed to assign task '%s' to '%s': %v", args.TaskID, args.Assignee, err))
 	}
@@ -701,11 +882,15 @@ func (s *Server) handleAssignTask(ctx context.Context, args AssignTaskArgs) (str
 }
 
 func (s *Server) handleTransitionTask(ctx context.Context, args TransitionTaskArgs) (string, error) {
+	svc, err := s.servicesForPath(args.ProjectPath)
+	if err != nil {
+		return "", mcpErr("Failed to load project at the given path.")
+	}
 	actor := args.Actor
 	if actor == "" {
 		actor = "ai-agent"
 	}
-	err := s.taskSvc.TransitionTask(args.TaskID, args.Event, actor, args.Evidence)
+	err = svc.Task.TransitionTask(args.TaskID, args.Event, actor, args.Evidence)
 	if err != nil {
 		return "", mcpErr(fmt.Sprintf("Failed to transition task '%s' with event '%s': %v", args.TaskID, args.Event, err))
 	}
@@ -713,39 +898,59 @@ func (s *Server) handleTransitionTask(ctx context.Context, args TransitionTaskAr
 }
 
 func (s *Server) handleInit(ctx context.Context, args InitArgs) (string, error) {
-	err := s.initSvc.InitializeProject(args.Name)
+	svc, err := s.servicesForPath(args.ProjectPath)
+	if err != nil {
+		return "", mcpErr("Failed to load project at the given path.")
+	}
+	err = svc.Init.InitializeProject(args.Name)
 	if err != nil {
 		return "", mcpErr("Failed to initialize project. Check directory permissions and ensure the name is valid.")
 	}
 	return fmt.Sprintf("Project %s initialized successfully", args.Name), nil
 }
 
-func (s *Server) handleGetSpec(ctx context.Context, args struct{}) (any, error) {
-	spec, err := s.specSvc.GetSpec()
+func (s *Server) handleGetSpec(ctx context.Context, args GetSpecArgs) (any, error) {
+	svc, err := s.servicesForPath(args.ProjectPath)
+	if err != nil {
+		return nil, mcpErr("Failed to load project at the given path.")
+	}
+	spec, err := svc.Spec.GetSpec()
 	if err != nil {
 		return nil, mcpErr("Failed to load spec. Ensure the project is initialized with 'roady init'.")
 	}
 	return spec, nil
 }
 
-func (s *Server) handleGetPlan(ctx context.Context, args struct{}) (any, error) {
-	plan, err := s.planSvc.GetPlan()
+func (s *Server) handleGetPlan(ctx context.Context, args GetPlanArgs) (any, error) {
+	svc, err := s.servicesForPath(args.ProjectPath)
+	if err != nil {
+		return nil, mcpErr("Failed to load project at the given path.")
+	}
+	plan, err := svc.Plan.GetPlan()
 	if err != nil {
 		return nil, mcpErr("Failed to load plan. Generate a plan first with 'roady plan generate'.")
 	}
 	return plan, nil
 }
 
-func (s *Server) handleGetState(ctx context.Context, args struct{}) (any, error) {
-	state, err := s.planSvc.GetState()
+func (s *Server) handleGetState(ctx context.Context, args GetStateArgs) (any, error) {
+	svc, err := s.servicesForPath(args.ProjectPath)
+	if err != nil {
+		return nil, mcpErr("Failed to load project at the given path.")
+	}
+	state, err := svc.Plan.GetState()
 	if err != nil {
 		return nil, mcpErr("Failed to load execution state. Ensure a plan has been generated.")
 	}
 	return state, nil
 }
 
-func (s *Server) handleGeneratePlan(ctx context.Context, args struct{}) (string, error) {
-	plan, err := s.planSvc.GeneratePlan(ctx)
+func (s *Server) handleGeneratePlan(ctx context.Context, args GeneratePlanArgs) (string, error) {
+	svc, err := s.servicesForPath(args.ProjectPath)
+	if err != nil {
+		return "", mcpErr("Failed to load project at the given path.")
+	}
+	plan, err := svc.Plan.GeneratePlan(ctx)
 	if err != nil {
 		return "", mcpErr("Failed to generate plan. Ensure a spec exists with at least one feature.")
 	}
@@ -753,15 +958,23 @@ func (s *Server) handleGeneratePlan(ctx context.Context, args struct{}) (string,
 }
 
 func (s *Server) handleUpdatePlan(ctx context.Context, args UpdatePlanArgs) (string, error) {
-	plan, err := s.planSvc.UpdatePlan(args.Tasks)
+	svc, err := s.servicesForPath(args.ProjectPath)
+	if err != nil {
+		return "", mcpErr("Failed to load project at the given path.")
+	}
+	plan, err := svc.Plan.UpdatePlan(args.Tasks)
 	if err != nil {
 		return "", mcpErr("Failed to update plan. Ensure the task list is valid and a spec exists.")
 	}
 	return fmt.Sprintf("Plan updated with %d tasks. Plan ID: %s", len(plan.Tasks), plan.ID), nil
 }
 
-func (s *Server) handleDetectDrift(ctx context.Context, args struct{}) (any, error) {
-	report, err := s.driftSvc.DetectDrift(ctx)
+func (s *Server) handleDetectDrift(ctx context.Context, args DetectDriftArgs) (any, error) {
+	svc, err := s.servicesForPath(args.ProjectPath)
+	if err != nil {
+		return nil, mcpErr("Failed to load project at the given path.")
+	}
+	report, err := svc.Drift.DetectDrift(ctx)
 	if err != nil {
 		return nil, mcpErr("Failed to detect drift. Ensure both spec and plan exist.")
 	}
@@ -769,7 +982,11 @@ func (s *Server) handleDetectDrift(ctx context.Context, args struct{}) (any, err
 }
 
 func (s *Server) handleStatus(ctx context.Context, args StatusArgs) (any, error) {
-	plan, err := s.planSvc.GetPlan()
+	svc, err := s.servicesForPath(args.ProjectPath)
+	if err != nil {
+		return nil, mcpErr("Failed to load project at the given path.")
+	}
+	plan, err := svc.Plan.GetPlan()
 	if err != nil {
 		return nil, mcpErr("Failed to load plan. Generate a plan first with 'roady plan generate'.")
 	}
@@ -777,7 +994,7 @@ func (s *Server) handleStatus(ctx context.Context, args StatusArgs) (any, error)
 		return "No plan found. Run roady_generate_plan first.", nil
 	}
 
-	state, err := s.planSvc.GetState()
+	state, err := svc.Plan.GetState()
 	if err != nil {
 		return nil, mcpErr("Failed to load execution state. Ensure a plan has been generated.")
 	}
@@ -951,8 +1168,12 @@ func containsPriority(priorities []planning.TaskPriority, p planning.TaskPriorit
 	return false
 }
 
-func (s *Server) handleCheckPolicy(ctx context.Context, args struct{}) (any, error) {
-	vioations, err := s.policySvc.CheckCompliance()
+func (s *Server) handleCheckPolicy(ctx context.Context, args CheckPolicyArgs) (any, error) {
+	svc, err := s.servicesForPath(args.ProjectPath)
+	if err != nil {
+		return nil, mcpErr("Failed to load project at the given path.")
+	}
+	vioations, err := svc.Policy.CheckCompliance()
 	if err != nil {
 		return nil, mcpErr("Failed to check policy compliance. Ensure a policy.yaml and plan exist.")
 	}
@@ -1000,7 +1221,7 @@ func (s *Server) ServeGRPC(ctx context.Context, addr string) error {
 
 // Dependency MCP handlers
 
-func (s *Server) handleDepsList(ctx context.Context, args struct{}) (any, error) {
+func (s *Server) handleDepsList(ctx context.Context, args GetSpecArgs) (any, error) {
 	deps, err := s.depSvc.ListDependencies()
 	if err != nil {
 		return nil, mcpErr("Failed to list dependencies. Ensure .roady/deps.yaml exists.")
@@ -1008,7 +1229,7 @@ func (s *Server) handleDepsList(ctx context.Context, args struct{}) (any, error)
 	return deps, nil
 }
 
-func (s *Server) handleDepsScan(ctx context.Context, args struct{}) (any, error) {
+func (s *Server) handleDepsScan(ctx context.Context, args GetSpecArgs) (any, error) {
 	result, err := s.depSvc.ScanDependentRepos(nil)
 	if err != nil {
 		return nil, mcpErr("Failed to scan dependent repositories. Check that dependency paths are valid.")
@@ -1043,7 +1264,7 @@ func (s *Server) handleDepsGraph(ctx context.Context, args DepsGraphArgs) (any, 
 
 // Debt MCP handlers
 
-func (s *Server) handleDebtReport(ctx context.Context, args struct{}) (any, error) {
+func (s *Server) handleDebtReport(ctx context.Context, args GetSpecArgs) (any, error) {
 	report, err := s.debtSvc.GetDebtReport(ctx)
 	if err != nil {
 		return nil, mcpErr("Failed to generate debt report. Ensure drift detection has been run.")
@@ -1051,7 +1272,7 @@ func (s *Server) handleDebtReport(ctx context.Context, args struct{}) (any, erro
 	return report, nil
 }
 
-func (s *Server) handleDebtSummary(ctx context.Context, args struct{}) (any, error) {
+func (s *Server) handleDebtSummary(ctx context.Context, args GetSpecArgs) (any, error) {
 	summary, err := s.debtSvc.GetDebtSummary(ctx)
 	if err != nil {
 		return nil, mcpErr("Failed to get debt summary. Ensure drift detection has been run.")
@@ -1059,7 +1280,7 @@ func (s *Server) handleDebtSummary(ctx context.Context, args struct{}) (any, err
 	return summary, nil
 }
 
-func (s *Server) handleStickyDrift(ctx context.Context, args struct{}) (any, error) {
+func (s *Server) handleStickyDrift(ctx context.Context, args GetSpecArgs) (any, error) {
 	items, err := s.debtSvc.GetStickyDrift()
 	if err != nil {
 		return nil, mcpErr("Failed to get sticky drift items. Ensure drift history exists.")
@@ -1085,8 +1306,12 @@ func (s *Server) handleDebtTrend(ctx context.Context, args DebtTrendArgs) (any, 
 
 // Coordinator-based snapshot and task query handlers (v0.6.0)
 
-func (s *Server) handleGetSnapshot(ctx context.Context, args struct{}) (any, error) {
-	snapshot, err := s.planSvc.GetProjectSnapshot(ctx)
+func (s *Server) handleGetSnapshot(ctx context.Context, args GetSnapshotArgs) (any, error) {
+	svc, err := s.servicesForPath(args.ProjectPath)
+	if err != nil {
+		return nil, mcpErr("Failed to load project at the given path.")
+	}
+	snapshot, err := svc.Plan.GetProjectSnapshot(ctx)
 	if err != nil {
 		return nil, mcpErr("Failed to get project snapshot. Ensure a plan and state exist.")
 	}
@@ -1119,24 +1344,36 @@ func (s *Server) handleGetSnapshot(ctx context.Context, args struct{}) (any, err
 	}, nil
 }
 
-func (s *Server) handleGetReadyTasks(ctx context.Context, args struct{}) (any, error) {
-	tasks, err := s.planSvc.GetReadyTasks(ctx)
+func (s *Server) handleGetReadyTasks(ctx context.Context, args GetReadyTasksArgs) (any, error) {
+	svc, err := s.servicesForPath(args.ProjectPath)
+	if err != nil {
+		return nil, mcpErr("Failed to load project at the given path.")
+	}
+	tasks, err := svc.Plan.GetReadyTasks(ctx)
 	if err != nil {
 		return nil, mcpErr("Failed to get ready tasks. Ensure a plan and state exist.")
 	}
 	return tasks, nil
 }
 
-func (s *Server) handleGetBlockedTasks(ctx context.Context, args struct{}) (any, error) {
-	tasks, err := s.planSvc.GetBlockedTasks(ctx)
+func (s *Server) handleGetBlockedTasks(ctx context.Context, args GetBlockedTasksArgs) (any, error) {
+	svc, err := s.servicesForPath(args.ProjectPath)
+	if err != nil {
+		return nil, mcpErr("Failed to load project at the given path.")
+	}
+	tasks, err := svc.Plan.GetBlockedTasks(ctx)
 	if err != nil {
 		return nil, mcpErr("Failed to get blocked tasks. Ensure a plan and state exist.")
 	}
 	return tasks, nil
 }
 
-func (s *Server) handleGetInProgressTasks(ctx context.Context, args struct{}) (any, error) {
-	tasks, err := s.planSvc.GetInProgressTasks(ctx)
+func (s *Server) handleGetInProgressTasks(ctx context.Context, args GetInProgressTasksArgs) (any, error) {
+	svc, err := s.servicesForPath(args.ProjectPath)
+	if err != nil {
+		return nil, mcpErr("Failed to load project at the given path.")
+	}
+	tasks, err := svc.Plan.GetInProgressTasks(ctx)
 	if err != nil {
 		return nil, mcpErr("Failed to get in-progress tasks. Ensure a plan and state exist.")
 	}
@@ -1145,8 +1382,18 @@ func (s *Server) handleGetInProgressTasks(ctx context.Context, args struct{}) (a
 
 // --- Workspace Sync Handlers ---
 
-func (s *Server) handleWorkspacePush(ctx context.Context, args struct{}) (any, error) {
-	svc := application.NewWorkspaceSyncService(s.root, s.auditSvc)
+func (s *Server) handleWorkspacePush(ctx context.Context, args WorkspacePushArgs) (any, error) {
+	root := s.root
+	auditSvc := s.auditSvc
+	if args.ProjectPath != "" && args.ProjectPath != s.root {
+		overrideSvc, err := s.servicesForPath(args.ProjectPath)
+		if err != nil {
+			return nil, mcpErr("Failed to load project at the given path.")
+		}
+		root = args.ProjectPath
+		auditSvc = overrideSvc.Audit
+	}
+	svc := application.NewWorkspaceSyncService(root, auditSvc)
 	result, err := svc.Push(ctx)
 	if err != nil {
 		return nil, mcpErr(fmt.Sprintf("workspace push failed: %s", err))
@@ -1154,8 +1401,18 @@ func (s *Server) handleWorkspacePush(ctx context.Context, args struct{}) (any, e
 	return result, nil
 }
 
-func (s *Server) handleWorkspacePull(ctx context.Context, args struct{}) (any, error) {
-	svc := application.NewWorkspaceSyncService(s.root, s.auditSvc)
+func (s *Server) handleWorkspacePull(ctx context.Context, args WorkspacePullArgs) (any, error) {
+	root := s.root
+	auditSvc := s.auditSvc
+	if args.ProjectPath != "" && args.ProjectPath != s.root {
+		overrideSvc, err := s.servicesForPath(args.ProjectPath)
+		if err != nil {
+			return nil, mcpErr("Failed to load project at the given path.")
+		}
+		root = args.ProjectPath
+		auditSvc = overrideSvc.Audit
+	}
+	svc := application.NewWorkspaceSyncService(root, auditSvc)
 	result, err := svc.Pull(ctx)
 	if err != nil {
 		return nil, mcpErr(fmt.Sprintf("workspace pull failed: %s", err))
@@ -1165,11 +1422,19 @@ func (s *Server) handleWorkspacePull(ctx context.Context, args struct{}) (any, e
 
 // --- Smart Decompose Handler ---
 
-func (s *Server) handleSmartDecompose(ctx context.Context, args struct{}) (any, error) {
-	if s.aiSvc == nil {
+func (s *Server) handleSmartDecompose(ctx context.Context, args SmartDecomposeArgs) (any, error) {
+	svc, err := s.servicesForPath(args.ProjectPath)
+	if err != nil {
+		return nil, mcpErr("Failed to load project at the given path.")
+	}
+	if svc == nil || svc.AI == nil {
 		return nil, mcpErr("AI service not available")
 	}
-	result, err := s.aiSvc.SmartDecompose(ctx, s.root)
+	root := s.root
+	if args.ProjectPath != "" {
+		root = args.ProjectPath
+	}
+	result, err := svc.AI.SmartDecompose(ctx, root)
 	if err != nil {
 		return nil, mcpErr(fmt.Sprintf("smart decompose failed: %s", err))
 	}
@@ -1187,7 +1452,7 @@ type TeamRemoveArgs struct {
 	Name string `json:"name" jsonschema:"description=The name of the team member to remove"`
 }
 
-func (s *Server) handleTeamList(ctx context.Context, args struct{}) (any, error) {
+func (s *Server) handleTeamList(ctx context.Context, args GetSpecArgs) (any, error) {
 	cfg, err := s.teamSvc.ListMembers()
 	if err != nil {
 		return nil, mcpErr("failed to list team members")
@@ -1218,7 +1483,9 @@ func (s *Server) handleTeamRemove(ctx context.Context, args TeamRemoveArgs) (str
 	return fmt.Sprintf("Member %s removed", args.Name), nil
 }
 
-type RateListArgs struct{}
+type RateListArgs struct {
+	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
+}
 
 func (s *Server) handleRateList(ctx context.Context, args RateListArgs) (any, error) {
 	config, err := s.billingSvc.ListRates()
@@ -1290,7 +1557,9 @@ func (s *Server) handleCostReport(ctx context.Context, args CostReportArgs) (any
 	return report, nil
 }
 
-type CostBudgetArgs struct{}
+type CostBudgetArgs struct {
+	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
+}
 
 func (s *Server) handleCostBudget(ctx context.Context, args CostBudgetArgs) (any, error) {
 	status, err := s.billingSvc.GetBudgetStatus()

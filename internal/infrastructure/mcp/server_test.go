@@ -103,17 +103,17 @@ func TestServerHandlersExercise(t *testing.T) {
 	}
 	ctx := context.Background()
 
-	if _, err := server.handleGetSpec(ctx, struct{}{}); err != nil {
+	if _, err := server.handleGetSpec(ctx, GetSpecArgs{}); err != nil {
 		t.Fatalf("get spec: %v", err)
 	}
-	if _, err := server.handleGetPlan(ctx, struct{}{}); err != nil {
+	if _, err := server.handleGetPlan(ctx, GetPlanArgs{}); err != nil {
 		t.Fatalf("get plan: %v", err)
 	}
-	if _, err := server.handleGetState(ctx, struct{}{}); err != nil {
+	if _, err := server.handleGetState(ctx, GetStateArgs{}); err != nil {
 		t.Fatalf("get state: %v", err)
 	}
 
-	if _, err := server.handleGeneratePlan(ctx, struct{}{}); err != nil {
+	if _, err := server.handleGeneratePlan(ctx, GeneratePlanArgs{}); err != nil {
 		t.Fatalf("generate plan: %v", err)
 	}
 
@@ -125,7 +125,7 @@ func TestServerHandlersExercise(t *testing.T) {
 		t.Fatalf("update plan: %v", err)
 	}
 
-	if _, err := server.handleDetectDrift(ctx, struct{}{}); err != nil {
+	if _, err := server.handleDetectDrift(ctx, DetectDriftArgs{}); err != nil {
 		t.Fatalf("detect drift: %v", err)
 	}
 
@@ -133,39 +133,39 @@ func TestServerHandlersExercise(t *testing.T) {
 		t.Fatalf("status: %v", err)
 	}
 
-	if _, err := server.handleCheckPolicy(ctx, struct{}{}); err != nil {
+	if _, err := server.handleCheckPolicy(ctx, CheckPolicyArgs{}); err != nil {
 		t.Fatalf("check policy: %v", err)
 	}
 
-	if _, err := server.handleGetUsage(ctx, struct{}{}); err != nil {
+	if _, err := server.handleGetUsage(ctx, GetUsageArgs{}); err != nil {
 		t.Fatalf("get usage: %v", err)
 	}
 
-	if _, err := server.handleExplainSpec(ctx, struct{}{}); err != nil {
+	if _, err := server.handleExplainSpec(ctx, ExplainSpecArgs{}); err != nil {
 		t.Fatalf("explain spec: %v", err)
 	}
 
-	if _, err := server.handleExplainDrift(ctx, struct{}{}); err != nil {
+	if _, err := server.handleExplainDrift(ctx, ExplainDriftArgs{}); err != nil {
 		t.Fatalf("explain drift: %v", err)
 	}
 
-	if _, err := server.handleAcceptDrift(ctx, struct{}{}); err != nil {
+	if _, err := server.handleAcceptDrift(ctx, AcceptDriftArgs{}); err != nil {
 		t.Fatalf("accept drift: %v", err)
 	}
 
-	if _, err := server.handleForecast(ctx, struct{}{}); err != nil {
+	if _, err := server.handleForecast(ctx, ForecastArgs{}); err != nil {
 		t.Fatalf("forecast: %v", err)
 	}
 
-	if _, err := server.handleOrgStatus(ctx, struct{}{}); err != nil {
+	if _, err := server.handleOrgStatus(ctx, GetSpecArgs{}); err != nil {
 		t.Fatalf("org status: %v", err)
 	}
 
-	if _, err := server.handleGitSync(ctx, struct{}{}); err != nil {
+	if _, err := server.handleGitSync(ctx, GitSyncArgs{}); err != nil {
 		t.Fatalf("git sync: %v", err)
 	}
 
-	if _, err := server.handleApprovePlan(ctx, struct{}{}); err != nil {
+	if _, err := server.handleApprovePlan(ctx, ApprovePlanArgs{}); err != nil {
 		t.Fatalf("approve plan: %v", err)
 	}
 
@@ -192,7 +192,7 @@ func TestServerHandlersExercise(t *testing.T) {
 		t.Fatalf("backlog missing feature: %s", content)
 	}
 
-	if _, err := server.handleDetectDrift(ctx, struct{}{}); err != nil {
+	if _, err := server.handleDetectDrift(ctx, DetectDriftArgs{}); err != nil {
 		t.Fatalf("detect drift after feature: %v", err)
 	}
 
@@ -200,7 +200,7 @@ func TestServerHandlersExercise(t *testing.T) {
 		t.Fatalf("status after transition: %v", err)
 	}
 
-	if _, err := server.handleExplainSpec(ctx, struct{}{}); err != nil {
+	if _, err := server.handleExplainSpec(ctx, ExplainSpecArgs{}); err != nil {
 		t.Fatalf("explain spec post-change: %v", err)
 	}
 }
@@ -229,10 +229,10 @@ func TestServerPlanEventsLogged(t *testing.T) {
 	}
 	ctx := context.Background()
 
-	if _, err := server.handleGeneratePlan(ctx, struct{}{}); err != nil {
+	if _, err := server.handleGeneratePlan(ctx, GeneratePlanArgs{}); err != nil {
 		t.Fatalf("generate plan failed: %v", err)
 	}
-	if _, err := server.handleApprovePlan(ctx, struct{}{}); err != nil {
+	if _, err := server.handleApprovePlan(ctx, ApprovePlanArgs{}); err != nil {
 		t.Fatalf("approve plan failed: %v", err)
 	}
 
@@ -264,6 +264,121 @@ func TestInitHandlerCreatesProject(t *testing.T) {
 	}
 	if _, err := os.Stat(filepath.Join(root, ".roady", "spec.yaml")); err != nil {
 		t.Fatalf("spec was not created: %v", err)
+	}
+}
+
+func TestServicesForPath_DefaultRoot(t *testing.T) {
+	root := t.TempDir()
+	repo := storage.NewFilesystemRepository(root)
+	if err := repo.Initialize(); err != nil {
+		t.Fatalf("initialize repo: %v", err)
+	}
+	if err := repo.SaveSpec(&spec.ProductSpec{ID: "test", Title: "Test"}); err != nil {
+		t.Fatalf("save spec: %v", err)
+	}
+
+	server, err := NewServer(root)
+	if err != nil {
+		t.Fatalf("create server: %v", err)
+	}
+
+	// Empty override returns cached services
+	svc, err := server.servicesForPath("")
+	if err != nil {
+		t.Fatalf("servicesForPath empty: %v", err)
+	}
+	if svc != server.services {
+		t.Fatal("expected same services instance for empty path")
+	}
+
+	// Same root returns cached services
+	svc, err = server.servicesForPath(root)
+	if err != nil {
+		t.Fatalf("servicesForPath same root: %v", err)
+	}
+	if svc != server.services {
+		t.Fatal("expected same services instance for same root")
+	}
+}
+
+func TestServicesForPath_Override(t *testing.T) {
+	rootA := t.TempDir()
+	repoA := storage.NewFilesystemRepository(rootA)
+	if err := repoA.Initialize(); err != nil {
+		t.Fatalf("initialize repo A: %v", err)
+	}
+	if err := repoA.SaveSpec(&spec.ProductSpec{ID: "project-a", Title: "Project A"}); err != nil {
+		t.Fatalf("save spec A: %v", err)
+	}
+
+	rootB := t.TempDir()
+	repoB := storage.NewFilesystemRepository(rootB)
+	if err := repoB.Initialize(); err != nil {
+		t.Fatalf("initialize repo B: %v", err)
+	}
+	if err := repoB.SaveSpec(&spec.ProductSpec{ID: "project-b", Title: "Project B"}); err != nil {
+		t.Fatalf("save spec B: %v", err)
+	}
+
+	server, err := NewServer(rootA)
+	if err != nil {
+		t.Fatalf("create server: %v", err)
+	}
+
+	// Override path builds fresh services
+	svc, err := server.servicesForPath(rootB)
+	if err != nil {
+		t.Fatalf("servicesForPath override: %v", err)
+	}
+	if svc == server.services {
+		t.Fatal("expected different services instance for override path")
+	}
+}
+
+func TestHandleGetSpec_WithProjectPath(t *testing.T) {
+	rootA := t.TempDir()
+	repoA := storage.NewFilesystemRepository(rootA)
+	if err := repoA.Initialize(); err != nil {
+		t.Fatalf("initialize repo A: %v", err)
+	}
+	if err := repoA.SaveSpec(&spec.ProductSpec{ID: "project-a", Title: "Project A"}); err != nil {
+		t.Fatalf("save spec A: %v", err)
+	}
+
+	rootB := t.TempDir()
+	repoB := storage.NewFilesystemRepository(rootB)
+	if err := repoB.Initialize(); err != nil {
+		t.Fatalf("initialize repo B: %v", err)
+	}
+	if err := repoB.SaveSpec(&spec.ProductSpec{ID: "project-b", Title: "Project B"}); err != nil {
+		t.Fatalf("save spec B: %v", err)
+	}
+
+	// Server created at root A
+	server, err := NewServer(rootA)
+	if err != nil {
+		t.Fatalf("create server: %v", err)
+	}
+	ctx := context.Background()
+
+	// Default: returns A's spec
+	result, err := server.handleGetSpec(ctx, GetSpecArgs{})
+	if err != nil {
+		t.Fatalf("get spec default: %v", err)
+	}
+	specA := result.(*spec.ProductSpec)
+	if specA.Title != "Project A" {
+		t.Fatalf("expected Project A, got %s", specA.Title)
+	}
+
+	// Override: returns B's spec
+	result, err = server.handleGetSpec(ctx, GetSpecArgs{ProjectPath: rootB})
+	if err != nil {
+		t.Fatalf("get spec with override: %v", err)
+	}
+	specB := result.(*spec.ProductSpec)
+	if specB.Title != "Project B" {
+		t.Fatalf("expected Project B, got %s", specB.Title)
 	}
 }
 

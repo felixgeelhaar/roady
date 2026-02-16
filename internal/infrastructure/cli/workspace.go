@@ -21,7 +21,10 @@ var workspacePushCmd = &cobra.Command{
 	Use:   "push",
 	Short: "Commit and push .roady/ changes to the remote",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		cwd, _ := os.Getwd()
+		cwd, cErr := getProjectRoot()
+		if cErr != nil {
+			return fmt.Errorf("resolve project path: %w", cErr)
+		}
 		workspace := wiring.NewWorkspace(cwd)
 		svc := application.NewWorkspaceSyncService(cwd, workspace.Audit)
 
@@ -48,7 +51,10 @@ var workspacePullCmd = &cobra.Command{
 	Use:   "pull",
 	Short: "Pull remote .roady/ changes and merge",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		cwd, _ := os.Getwd()
+		cwd, cErr := getProjectRoot()
+		if cErr != nil {
+			return fmt.Errorf("resolve project path: %w", cErr)
+		}
 		workspace := wiring.NewWorkspace(cwd)
 		svc := application.NewWorkspaceSyncService(cwd, workspace.Audit)
 

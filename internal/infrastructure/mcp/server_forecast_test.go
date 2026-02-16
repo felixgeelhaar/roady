@@ -94,7 +94,7 @@ func TestServerForecastAndExplainDrift(t *testing.T) {
 	}
 	ctx := context.Background()
 
-	forecastResult, err := server.handleForecast(ctx, struct{}{})
+	forecastResult, err := server.handleForecast(ctx, ForecastArgs{})
 	if err != nil {
 		t.Fatalf("forecast failed: %v", err)
 	}
@@ -107,7 +107,7 @@ func TestServerForecastAndExplainDrift(t *testing.T) {
 		t.Fatalf("unexpected forecast: %s", string(forecastJSON))
 	}
 
-	explanation, err := server.handleExplainDrift(ctx, struct{}{})
+	explanation, err := server.handleExplainDrift(ctx, ExplainDriftArgs{})
 	if err != nil {
 		t.Fatalf("explain drift failed: %v", err)
 	}

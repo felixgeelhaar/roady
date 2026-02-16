@@ -15,7 +15,10 @@ var initCmd = &cobra.Command{
 	Use:   "init",
 	Short: "Initialize a new roady project",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		cwd, _ := os.Getwd()
+		cwd, cErr := getProjectRoot()
+		if cErr != nil {
+			return fmt.Errorf("resolve project path: %w", cErr)
+		}
 		workspace := wiring.NewWorkspace(cwd)
 		repo := workspace.Repo
 		audit := workspace.Audit

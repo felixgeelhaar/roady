@@ -22,7 +22,10 @@ var configWizardCmd = &cobra.Command{
 	Use:   "wizard",
 	Short: "Interactive configuration wizard for ai.yaml and policy.yaml",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		cwd, _ := os.Getwd()
+		cwd, cErr := getProjectRoot()
+		if cErr != nil {
+			return fmt.Errorf("resolve project path: %w", cErr)
+		}
 		workspace := wiring.NewWorkspace(cwd)
 		repo := workspace.Repo
 

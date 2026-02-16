@@ -2,7 +2,6 @@ package cli
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/felixgeelhaar/roady/internal/infrastructure/wiring"
 	"github.com/felixgeelhaar/roady/pkg/application"
@@ -19,7 +18,10 @@ var policyCheckCmd = &cobra.Command{
 	Use:   "check",
 	Short: "Check if the current plan complies with policies",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		cwd, _ := os.Getwd()
+		cwd, err := getProjectRoot()
+		if err != nil {
+			return fmt.Errorf("resolve project path: %w", err)
+		}
 		repo := wiring.NewWorkspace(cwd).Repo
 		service := application.NewPolicyService(repo)
 

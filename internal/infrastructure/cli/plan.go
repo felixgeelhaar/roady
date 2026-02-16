@@ -2,7 +2,6 @@ package cli
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/felixgeelhaar/roady/pkg/domain/planning"
 	"github.com/spf13/cobra"
@@ -162,12 +161,9 @@ var planSmartDecomposeCmd = &cobra.Command{
 			return MapError(fmt.Errorf("AI service not available; configure an AI provider"))
 		}
 
-		cwd, _ := cmd.Flags().GetString("root")
-		if cwd == "" {
-			cwd, _ = cmd.Root().Flags().GetString("root")
-		}
-		if cwd == "" {
-			cwd, _ = os.Getwd()
+		cwd, cErr := getProjectRoot()
+		if cErr != nil {
+			return MapError(fmt.Errorf("resolve project path: %w", cErr))
 		}
 
 		result, err := services.AI.SmartDecompose(cmd.Context(), cwd)

@@ -2,7 +2,6 @@ package cli
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/felixgeelhaar/roady/internal/infrastructure/wiring"
 	"github.com/felixgeelhaar/roady/pkg/application"
@@ -18,7 +17,10 @@ var specExplainCmd = &cobra.Command{
 	Use:   "explain",
 	Short: "Provide an AI-generated explanation of the current spec",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		cwd, _ := os.Getwd()
+		cwd, err := getProjectRoot()
+		if err != nil {
+			return fmt.Errorf("resolve project path: %w", err)
+		}
 		workspace := wiring.NewWorkspace(cwd)
 		repo := workspace.Repo
 		audit := workspace.Audit
@@ -47,7 +49,10 @@ var specImportCmd = &cobra.Command{
 	Short: "Import a spec from a markdown file",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		cwd, _ := os.Getwd()
+		cwd, err := getProjectRoot()
+		if err != nil {
+			return fmt.Errorf("resolve project path: %w", err)
+		}
 		repo := wiring.NewWorkspace(cwd).Repo
 		service := application.NewSpecService(repo)
 		filePath := args[0]
@@ -67,7 +72,10 @@ var specValidateCmd = &cobra.Command{
 	Aliases: []string{"lint"},
 	Short:   "Validate the current specification (alias: lint)",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		cwd, _ := os.Getwd()
+		cwd, err := getProjectRoot()
+		if err != nil {
+			return fmt.Errorf("resolve project path: %w", err)
+		}
 		repo := wiring.NewWorkspace(cwd).Repo
 		spec, err := repo.LoadSpec()
 		if err != nil {
@@ -99,7 +107,10 @@ var specAnalyzeCmd = &cobra.Command{
 			dir = args[0]
 		}
 
-		cwd, _ := os.Getwd()
+		cwd, err := getProjectRoot()
+		if err != nil {
+			return fmt.Errorf("resolve project path: %w", err)
+		}
 		workspace := wiring.NewWorkspace(cwd)
 		repo := workspace.Repo
 		service := application.NewSpecService(repo)
@@ -135,7 +146,10 @@ var specAddCmd = &cobra.Command{
 	Short: "Quickly add a new feature to the specification",
 	Args:  cobra.ExactArgs(2),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		cwd, _ := os.Getwd()
+		cwd, err := getProjectRoot()
+		if err != nil {
+			return fmt.Errorf("resolve project path: %w", err)
+		}
 		repo := wiring.NewWorkspace(cwd).Repo
 		service := application.NewSpecService(repo)
 
@@ -155,7 +169,10 @@ var specReviewCmd = &cobra.Command{
 	Use:   "review",
 	Short: "Perform an AI-powered quality review of the current spec",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		cwd, _ := os.Getwd()
+		cwd, err := getProjectRoot()
+		if err != nil {
+			return fmt.Errorf("resolve project path: %w", err)
+		}
 		workspace := wiring.NewWorkspace(cwd)
 		repo := workspace.Repo
 		audit := workspace.Audit

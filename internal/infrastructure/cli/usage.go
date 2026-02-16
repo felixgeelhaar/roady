@@ -2,7 +2,6 @@ package cli
 
 import (
 	"fmt"
-	"os"
 	"sort"
 
 	"github.com/felixgeelhaar/roady/internal/infrastructure/wiring"
@@ -17,7 +16,10 @@ var usageCmd = &cobra.Command{
 }
 
 func runUsage(cmd *cobra.Command, args []string) error {
-	cwd, _ := os.Getwd()
+	cwd, err := getProjectRoot()
+	if err != nil {
+		return fmt.Errorf("resolve project path: %w", err)
+	}
 	workspace := wiring.NewWorkspace(cwd)
 	usageService := application.NewUsageService(workspace.Repo)
 

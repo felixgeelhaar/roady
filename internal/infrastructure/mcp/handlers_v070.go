@@ -25,7 +25,7 @@ func (s *Server) handleOrgPolicy(ctx context.Context, args OrgPolicyArgs) (any, 
 }
 
 // Org cross-drift handler
-func (s *Server) handleOrgDetectDrift(ctx context.Context, args struct{}) (any, error) {
+func (s *Server) handleOrgDetectDrift(ctx context.Context, args GetSpecArgs) (any, error) {
 	report, err := s.orgSvc.DetectCrossDrift()
 	if err != nil {
 		return nil, mcpErr("Failed to detect cross-project drift.")
@@ -35,7 +35,7 @@ func (s *Server) handleOrgDetectDrift(ctx context.Context, args struct{}) (any, 
 
 // Plugin handlers
 
-func (s *Server) handlePluginList(ctx context.Context, args struct{}) (any, error) {
+func (s *Server) handlePluginList(ctx context.Context, args GetSpecArgs) (any, error) {
 	plugins, err := s.pluginSvc.ListPlugins()
 	if err != nil {
 		return nil, mcpErr("Failed to list plugins.")
@@ -76,7 +76,7 @@ func (s *Server) handlePluginStatus(ctx context.Context, args PluginStatusArgs) 
 
 // Messaging handler
 
-func (s *Server) handleMessagingList(ctx context.Context, args struct{}) (any, error) {
+func (s *Server) handleMessagingList(ctx context.Context, args GetSpecArgs) (any, error) {
 	repo := storage.NewFilesystemRepository(s.root)
 	cfg, err := repo.LoadMessagingConfig()
 	if err != nil {

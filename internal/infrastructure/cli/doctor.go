@@ -14,7 +14,10 @@ var doctorCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		fmt.Println("Running Roady Doctor...")
 
-		cwd, _ := os.Getwd()
+		cwd, err := getProjectRoot()
+		if err != nil {
+			return fmt.Errorf("resolve project path: %w", err)
+		}
 		workspace := wiring.NewWorkspace(cwd)
 		repo := workspace.Repo
 

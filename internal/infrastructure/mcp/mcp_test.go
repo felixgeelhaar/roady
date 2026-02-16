@@ -36,13 +36,13 @@ func TestServer_Handlers(t *testing.T) {
 	}
 
 	// 2. HandleGeneratePlan
-	_, err = s.handleGeneratePlan(context.Background(), struct{}{})
+	_, err = s.handleGeneratePlan(context.Background(), GeneratePlanArgs{})
 	if err != nil {
 		t.Errorf("handleGeneratePlan failed: %v", err)
 	}
 
 	// 3. HandleGetPlan
-	_, err = s.handleGetPlan(context.Background(), struct{}{})
+	_, err = s.handleGetPlan(context.Background(), GetPlanArgs{})
 	if err != nil {
 		t.Errorf("handleGetPlan failed: %v", err)
 	}
@@ -50,7 +50,7 @@ func TestServer_Handlers(t *testing.T) {
 	// 3.1 HandleGetSpec
 	repo := storage.NewFilesystemRepository(tempDir)
 	repo.SaveSpec(&spec.ProductSpec{ID: "s1", Title: "S1"})
-	_, err = s.handleGetSpec(context.Background(), struct{}{})
+	_, err = s.handleGetSpec(context.Background(), GetSpecArgs{})
 	if err != nil {
 		t.Errorf("handleGetSpec failed: %v", err)
 	}
@@ -78,7 +78,7 @@ func TestServer_Handlers(t *testing.T) {
 	// Provide plan to avoid drift or show it
 	repo.SavePlan(&planning.Plan{Tasks: []planning.Task{{ID: "task-f1", FeatureID: "f1"}}})
 
-	_, err = s.handleDetectDrift(context.Background(), struct{}{})
+	_, err = s.handleDetectDrift(context.Background(), DetectDriftArgs{})
 	if err != nil {
 		t.Errorf("handleDetectDrift failed: %v", err)
 	}
@@ -102,14 +102,14 @@ func TestServer_Handlers(t *testing.T) {
 	// 7. HandleCheckPolicy
 	// Success path
 	repo.SavePolicy(&domain.PolicyConfig{MaxWIP: 10, AllowAI: true})
-	_, err = s.handleCheckPolicy(context.Background(), struct{}{})
+	_, err = s.handleCheckPolicy(context.Background(), CheckPolicyArgs{})
 	if err != nil {
 		t.Errorf("handleCheckPolicy failed: %v", err)
 	}
 
 	// Force violation
 	repo.SavePolicy(&domain.PolicyConfig{MaxWIP: 1, AllowAI: true})
-	_, err = s.handleCheckPolicy(context.Background(), struct{}{})
+	_, err = s.handleCheckPolicy(context.Background(), CheckPolicyArgs{})
 	if err != nil {
 		t.Errorf("handleCheckPolicy failed: %v", err)
 	}
@@ -118,7 +118,7 @@ func TestServer_Handlers(t *testing.T) {
 	os.Chmod(tempDir+"/.roady", 0000)
 	defer os.Chmod(tempDir+"/.roady", 0700)
 
-	_, err = s.handleGetPlan(context.Background(), struct{}{})
+	_, err = s.handleGetPlan(context.Background(), GetPlanArgs{})
 	if err == nil {
 		t.Error("expected error for handleGetPlan on restricted dir")
 	}
@@ -130,19 +130,19 @@ func TestServer_Handlers(t *testing.T) {
 	if err != nil {
 		t.Fatalf("create server: %v", err)
 	}
-	_, err = s2.handleGeneratePlan(context.Background(), struct{}{})
+	_, err = s2.handleGeneratePlan(context.Background(), GeneratePlanArgs{})
 	if err == nil {
 		t.Error("expected error for handleGeneratePlan without spec")
 	}
 
 	// 8.1.1 HandleGeneratePlan error (restricted dir)
-	_, err = s.handleGeneratePlan(context.Background(), struct{}{})
+	_, err = s.handleGeneratePlan(context.Background(), GeneratePlanArgs{})
 	if err == nil {
 		t.Error("expected error for handleGeneratePlan on restricted dir")
 	}
 
 	// 8.2.1 HandleGetSpec error (restricted dir)
-	_, err = s.handleGetSpec(context.Background(), struct{}{})
+	_, err = s.handleGetSpec(context.Background(), GetSpecArgs{})
 	if err == nil {
 		t.Error("expected error for handleGetSpec on restricted dir")
 	}
@@ -180,13 +180,13 @@ func TestServer_Handlers(t *testing.T) {
 	}
 
 	// 8.5 HandleDetectDrift error
-	_, err = s.handleDetectDrift(context.Background(), struct{}{})
+	_, err = s.handleDetectDrift(context.Background(), DetectDriftArgs{})
 	if err == nil {
 		t.Error("expected error for handleDetectDrift on restricted dir")
 	}
 
 	// 8.6 HandleCheckPolicy error
-	_, err = s.handleCheckPolicy(context.Background(), struct{}{})
+	_, err = s.handleCheckPolicy(context.Background(), CheckPolicyArgs{})
 	if err == nil {
 		t.Error("expected error for handleCheckPolicy on restricted dir")
 	}
