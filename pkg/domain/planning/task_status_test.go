@@ -390,3 +390,100 @@ func TestTaskStatus_StatusHelpers(t *testing.T) {
 		t.Error("StatusDone.IsPending() should be false")
 	}
 }
+
+func TestMustParseTaskStatus_Valid(t *testing.T) {
+	status := MustParseTaskStatus("done")
+	if status != StatusDone {
+		t.Errorf("MustParseTaskStatus() = %v, want %v", status, StatusDone)
+	}
+}
+
+func TestMustParseTaskStatus_Panics(t *testing.T) {
+	defer func() {
+		if r := recover(); r == nil {
+			t.Error("expected panic for invalid status")
+		}
+	}()
+	MustParseTaskStatus("invalid")
+}
+
+func TestTaskStatus_RequiresEvidence(t *testing.T) {
+	tests := []struct {
+		status          TaskStatus
+		requiresEvidence bool
+	}{
+		{StatusPending, false},
+		{StatusInProgress, true},
+		{StatusBlocked, false},
+		{StatusDone, false},
+		{StatusVerified, false},
+	}
+
+	for _, tt := range tests {
+		t.Run(string(tt.status), func(t *testing.T) {
+			if got := tt.status.RequiresEvidence(); got != tt.requiresEvidence {
+				t.Errorf("RequiresEvidence() = %v, want %v", got, tt.requiresEvidence)
+			}
+		})
+	}
+}
+
+func TestTaskStatus_String(t *testing.T) {
+	if StatusDone.String() != "done" {
+		t.Errorf("String() = %v, want done", StatusDone.String())
+	}
+}
+
+func TestTaskStatus_CanTransitionTo_InvalidSource(t *testing.T) {
+	invalid := TaskStatus("bogus")
+	if invalid.CanTransitionTo(StatusPending) {
+		t.Error("expected false for invalid source status")
+	}
+}
+
+func TestTaskStatus_CanTransitionWith_InvalidSource(t *testing.T) {
+	invalid := TaskStatus("bogus")
+	if invalid.CanTransitionWith("start") {
+		t.Error("expected false for invalid source status")
+	}
+}
+
+func TestTaskStatus_TransitionWith_InvalidSource(t *testing.T) {
+	invalid := TaskStatus("bogus")
+	_, err := invalid.TransitionWith("start")
+	if err == nil {
+		t.Error("expected error for invalid source status")
+	}
+}
+
+func TestTaskStatus_ValidTransitions_InvalidSource(t *testing.T) {
+	invalid := TaskStatus("bogus")
+	transitions := invalid.ValidTransitions()
+	if transitions != nil {
+		t.Errorf("expected nil transitions for invalid status, got %v", transitions)
+	}
+}
+
+func TestTaskStatus_ValidEvents_InvalidSource(t *testing.T) {
+	invalid := TaskStatus("bogus")
+	events := invalid.ValidEvents()
+	if events != nil {
+		t.Errorf("expected nil events for invalid status, got %v", events)
+	}
+}
+
+func TestTaskStatus_DisplayName_InvalidStatus(t *testing.T) {
+	invalid := TaskStatus("bogus")
+	display := invalid.DisplayName()
+	if display != "bogus" {
+		t.Errorf("expected raw string for invalid status, got %s", display)
+	}
+}
+
+func TestTaskStatus_JSONUnmarshal_BadJSON(t *testing.T) {
+	var status TaskStatus
+	err := json.Unmarshal([]byte(`not-valid-json`), &status)
+	if err == nil {
+		t.Error("expected error for bad JSON")
+	}
+}

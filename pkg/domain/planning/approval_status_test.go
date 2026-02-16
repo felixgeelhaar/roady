@@ -254,3 +254,50 @@ func TestApprovalStatus_String(t *testing.T) {
 		t.Errorf("String() = %v, want approved", ApprovalApproved.String())
 	}
 }
+
+func TestMustParseApprovalStatus_Valid(t *testing.T) {
+	status := MustParseApprovalStatus("approved")
+	if status != ApprovalApproved {
+		t.Errorf("MustParseApprovalStatus() = %v, want %v", status, ApprovalApproved)
+	}
+}
+
+func TestMustParseApprovalStatus_Panics(t *testing.T) {
+	defer func() {
+		if r := recover(); r == nil {
+			t.Error("expected panic for invalid status")
+		}
+	}()
+	MustParseApprovalStatus("invalid")
+}
+
+func TestApprovalStatus_CanTransitionTo_InvalidStatus(t *testing.T) {
+	invalid := ApprovalStatus("bogus")
+	if invalid.CanTransitionTo(ApprovalPending) {
+		t.Error("expected false for invalid source status")
+	}
+}
+
+func TestApprovalStatus_ValidTransitions_InvalidStatus(t *testing.T) {
+	invalid := ApprovalStatus("bogus")
+	transitions := invalid.ValidTransitions()
+	if transitions != nil {
+		t.Errorf("expected nil transitions for invalid status, got %v", transitions)
+	}
+}
+
+func TestApprovalStatus_DisplayName_InvalidStatus(t *testing.T) {
+	invalid := ApprovalStatus("bogus")
+	display := invalid.DisplayName()
+	if display != "bogus" {
+		t.Errorf("expected raw string for invalid status, got %s", display)
+	}
+}
+
+func TestApprovalStatus_JSONUnmarshal_BadJSON(t *testing.T) {
+	var status ApprovalStatus
+	err := json.Unmarshal([]byte(`not-valid-json`), &status)
+	if err == nil {
+		t.Error("expected error for bad JSON")
+	}
+}

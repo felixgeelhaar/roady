@@ -29,6 +29,26 @@ func TestDebtCategory_IsValid(t *testing.T) {
 	}
 }
 
+func TestDebtCategory_String(t *testing.T) {
+	tests := []struct {
+		category DebtCategory
+		want     string
+	}{
+		{DebtIntentional, "intentional"},
+		{DebtRegression, "regression"},
+		{DebtNeglect, "neglect"},
+		{DebtChurn, "churn"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.want, func(t *testing.T) {
+			if got := tt.category.String(); got != tt.want {
+				t.Errorf("String() = %s, want %s", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestNewDebtItem(t *testing.T) {
 	item := NewDebtItem("feature-1", drift.DriftTypePlan, "Missing task for feature")
 

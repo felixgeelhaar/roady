@@ -22,6 +22,9 @@ func TestGitSyncCmd_FindsMarkers(t *testing.T) {
 	if err := exec.Command("git", "config", "user.name", "Tester").Run(); err != nil {
 		t.Fatalf("git config name: %v", err)
 	}
+	if err := exec.Command("git", "config", "commit.gpgsign", "false").Run(); err != nil {
+		t.Fatalf("git config gpgsign: %v", err)
+	}
 
 	if err := os.WriteFile("README.md", []byte("test"), 0600); err != nil {
 		t.Fatalf("write file: %v", err)

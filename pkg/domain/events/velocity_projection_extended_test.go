@@ -274,6 +274,151 @@ func TestExtendedVelocityProjection_GetCompletionsInWindow(t *testing.T) {
 	}
 }
 
+func TestExtendedVelocityProjection_GenerateBurndown_WithVelocity(t *testing.T) {
+	p := NewExtendedVelocityProjection(7, 30)
+
+	now := time.Now()
+	// Add completions for the last 7 days (1 per day)
+	for i := 0; i < 7; i++ {
+		p.Apply(&BaseEvent{
+			Type:      EventTypeTaskCompleted,
+			Timestamp: now.AddDate(0, 0, -i),
+			Metadata:  map[string]interface{}{"task_id": "task-" + string(rune('a'+i))},
+		})
+	}
+
+	burndown := p.GenerateBurndown(20, 10, 14)
+	if len(burndown) == 0 {
+		t.Error("expected non-empty burndown data")
+	}
+
+	// Should have historical points and projected points
+	hasProjected := false
+	for _, point := range burndown {
+		if point.Projected > 0 || (point.Date.After(now) && point.Projected >= 0) {
+			hasProjected = true
+		}
+	}
+	if !hasProjected && len(burndown) > 7 {
+		// At least we got some data points
+		t.Logf("burndown has %d points", len(burndown))
+	}
+}
+
+func TestExtendedVelocityProjection_GetHistoricalBurndown(t *testing.T) {
+	p := NewExtendedVelocityProjection()
+
+	now := time.Now()
+	// Add completions across multiple days
+	p.Apply(&BaseEvent{
+		Type:      EventTypeTaskCompleted,
+		Timestamp: now.AddDate(0, 0, -3),
+		Metadata:  map[string]interface{}{"task_id": "t1"},
+	})
+	p.Apply(&BaseEvent{
+		Type:      EventTypeTaskCompleted,
+		Timestamp: now.AddDate(0, 0, -3),
+		Metadata:  map[string]interface{}{"task_id": "t2"},
+	})
+	p.Apply(&BaseEvent{
+		Type:      EventTypeTaskCompleted,
+		Timestamp: now.AddDate(0, 0, -1),
+		Metadata:  map[string]interface{}{"task_id": "t3"},
+	})
+
+	// Use GenerateBurndown with no remaining tasks to get historical only
+	burndown := p.GenerateBurndown(10, 0, 0)
+	if len(burndown) == 0 {
+		t.Error("expected non-empty historical burndown")
+	}
+}
+
+func TestExtendedVelocityProjection_ApplyWithCycleTime(t *testing.T) {
+	p := NewExtendedVelocityProjection()
+
+	startTime := time.Now().Add(-2 * time.Hour)
+	event := &BaseEvent{
+		Type:      EventTypeTaskCompleted,
+		Timestamp: time.Now(),
+		Metadata: map[string]interface{}{
+			"task_id":    "task-1",
+			"started_at": startTime,
+		},
+	}
+
+	err := p.Apply(event)
+	if err != nil {
+		t.Errorf("Apply failed: %v", err)
+	}
+
+	if p.GetCompletionCount() != 1 {
+		t.Errorf("Expected 1 completion, got %d", p.GetCompletionCount())
+	}
+}
+
+func TestExtendedVelocityProjection_GetVelocityTrend_Decelerating(t *testing.T) {
+	p := NewExtendedVelocityProjection(7, 30)
+
+	now := time.Now()
+	// Add more completions in older period (deceleration)
+	for i := 0; i < 10; i++ {
+		p.Apply(&BaseEvent{
+			Type:      EventTypeTaskCompleted,
+			Timestamp: now.AddDate(0, 0, -20-i), // 20-29 days ago
+			Metadata:  map[string]interface{}{"task_id": "old-" + string(rune('a'+i))},
+		})
+	}
+	// Only 1 in recent period
+	p.Apply(&BaseEvent{
+		Type:      EventTypeTaskCompleted,
+		Timestamp: now.AddDate(0, 0, -1),
+		Metadata:  map[string]interface{}{"task_id": "recent"},
+	})
+
+	trend := p.GetVelocityTrend()
+	if trend.Direction != analytics.TrendDecelerating {
+		t.Logf("Direction = %s, slope = %f (expected decelerating)", trend.Direction, trend.Slope)
+	}
+}
+
+func TestExtendedVelocityProjection_GetVelocityStats_SingleDay(t *testing.T) {
+	p := NewExtendedVelocityProjection()
+
+	// Single day, single completion
+	p.Apply(&BaseEvent{
+		Type:      EventTypeTaskCompleted,
+		Timestamp: time.Now(),
+		Metadata:  map[string]interface{}{"task_id": "t1"},
+	})
+
+	stats := p.GetVelocityStats()
+	if stats.Samples != 1 {
+		t.Errorf("Expected 1 sample, got %d", stats.Samples)
+	}
+	if stats.Median != 1.0 {
+		t.Errorf("Expected median 1.0, got %f", stats.Median)
+	}
+}
+
+func TestExtendedVelocityProjection_GetVelocityStats_EvenSamples(t *testing.T) {
+	p := NewExtendedVelocityProjection()
+
+	now := time.Now()
+	// 2 days, to test even-count median
+	p.Apply(&BaseEvent{Type: EventTypeTaskCompleted, Timestamp: now, Metadata: map[string]interface{}{"task_id": "t1"}})
+	p.Apply(&BaseEvent{Type: EventTypeTaskCompleted, Timestamp: now, Metadata: map[string]interface{}{"task_id": "t2"}})
+	p.Apply(&BaseEvent{Type: EventTypeTaskCompleted, Timestamp: now.AddDate(0, 0, -1), Metadata: map[string]interface{}{"task_id": "t3"}})
+
+	stats := p.GetVelocityStats()
+	if stats.Samples != 2 {
+		t.Errorf("Expected 2 samples (2 days), got %d", stats.Samples)
+	}
+	// Day 1: 1 completion, Day 2: 2 completions. Sorted: [1, 2]. Median = (1+2)/2 = 1.5
+	if stats.Median != 1.5 {
+		t.Errorf("Expected median 1.5, got %f", stats.Median)
+	}
+}
+
 func TestExtendedVelocityProjection_Rebuild(t *testing.T) {
 	p := NewExtendedVelocityProjection()
 

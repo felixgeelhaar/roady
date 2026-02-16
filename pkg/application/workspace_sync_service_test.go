@@ -10,8 +10,9 @@ type MockAuditLogger struct {
 	Logs [][]interface{}
 }
 
-func (m *MockAuditLogger) Log(action, actor string, metadata map[string]interface{}) {
+func (m *MockAuditLogger) Log(action, actor string, metadata map[string]interface{}) error {
 	m.Logs = append(m.Logs, []interface{}{action, actor, metadata})
+	return nil
 }
 
 func (m *MockAuditLogger) Close() error { return nil }

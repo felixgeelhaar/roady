@@ -45,7 +45,7 @@ func TestSyncerRPC(t *testing.T) {
 
 type ErrorSyncer struct{}
 
-func (e *ErrorSyncer) Init(config map[string]string) error { return nil }
+func (e *ErrorSyncer) Init(config map[string]string) error { return errors.New("init fail") }
 func (e *ErrorSyncer) Sync(plan *planning.Plan, state *planning.ExecutionState) (*plugin.SyncResult, error) {
 	return nil, errors.New("fail")
 }
@@ -132,5 +132,112 @@ func TestSyncerRPCPush_Error(t *testing.T) {
 	args := &plugin.PushArgs{TaskID: "task-123", Status: planning.StatusDone}
 	if err := server.Push(args, &resp); err == nil {
 		t.Error("expected error")
+	}
+}
+
+// ---------------------------------------------------------------------------
+// Error-path RPC client tests using ErrorSyncer
+// ---------------------------------------------------------------------------
+
+func TestSyncerRPCClientCalls_InitError(t *testing.T) {
+	serverConn, clientConn := net.Pipe()
+	srv := rpc.NewServer()
+	if err := srv.RegisterName("Plugin", &plugin.SyncerRPCServer{Impl: &ErrorSyncer{}}); err != nil {
+		t.Fatalf("register: %v", err)
+	}
+	go srv.ServeConn(serverConn)
+
+	client := rpc.NewClient(clientConn)
+	rpcClient := &plugin.SyncerRPCClient{Client: client}
+	defer func() {
+		client.Close()
+		serverConn.Close()
+	}()
+
+	if err := rpcClient.Init(map[string]string{"key": "val"}); err == nil {
+		t.Error("expected Init to return error")
+	}
+}
+
+func TestSyncerRPCClientCalls_SyncError(t *testing.T) {
+	serverConn, clientConn := net.Pipe()
+	srv := rpc.NewServer()
+	if err := srv.RegisterName("Plugin", &plugin.SyncerRPCServer{Impl: &ErrorSyncer{}}); err != nil {
+		t.Fatalf("register: %v", err)
+	}
+	go srv.ServeConn(serverConn)
+
+	client := rpc.NewClient(clientConn)
+	rpcClient := &plugin.SyncerRPCClient{Client: client}
+	defer func() {
+		client.Close()
+		serverConn.Close()
+	}()
+
+	_, err := rpcClient.Sync(&planning.Plan{}, &planning.ExecutionState{})
+	if err == nil {
+		t.Error("expected Sync to return error")
+	}
+}
+
+func TestSyncerRPCClientCalls_PushError(t *testing.T) {
+	serverConn, clientConn := net.Pipe()
+	srv := rpc.NewServer()
+	if err := srv.RegisterName("Plugin", &plugin.SyncerRPCServer{Impl: &ErrorSyncer{}}); err != nil {
+		t.Fatalf("register: %v", err)
+	}
+	go srv.ServeConn(serverConn)
+
+	client := rpc.NewClient(clientConn)
+	rpcClient := &plugin.SyncerRPCClient{Client: client}
+	defer func() {
+		client.Close()
+		serverConn.Close()
+	}()
+
+	if err := rpcClient.Push("task-1", planning.StatusDone); err == nil {
+		t.Error("expected Push to return error")
+	}
+}
+
+func TestSyncerPlugin_Client(t *testing.T) {
+	serverConn, clientConn := net.Pipe()
+	defer serverConn.Close()
+	defer clientConn.Close()
+
+	rpcClient := rpc.NewClient(clientConn)
+	defer rpcClient.Close()
+
+	p := &plugin.SyncerPlugin{Impl: &StubSyncer{}}
+	iface, err := p.Client(nil, rpcClient)
+	if err != nil {
+		t.Fatalf("Client() error = %v", err)
+	}
+	if iface == nil {
+		t.Fatal("Client() returned nil interface")
+	}
+	if _, ok := iface.(*plugin.SyncerRPCClient); !ok {
+		t.Errorf("expected *SyncerRPCClient, got %T", iface)
+	}
+}
+
+func TestSyncerRPCServer_Init(t *testing.T) {
+	stub := &StubSyncer{}
+	server := &plugin.SyncerRPCServer{Impl: stub}
+	var resp interface{}
+	if err := server.Init(map[string]string{"foo": "bar"}, &resp); err != nil {
+		t.Fatalf("Init() error = %v", err)
+	}
+}
+
+func TestSyncerRPCServer_SyncNilResult(t *testing.T) {
+	// ErrorSyncer.Sync returns (nil, error). Verify the server handles nil result
+	// without panicking and propagates the error.
+	server := &plugin.SyncerRPCServer{Impl: &ErrorSyncer{}}
+	var resp plugin.SyncResult
+	args := &plugin.SyncArgs{Plan: &planning.Plan{}, State: &planning.ExecutionState{}}
+	err := server.Sync(args, &resp)
+	if err == nil {
+		t.Error("expected error when impl returns nil result")
 	}
 }

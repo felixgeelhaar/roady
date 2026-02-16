@@ -270,6 +270,47 @@ func TestAuditTimelineProjection(t *testing.T) {
 	}
 }
 
+func TestBaseEvent_Version(t *testing.T) {
+	tests := []struct {
+		name    string
+		version interface{}
+		want    int
+	}{
+		{"nil version", nil, 0},
+		{"float64 version", float64(3), 3},
+		{"int version", int(5), 5},
+		{"string version", "1", 0},
+		{"unknown type version", true, 0},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			event := &BaseEvent{Version_: tt.version}
+			if got := event.Version(); got != tt.want {
+				t.Errorf("Version() = %d, want %d", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestBaseEvent_EnsureAction(t *testing.T) {
+	t.Run("sets Action from Type when Action is empty", func(t *testing.T) {
+		event := &BaseEvent{Type: EventTypeTaskCompleted, Action: ""}
+		event.EnsureAction()
+		if event.Action != EventTypeTaskCompleted {
+			t.Errorf("expected Action = %s, got %s", EventTypeTaskCompleted, event.Action)
+		}
+	})
+
+	t.Run("does not overwrite existing Action", func(t *testing.T) {
+		event := &BaseEvent{Type: EventTypeTaskCompleted, Action: "custom_action"}
+		event.EnsureAction()
+		if event.Action != "custom_action" {
+			t.Errorf("expected Action = custom_action, got %s", event.Action)
+		}
+	})
+}
+
 func TestAuditTimelineProjection_Descriptions(t *testing.T) {
 	proj := NewAuditTimelineProjection()
 

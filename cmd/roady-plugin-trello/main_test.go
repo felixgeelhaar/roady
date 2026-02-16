@@ -1,6 +1,10 @@
 package main
 
 import (
+	"encoding/json"
+	"net/http"
+	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/felixgeelhaar/roady/pkg/domain/planning"
@@ -244,5 +248,157 @@ func TestTrelloCard_Struct(t *testing.T) {
 	}
 	if card.ShortID != 42 {
 		t.Errorf("Expected ShortID 42, got %d", card.ShortID)
+	}
+}
+
+func TestTrelloSyncer_Sync(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch {
+		case r.Method == "GET" && strings.Contains(r.URL.Path, "/boards/board-1/cards"):
+			json.NewEncoder(w).Encode([]TrelloCard{
+				{ID: "c1", Name: "Task 1", Desc: "roady-id: t1", IDList: "todo-list", URL: "https://trello.com/c1", ShortID: 1},
+			})
+		case r.Method == "POST" && strings.Contains(r.URL.Path, "/cards"):
+			json.NewEncoder(w).Encode(TrelloCard{
+				ID: "c2", Name: "Task 2", Desc: "roady-id: t2", IDList: "todo-list", URL: "https://trello.com/c2", ShortID: 2,
+			})
+		default:
+			w.WriteHeader(404)
+		}
+	}))
+	defer server.Close()
+
+	orig := trelloBaseURL
+	trelloBaseURL = server.URL
+	defer func() { trelloBaseURL = orig }()
+
+	syncer := &TrelloSyncer{
+		apiKey:     "key",
+		token:      "token",
+		boardID:    "board-1",
+		todoListID: "todo-list",
+		doneListID: "done-list",
+		client:     server.Client(),
+		lists: map[string]TrelloList{
+			"todo-list": {ID: "todo-list", Name: "To Do"},
+			"done-list": {ID: "done-list", Name: "Done"},
+		},
+	}
+
+	plan := &planning.Plan{
+		ID: "p1",
+		Tasks: []planning.Task{
+			{ID: "t1", Title: "Task 1"},
+			{ID: "t2", Title: "Task 2"},
+		},
+	}
+	state := planning.NewExecutionState("p1")
+
+	result, err := syncer.Sync(plan, state)
+	if err != nil {
+		t.Fatalf("Sync failed: %v", err)
+	}
+	if _, ok := result.LinkUpdates["t1"]; !ok {
+		t.Error("expected link update for t1")
+	}
+	if _, ok := result.LinkUpdates["t2"]; !ok {
+		t.Error("expected link update for created t2")
+	}
+}
+
+func TestTrelloSyncer_Push(t *testing.T) {
+	var receivedPath string
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch {
+		case r.Method == "GET" && strings.Contains(r.URL.Path, "/cards"):
+			json.NewEncoder(w).Encode([]TrelloCard{
+				{ID: "c1", Desc: "roady-id: t1", IDList: "todo-list", ShortID: 1},
+			})
+		case r.Method == "PUT":
+			receivedPath = r.URL.Path
+			json.NewEncoder(w).Encode(TrelloCard{ID: "c1", IDList: "done-list"})
+		default:
+			w.WriteHeader(404)
+		}
+	}))
+	defer server.Close()
+
+	orig := trelloBaseURL
+	trelloBaseURL = server.URL
+	defer func() { trelloBaseURL = orig }()
+
+	syncer := &TrelloSyncer{
+		apiKey:     "key",
+		token:      "token",
+		boardID:    "board-1",
+		todoListID: "todo-list",
+		doneListID: "done-list",
+		client:     server.Client(),
+		lists: map[string]TrelloList{
+			"todo-list": {ID: "todo-list", Name: "To Do"},
+			"done-list": {ID: "done-list", Name: "Done"},
+		},
+	}
+
+	err := syncer.Push("t1", planning.StatusDone)
+	if err != nil {
+		t.Fatalf("Push failed: %v", err)
+	}
+	if !strings.Contains(receivedPath, "/cards/c1") {
+		t.Errorf("expected PUT to /cards/c1, got %s", receivedPath)
+	}
+}
+
+func TestTrelloSyncer_Push_NotFound(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		json.NewEncoder(w).Encode([]TrelloCard{})
+	}))
+	defer server.Close()
+
+	orig := trelloBaseURL
+	trelloBaseURL = server.URL
+	defer func() { trelloBaseURL = orig }()
+
+	syncer := &TrelloSyncer{
+		apiKey:  "key",
+		token:   "token",
+		boardID: "board-1",
+		client:  server.Client(),
+		lists:   map[string]TrelloList{},
+	}
+
+	err := syncer.Push("nonexistent", planning.StatusDone)
+	if err == nil {
+		t.Error("expected error for card not found")
+	}
+}
+
+func TestTrelloSyncer_Init_WithHTTPTest(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		json.NewEncoder(w).Encode([]TrelloList{
+			{ID: "list-1", Name: "To Do"},
+			{ID: "list-2", Name: "Done"},
+		})
+	}))
+	defer server.Close()
+
+	orig := trelloBaseURL
+	trelloBaseURL = server.URL
+	defer func() { trelloBaseURL = orig }()
+
+	syncer := &TrelloSyncer{}
+	err := syncer.Init(map[string]string{
+		"api_key":  "key",
+		"token":    "token",
+		"board_id": "board-1",
+	})
+	if err != nil {
+		t.Fatalf("Init failed: %v", err)
+	}
+	if syncer.todoListID != "list-1" {
+		t.Errorf("expected todo list auto-detected, got %q", syncer.todoListID)
+	}
+	if syncer.doneListID != "list-2" {
+		t.Errorf("expected done list auto-detected, got %q", syncer.doneListID)
 	}
 }

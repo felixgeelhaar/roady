@@ -18,9 +18,7 @@ import (
 	"github.com/hashicorp/go-plugin"
 )
 
-const (
-	asanaBaseURL = "https://app.asana.com/api/1.0"
-)
+var asanaBaseURL = "https://app.asana.com/api/1.0"
 
 // AsanaSyncer syncs tasks with an Asana project.
 type AsanaSyncer struct {

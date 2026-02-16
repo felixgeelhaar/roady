@@ -239,3 +239,109 @@ func TestExecutionState_HasUnfinishedDependencies(t *testing.T) {
 		t.Error("expected false when no dependencies")
 	}
 }
+
+func TestConflictError_Error(t *testing.T) {
+	err := &ConflictError{Expected: 3, Actual: 5}
+	msg := err.Error()
+	if msg != "conflict: expected version 3 but found 5; reload and retry" {
+		t.Errorf("unexpected error message: %s", msg)
+	}
+}
+
+func TestExecutionState_GetTaskResult(t *testing.T) {
+	state := NewExecutionState("test")
+
+	// Task not in map
+	_, ok := state.GetTaskResult("unknown")
+	if ok {
+		t.Error("expected ok=false for unknown task")
+	}
+
+	// Task in map
+	state.TaskStates["t1"] = TaskResult{Status: StatusInProgress, Owner: "alice"}
+	result, ok := state.GetTaskResult("t1")
+	if !ok {
+		t.Error("expected ok=true for existing task")
+	}
+	if result.Status != StatusInProgress {
+		t.Errorf("expected in_progress, got %s", result.Status)
+	}
+	if result.Owner != "alice" {
+		t.Errorf("expected owner alice, got %s", result.Owner)
+	}
+}
+
+func TestExecutionState_StartTask(t *testing.T) {
+	state := NewExecutionState("test")
+
+	state.StartTask("t1")
+
+	result := state.TaskStates["t1"]
+	if result.Status != StatusPending {
+		t.Errorf("expected pending status for new task, got %s", result.Status)
+	}
+	if result.StartedAt == nil {
+		t.Error("expected StartedAt to be set")
+	}
+
+	// Start existing task with status
+	state.TaskStates["t2"] = TaskResult{Status: StatusInProgress}
+	state.StartTask("t2")
+
+	result2 := state.TaskStates["t2"]
+	if result2.StartedAt == nil {
+		t.Error("expected StartedAt to be set for existing task")
+	}
+	if result2.Status != StatusInProgress {
+		t.Errorf("expected in_progress preserved, got %s", result2.Status)
+	}
+}
+
+func TestExecutionState_CompleteTask(t *testing.T) {
+	state := NewExecutionState("test")
+
+	// Complete a task that was started
+	state.StartTask("t1")
+	state.CompleteTask("t1")
+
+	result := state.TaskStates["t1"]
+	if result.CompletedAt == nil {
+		t.Error("expected CompletedAt to be set")
+	}
+	if result.ElapsedMinutes < 0 {
+		t.Errorf("expected non-negative elapsed minutes, got %d", result.ElapsedMinutes)
+	}
+
+	// Complete a task that was never started (no StartedAt)
+	state.CompleteTask("t2")
+	result2 := state.TaskStates["t2"]
+	if result2.CompletedAt == nil {
+		t.Error("expected CompletedAt to be set even without StartedAt")
+	}
+	if result2.ElapsedMinutes != 0 {
+		t.Errorf("expected 0 elapsed minutes without StartedAt, got %d", result2.ElapsedMinutes)
+	}
+}
+
+func TestExecutionState_CanStartTask_TaskNotInPlan(t *testing.T) {
+	state := NewExecutionState("test")
+	plan := &Plan{
+		ApprovalStatus: ApprovalApproved,
+		Tasks:          []Task{{ID: "t1", Title: "Task 1"}},
+	}
+
+	canStart, reason := state.CanStartTask("nonexistent", plan)
+	if canStart {
+		t.Error("expected false for task not in plan")
+	}
+	if reason != "task not found in plan" {
+		t.Errorf("unexpected reason: %s", reason)
+	}
+}
+
+func TestExecutionState_HasUnfinishedDependencies_NilPlan(t *testing.T) {
+	state := NewExecutionState("test")
+	if state.HasUnfinishedDependencies("t1", nil) {
+		t.Error("expected false for nil plan")
+	}
+}

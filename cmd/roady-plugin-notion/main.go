@@ -18,10 +18,9 @@ import (
 	"github.com/hashicorp/go-plugin"
 )
 
-const (
-	notionAPIVersion = "2022-06-28"
-	notionBaseURL    = "https://api.notion.com/v1"
-)
+const notionAPIVersion = "2022-06-28"
+
+var notionBaseURL = "https://api.notion.com/v1"
 
 // NotionSyncer syncs tasks with a Notion database.
 type NotionSyncer struct {

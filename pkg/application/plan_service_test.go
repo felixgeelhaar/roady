@@ -602,6 +602,263 @@ func TestPlanService_UpdatePlanFiltersInvalidTasks(t *testing.T) {
 	}
 }
 
+func TestPlanService_GetCoordinator(t *testing.T) {
+	repo := &MockRepo{}
+	audit := application.NewAuditService(repo)
+	service := application.NewPlanService(repo, audit)
+
+	coord := service.GetCoordinator()
+	if coord == nil {
+		t.Fatal("expected GetCoordinator to return non-nil coordinator")
+	}
+}
+
+func TestPlanService_GetProjectSnapshot(t *testing.T) {
+	tempDir, _ := os.MkdirTemp("", "roady-plan-snapshot-*")
+	defer os.RemoveAll(tempDir)
+
+	repo := storage.NewFilesystemRepository(tempDir)
+	if err := repo.Initialize(); err != nil {
+		t.Fatalf("init repo: %v", err)
+	}
+
+	audit := application.NewAuditService(repo)
+	service := application.NewPlanService(repo, audit)
+
+	// Save spec, generate plan, approve it, then get snapshot
+	specDoc := &spec.ProductSpec{
+		ID:    "snap-spec",
+		Title: "Snapshot Project",
+		Features: []spec.Feature{
+			{ID: "f1", Title: "Feature 1"},
+			{ID: "f2", Title: "Feature 2"},
+		},
+	}
+	if err := repo.SaveSpec(specDoc); err != nil {
+		t.Fatalf("save spec: %v", err)
+	}
+
+	if _, err := service.GeneratePlan(context.Background()); err != nil {
+		t.Fatalf("GeneratePlan: %v", err)
+	}
+
+	snapshot, err := service.GetProjectSnapshot(context.Background())
+	if err != nil {
+		t.Fatalf("GetProjectSnapshot: %v", err)
+	}
+	if snapshot == nil {
+		t.Fatal("expected non-nil snapshot")
+	}
+	if snapshot.Plan == nil {
+		t.Fatal("expected snapshot to contain plan")
+	}
+}
+
+func TestPlanService_GetProjectSnapshot_NilContext(t *testing.T) {
+	tempDir, _ := os.MkdirTemp("", "roady-plan-snap-nilctx-*")
+	defer os.RemoveAll(tempDir)
+
+	repo := storage.NewFilesystemRepository(tempDir)
+	if err := repo.Initialize(); err != nil {
+		t.Fatalf("init repo: %v", err)
+	}
+
+	audit := application.NewAuditService(repo)
+	service := application.NewPlanService(repo, audit)
+
+	specDoc := &spec.ProductSpec{
+		ID:    "nilctx-spec",
+		Title: "Nil Context",
+		Features: []spec.Feature{
+			{ID: "f1", Title: "Feature 1"},
+		},
+	}
+	if err := repo.SaveSpec(specDoc); err != nil {
+		t.Fatalf("save spec: %v", err)
+	}
+	if _, err := service.GeneratePlan(context.Background()); err != nil {
+		t.Fatalf("GeneratePlan: %v", err)
+	}
+
+	// Pass nil context; the method should handle it gracefully
+	snapshot, err := service.GetProjectSnapshot(nil)
+	if err != nil {
+		t.Fatalf("GetProjectSnapshot with nil ctx: %v", err)
+	}
+	if snapshot == nil {
+		t.Fatal("expected non-nil snapshot with nil context")
+	}
+}
+
+func TestPlanService_GetTaskSummaries(t *testing.T) {
+	tempDir, _ := os.MkdirTemp("", "roady-plan-summaries-*")
+	defer os.RemoveAll(tempDir)
+
+	repo := storage.NewFilesystemRepository(tempDir)
+	if err := repo.Initialize(); err != nil {
+		t.Fatalf("init repo: %v", err)
+	}
+
+	audit := application.NewAuditService(repo)
+	service := application.NewPlanService(repo, audit)
+
+	specDoc := &spec.ProductSpec{
+		ID:    "sum-spec",
+		Title: "Summary Project",
+		Features: []spec.Feature{
+			{ID: "f1", Title: "Feature 1"},
+			{ID: "f2", Title: "Feature 2"},
+		},
+	}
+	if err := repo.SaveSpec(specDoc); err != nil {
+		t.Fatalf("save spec: %v", err)
+	}
+
+	if _, err := service.GeneratePlan(context.Background()); err != nil {
+		t.Fatalf("GeneratePlan: %v", err)
+	}
+	if err := service.ApprovePlan(); err != nil {
+		t.Fatalf("ApprovePlan: %v", err)
+	}
+
+	summaries, err := service.GetTaskSummaries(context.Background())
+	if err != nil {
+		t.Fatalf("GetTaskSummaries: %v", err)
+	}
+	if len(summaries) != 2 {
+		t.Fatalf("expected 2 task summaries, got %d", len(summaries))
+	}
+}
+
+func TestPlanService_GetReadyTasks(t *testing.T) {
+	tempDir, _ := os.MkdirTemp("", "roady-plan-ready-*")
+	defer os.RemoveAll(tempDir)
+
+	repo := storage.NewFilesystemRepository(tempDir)
+	if err := repo.Initialize(); err != nil {
+		t.Fatalf("init repo: %v", err)
+	}
+
+	audit := application.NewAuditService(repo)
+	service := application.NewPlanService(repo, audit)
+
+	specDoc := &spec.ProductSpec{
+		ID:    "ready-spec",
+		Title: "Ready Tasks Project",
+		Features: []spec.Feature{
+			{ID: "f1", Title: "Feature 1"},
+		},
+	}
+	if err := repo.SaveSpec(specDoc); err != nil {
+		t.Fatalf("save spec: %v", err)
+	}
+
+	if _, err := service.GeneratePlan(context.Background()); err != nil {
+		t.Fatalf("GeneratePlan: %v", err)
+	}
+	if err := service.ApprovePlan(); err != nil {
+		t.Fatalf("ApprovePlan: %v", err)
+	}
+
+	ready, err := service.GetReadyTasks(context.Background())
+	if err != nil {
+		t.Fatalf("GetReadyTasks: %v", err)
+	}
+	// After approval with no dependencies, all tasks should be ready
+	if len(ready) != 1 {
+		t.Fatalf("expected 1 ready task, got %d", len(ready))
+	}
+}
+
+func TestPlanService_GetBlockedTasks(t *testing.T) {
+	tempDir, _ := os.MkdirTemp("", "roady-plan-blocked-*")
+	defer os.RemoveAll(tempDir)
+
+	repo := storage.NewFilesystemRepository(tempDir)
+	if err := repo.Initialize(); err != nil {
+		t.Fatalf("init repo: %v", err)
+	}
+
+	audit := application.NewAuditService(repo)
+	service := application.NewPlanService(repo, audit)
+
+	specDoc := &spec.ProductSpec{
+		ID:    "blocked-spec",
+		Title: "Blocked Tasks Project",
+		Features: []spec.Feature{
+			{ID: "f1", Title: "Feature 1"},
+		},
+	}
+	if err := repo.SaveSpec(specDoc); err != nil {
+		t.Fatalf("save spec: %v", err)
+	}
+
+	if _, err := service.GeneratePlan(context.Background()); err != nil {
+		t.Fatalf("GeneratePlan: %v", err)
+	}
+	if err := service.ApprovePlan(); err != nil {
+		t.Fatalf("ApprovePlan: %v", err)
+	}
+
+	blocked, err := service.GetBlockedTasks(context.Background())
+	if err != nil {
+		t.Fatalf("GetBlockedTasks: %v", err)
+	}
+	// With no dependencies, no tasks should be blocked
+	if len(blocked) != 0 {
+		t.Fatalf("expected 0 blocked tasks, got %d", len(blocked))
+	}
+}
+
+func TestPlanService_GetInProgressTasks(t *testing.T) {
+	tempDir, _ := os.MkdirTemp("", "roady-plan-inprog-*")
+	defer os.RemoveAll(tempDir)
+
+	repo := storage.NewFilesystemRepository(tempDir)
+	if err := repo.Initialize(); err != nil {
+		t.Fatalf("init repo: %v", err)
+	}
+
+	audit := application.NewAuditService(repo)
+	service := application.NewPlanService(repo, audit)
+
+	specDoc := &spec.ProductSpec{
+		ID:    "inprog-spec",
+		Title: "InProgress Tasks Project",
+		Features: []spec.Feature{
+			{ID: "f1", Title: "Feature 1"},
+		},
+	}
+	if err := repo.SaveSpec(specDoc); err != nil {
+		t.Fatalf("save spec: %v", err)
+	}
+
+	plan, err := service.GeneratePlan(context.Background())
+	if err != nil {
+		t.Fatalf("GeneratePlan: %v", err)
+	}
+	if err := service.ApprovePlan(); err != nil {
+		t.Fatalf("ApprovePlan: %v", err)
+	}
+
+	// Start a task through the coordinator to move it to in_progress
+	coord := service.GetCoordinator()
+	if err := coord.StartTask(context.Background(), plan.Tasks[0].ID, "alice", ""); err != nil {
+		t.Fatalf("StartTask: %v", err)
+	}
+
+	inProgress, err := service.GetInProgressTasks(context.Background())
+	if err != nil {
+		t.Fatalf("GetInProgressTasks: %v", err)
+	}
+	if len(inProgress) != 1 {
+		t.Fatalf("expected 1 in-progress task, got %d", len(inProgress))
+	}
+	if inProgress[0].ID != plan.Tasks[0].ID {
+		t.Fatalf("expected in-progress task ID %s, got %s", plan.Tasks[0].ID, inProgress[0].ID)
+	}
+}
+
 func TestPlanService_ReconcilePlanKeepsOrphans(t *testing.T) {
 	tempDir, _ := os.MkdirTemp("", "roady-plan-orphans-*")
 	defer os.RemoveAll(tempDir)

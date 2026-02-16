@@ -333,3 +333,35 @@ func TestTaskPriority_String(t *testing.T) {
 		t.Errorf("String() = %v, want high", PriorityHigh.String())
 	}
 }
+
+func TestMustParseTaskPriority_Valid(t *testing.T) {
+	priority := MustParseTaskPriority("high")
+	if priority != PriorityHigh {
+		t.Errorf("MustParseTaskPriority() = %v, want %v", priority, PriorityHigh)
+	}
+}
+
+func TestMustParseTaskPriority_Panics(t *testing.T) {
+	defer func() {
+		if r := recover(); r == nil {
+			t.Error("expected panic for invalid priority")
+		}
+	}()
+	MustParseTaskPriority("invalid")
+}
+
+func TestTaskPriority_DisplayName_InvalidPriority(t *testing.T) {
+	invalid := TaskPriority("bogus")
+	display := invalid.DisplayName()
+	if display != "bogus" {
+		t.Errorf("expected raw string for invalid priority, got %s", display)
+	}
+}
+
+func TestTaskPriority_JSONUnmarshal_BadJSON(t *testing.T) {
+	var priority TaskPriority
+	err := json.Unmarshal([]byte(`not-valid-json`), &priority)
+	if err == nil {
+		t.Error("expected error for bad JSON")
+	}
+}

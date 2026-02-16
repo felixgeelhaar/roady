@@ -18,9 +18,7 @@ import (
 	"github.com/hashicorp/go-plugin"
 )
 
-const (
-	trelloBaseURL = "https://api.trello.com/1"
-)
+var trelloBaseURL = "https://api.trello.com/1"
 
 // TrelloSyncer syncs tasks with a Trello board.
 type TrelloSyncer struct {

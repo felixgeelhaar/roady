@@ -1,6 +1,11 @@
 package main
 
 import (
+	"encoding/json"
+	"fmt"
+	"net/http"
+	"net/http/httptest"
+	"net/url"
 	"testing"
 
 	"github.com/felixgeelhaar/roady/pkg/domain/planning"
@@ -181,5 +186,361 @@ func TestMapGitHubStatus(t *testing.T) {
 				t.Errorf("mapGitHubStatus() = %v, want %v", result, tt.expected)
 			}
 		})
+	}
+}
+
+func TestGitHubSyncer_Sync(t *testing.T) {
+	mux := http.NewServeMux()
+	// List issues endpoint
+	mux.HandleFunc("/repos/owner/repo/issues", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == "GET" {
+			issues := []*github.Issue{
+				{
+					Number:   github.Ptr(1),
+					Title:    github.Ptr("Task 1"),
+					Body:     github.Ptr("Description\n\nroady-id: t1"),
+					State:    github.Ptr("open"),
+					HTMLURL:  github.Ptr("https://github.com/owner/repo/issues/1"),
+					Assignee: &github.User{Login: github.Ptr("dev1")},
+				},
+			}
+			json.NewEncoder(w).Encode(issues)
+			return
+		}
+		if r.Method == "POST" {
+			// Create issue
+			issue := &github.Issue{
+				Number:  github.Ptr(2),
+				Title:   github.Ptr("Task 2"),
+				Body:    github.Ptr("roady-id: t2"),
+				State:   github.Ptr("open"),
+				HTMLURL: github.Ptr("https://github.com/owner/repo/issues/2"),
+			}
+			json.NewEncoder(w).Encode(issue)
+			return
+		}
+	})
+
+	server := httptest.NewServer(mux)
+	defer server.Close()
+
+	serverURL, _ := url.Parse(server.URL + "/")
+
+	syncer := &GitHubSyncer{
+		token: "test-token",
+		repo:  "owner/repo",
+		owner: "owner",
+		name:  "repo",
+	}
+	syncer.client = github.NewClient(nil)
+	syncer.client.BaseURL = serverURL
+
+	plan := &planning.Plan{
+		ID: "p1",
+		Tasks: []planning.Task{
+			{ID: "t1", Title: "Task 1"},
+			{ID: "t2", Title: "Task 2", Description: "New task"},
+		},
+	}
+	state := planning.NewExecutionState("p1")
+
+	result, err := syncer.Sync(plan, state)
+	if err != nil {
+		t.Fatalf("Sync failed: %v", err)
+	}
+
+	// t1 should match by roady-id, open+assigned = in_progress
+	if result.StatusUpdates["t1"] != planning.StatusInProgress {
+		t.Errorf("expected t1 in_progress, got %q", result.StatusUpdates["t1"])
+	}
+	// t2 should be created
+	if _, ok := result.LinkUpdates["t2"]; !ok {
+		t.Error("expected link update for created t2")
+	}
+}
+
+func TestGitHubSyncer_Push(t *testing.T) {
+	var editCalled bool
+	mux := http.NewServeMux()
+	mux.HandleFunc("/repos/owner/repo/issues", func(w http.ResponseWriter, r *http.Request) {
+		issues := []*github.Issue{
+			{
+				Number:  github.Ptr(1),
+				Body:    github.Ptr("roady-id: t1"),
+				State:   github.Ptr("open"),
+				HTMLURL: github.Ptr("https://github.com/owner/repo/issues/1"),
+			},
+		}
+		json.NewEncoder(w).Encode(issues)
+	})
+	mux.HandleFunc("/repos/owner/repo/issues/1", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == "PATCH" {
+			editCalled = true
+			json.NewEncoder(w).Encode(&github.Issue{
+				Number: github.Ptr(1),
+				State:  github.Ptr("closed"),
+			})
+		}
+	})
+
+	server := httptest.NewServer(mux)
+	defer server.Close()
+
+	serverURL, _ := url.Parse(server.URL + "/")
+
+	syncer := &GitHubSyncer{
+		token: "test-token",
+		owner: "owner",
+		name:  "repo",
+	}
+	syncer.client = github.NewClient(nil)
+	syncer.client.BaseURL = serverURL
+
+	err := syncer.Push("t1", planning.StatusDone)
+	if err != nil {
+		t.Fatalf("Push failed: %v", err)
+	}
+	if !editCalled {
+		t.Error("expected edit to be called to close the issue")
+	}
+}
+
+func TestGitHubSyncer_Push_NotFound(t *testing.T) {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/repos/owner/repo/issues", func(w http.ResponseWriter, r *http.Request) {
+		json.NewEncoder(w).Encode([]*github.Issue{})
+	})
+
+	server := httptest.NewServer(mux)
+	defer server.Close()
+
+	serverURL, _ := url.Parse(server.URL + "/")
+
+	syncer := &GitHubSyncer{
+		token: "test-token",
+		owner: "owner",
+		name:  "repo",
+	}
+	syncer.client = github.NewClient(nil)
+	syncer.client.BaseURL = serverURL
+
+	err := syncer.Push("nonexistent", planning.StatusDone)
+	if err == nil {
+		t.Error("expected error for issue not found")
+	}
+}
+
+func TestGitHubSyncer_Push_UnsupportedStatus(t *testing.T) {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/repos/owner/repo/issues", func(w http.ResponseWriter, r *http.Request) {
+		json.NewEncoder(w).Encode([]*github.Issue{
+			{
+				Number: github.Ptr(1),
+				Body:   github.Ptr("roady-id: t1"),
+				State:  github.Ptr("open"),
+			},
+		})
+	})
+
+	server := httptest.NewServer(mux)
+	defer server.Close()
+
+	serverURL, _ := url.Parse(server.URL + "/")
+
+	syncer := &GitHubSyncer{
+		token: "test-token",
+		owner: "owner",
+		name:  "repo",
+	}
+	syncer.client = github.NewClient(nil)
+	syncer.client.BaseURL = serverURL
+
+	err := syncer.Push("t1", planning.StatusVerified)
+	if err == nil {
+		t.Error("expected error for unsupported status")
+	}
+}
+
+func TestGitHubSyncer_Push_AlreadyCorrectState(t *testing.T) {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/repos/owner/repo/issues", func(w http.ResponseWriter, r *http.Request) {
+		json.NewEncoder(w).Encode([]*github.Issue{
+			{
+				Number: github.Ptr(1),
+				Body:   github.Ptr("roady-id: t1"),
+				State:  github.Ptr("closed"),
+			},
+		})
+	})
+
+	server := httptest.NewServer(mux)
+	defer server.Close()
+
+	serverURL, _ := url.Parse(server.URL + "/")
+
+	syncer := &GitHubSyncer{
+		token: "test-token",
+		owner: "owner",
+		name:  "repo",
+	}
+	syncer.client = github.NewClient(nil)
+	syncer.client.BaseURL = serverURL
+
+	// Push done to already-closed issue should succeed without edit
+	err := syncer.Push("t1", planning.StatusDone)
+	if err != nil {
+		t.Fatalf("Push failed: %v", err)
+	}
+}
+
+func TestGitHubSyncer_Sync_WithExistingRef(t *testing.T) {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/repos/owner/repo/issues", func(w http.ResponseWriter, r *http.Request) {
+		issues := []*github.Issue{
+			{
+				Number:  github.Ptr(42),
+				Title:   github.Ptr("Task 1"),
+				Body:    github.Ptr("roady-id: t1"),
+				State:   github.Ptr("closed"),
+				HTMLURL: github.Ptr("https://github.com/owner/repo/issues/42"),
+			},
+		}
+		json.NewEncoder(w).Encode(issues)
+	})
+
+	server := httptest.NewServer(mux)
+	defer server.Close()
+
+	serverURL, _ := url.Parse(server.URL + "/")
+
+	syncer := &GitHubSyncer{
+		token: "test-token",
+		owner: "owner",
+		name:  "repo",
+	}
+	syncer.client = github.NewClient(nil)
+	syncer.client.BaseURL = serverURL
+
+	plan := &planning.Plan{
+		ID:    "p1",
+		Tasks: []planning.Task{{ID: "t1", Title: "Task 1"}},
+	}
+	state := planning.NewExecutionState("p1")
+	state.TaskStates["t1"] = planning.TaskResult{
+		Status: planning.StatusPending,
+		ExternalRefs: map[string]planning.ExternalRef{
+			"github": {ID: "42"},
+		},
+	}
+
+	result, err := syncer.Sync(plan, state)
+	if err != nil {
+		t.Fatalf("Sync failed: %v", err)
+	}
+	if result.StatusUpdates["t1"] != planning.StatusDone {
+		t.Errorf("expected t1 done, got %q", result.StatusUpdates["t1"])
+	}
+}
+
+func TestGitHubSyncer_Push_ReopenIssue(t *testing.T) {
+	var editCalled bool
+	mux := http.NewServeMux()
+	mux.HandleFunc("/repos/owner/repo/issues", func(w http.ResponseWriter, r *http.Request) {
+		json.NewEncoder(w).Encode([]*github.Issue{
+			{
+				Number: github.Ptr(1),
+				Body:   github.Ptr("roady-id: t1"),
+				State:  github.Ptr("closed"),
+			},
+		})
+	})
+	mux.HandleFunc("/repos/owner/repo/issues/1", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == "PATCH" {
+			editCalled = true
+			json.NewEncoder(w).Encode(&github.Issue{
+				Number: github.Ptr(1),
+				State:  github.Ptr("open"),
+			})
+		}
+	})
+
+	server := httptest.NewServer(mux)
+	defer server.Close()
+
+	serverURL, _ := url.Parse(server.URL + "/")
+
+	syncer := &GitHubSyncer{
+		token: "test-token",
+		owner: "owner",
+		name:  "repo",
+	}
+	syncer.client = github.NewClient(nil)
+	syncer.client.BaseURL = serverURL
+
+	// Push pending to a closed issue should reopen it
+	err := syncer.Push("t1", planning.StatusPending)
+	if err != nil {
+		t.Fatalf("Push failed: %v", err)
+	}
+	if !editCalled {
+		t.Error("expected edit to be called to reopen the issue")
+	}
+}
+
+func TestGitHubSyncer_Sync_TitleMatchFallback(t *testing.T) {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/repos/owner/repo/issues", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == "GET" {
+			// Issue without roady-id marker but matching title
+			issues := []*github.Issue{
+				{
+					Number:  github.Ptr(5),
+					Title:   github.Ptr("Implement auth"),
+					Body:    github.Ptr("No roady marker here"),
+					State:   github.Ptr("open"),
+					HTMLURL: github.Ptr("https://github.com/owner/repo/issues/5"),
+				},
+			}
+			json.NewEncoder(w).Encode(issues)
+			return
+		}
+	})
+
+	server := httptest.NewServer(mux)
+	defer server.Close()
+
+	serverURL, _ := url.Parse(server.URL + "/")
+
+	syncer := &GitHubSyncer{
+		token: "test-token",
+		owner: "owner",
+		name:  "repo",
+	}
+	syncer.client = github.NewClient(nil)
+	syncer.client.BaseURL = serverURL
+
+	plan := &planning.Plan{
+		ID: "p1",
+		Tasks: []planning.Task{
+			{ID: "t1", Title: "Implement auth"},
+		},
+	}
+	state := planning.NewExecutionState("p1")
+
+	result, err := syncer.Sync(plan, state)
+	if err != nil {
+		t.Fatalf("Sync failed: %v", err)
+	}
+
+	// Should match by title and link
+	if ref, ok := result.LinkUpdates["t1"]; !ok {
+		t.Error("expected link update for title-matched t1")
+	} else if ref.ID != fmt.Sprintf("%d", 5) {
+		t.Errorf("expected ref ID '5', got %q", ref.ID)
+	}
+
+	// Open without assignee = pending, same as default, so no status update
+	if _, ok := result.StatusUpdates["t1"]; ok {
+		t.Errorf("expected no status update for pending task matching open unassigned issue")
 	}
 }

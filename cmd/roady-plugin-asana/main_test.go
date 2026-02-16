@@ -1,6 +1,10 @@
 package main
 
 import (
+	"encoding/json"
+	"net/http"
+	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/felixgeelhaar/roady/pkg/domain/planning"
@@ -155,5 +159,150 @@ func TestAsanaTask_CustomFields(t *testing.T) {
 	}
 	if task.CustomFields[0].Name != "Priority" {
 		t.Errorf("Expected Priority field, got %s", task.CustomFields[0].Name)
+	}
+}
+
+func TestAsanaSyncer_Sync(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch {
+		case r.Method == "GET" && strings.Contains(r.URL.Path, "/projects/"):
+			json.NewEncoder(w).Encode(AsanaTasksResponse{
+				Data: []AsanaTask{
+					{GID: "111", Name: "Task 1", Notes: "roady-id: t1", Completed: false, PermalinkURL: "https://asana.com/111"},
+				},
+			})
+		case r.Method == "POST" && r.URL.Path == "/tasks":
+			json.NewEncoder(w).Encode(AsanaTaskResponse{
+				Data: AsanaTask{GID: "222", Name: "Task 2", Notes: "roady-id: t2", PermalinkURL: "https://asana.com/222"},
+			})
+		default:
+			w.WriteHeader(404)
+		}
+	}))
+	defer server.Close()
+
+	orig := asanaBaseURL
+	asanaBaseURL = server.URL
+	defer func() { asanaBaseURL = orig }()
+
+	syncer := &AsanaSyncer{
+		token:     "test-token",
+		projectID: "test-project",
+		client:    server.Client(),
+	}
+
+	plan := &planning.Plan{
+		ID: "p1",
+		Tasks: []planning.Task{
+			{ID: "t1", Title: "Task 1"},
+			{ID: "t2", Title: "Task 2"},
+		},
+	}
+	state := planning.NewExecutionState("p1")
+
+	result, err := syncer.Sync(plan, state)
+	if err != nil {
+		t.Fatalf("Sync failed: %v", err)
+	}
+	if _, ok := result.LinkUpdates["t2"]; !ok {
+		t.Error("expected link update for created task t2")
+	}
+	if _, ok := result.LinkUpdates["t1"]; !ok {
+		t.Error("expected link update for existing task t1")
+	}
+}
+
+func TestAsanaSyncer_Push(t *testing.T) {
+	var receivedMethod, receivedPath string
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch {
+		case r.Method == "GET":
+			json.NewEncoder(w).Encode(AsanaTasksResponse{
+				Data: []AsanaTask{
+					{GID: "111", Name: "Task 1", Notes: "roady-id: t1", Completed: false},
+				},
+			})
+		case r.Method == "PUT":
+			receivedMethod = r.Method
+			receivedPath = r.URL.Path
+			json.NewEncoder(w).Encode(AsanaTaskResponse{
+				Data: AsanaTask{GID: "111", Completed: true},
+			})
+		default:
+			w.WriteHeader(404)
+		}
+	}))
+	defer server.Close()
+
+	orig := asanaBaseURL
+	asanaBaseURL = server.URL
+	defer func() { asanaBaseURL = orig }()
+
+	syncer := &AsanaSyncer{
+		token:     "test-token",
+		projectID: "test-project",
+		client:    server.Client(),
+	}
+
+	err := syncer.Push("t1", planning.StatusDone)
+	if err != nil {
+		t.Fatalf("Push failed: %v", err)
+	}
+	if receivedMethod != "PUT" {
+		t.Errorf("expected PUT request, got %s", receivedMethod)
+	}
+	if !strings.Contains(receivedPath, "/tasks/111") {
+		t.Errorf("expected PUT to /tasks/111, got %s", receivedPath)
+	}
+}
+
+func TestAsanaSyncer_Push_NotFound(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		json.NewEncoder(w).Encode(AsanaTasksResponse{Data: []AsanaTask{}})
+	}))
+	defer server.Close()
+
+	orig := asanaBaseURL
+	asanaBaseURL = server.URL
+	defer func() { asanaBaseURL = orig }()
+
+	syncer := &AsanaSyncer{
+		token:     "test-token",
+		projectID: "test-project",
+		client:    server.Client(),
+	}
+
+	err := syncer.Push("nonexistent", planning.StatusDone)
+	if err == nil {
+		t.Error("expected error for task not found")
+	}
+}
+
+func TestAsanaSyncer_Push_AlreadyCorrectState(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == "PUT" {
+			t.Error("should not PUT when already in correct state")
+		}
+		json.NewEncoder(w).Encode(AsanaTasksResponse{
+			Data: []AsanaTask{
+				{GID: "111", Notes: "roady-id: t1", Completed: true},
+			},
+		})
+	}))
+	defer server.Close()
+
+	orig := asanaBaseURL
+	asanaBaseURL = server.URL
+	defer func() { asanaBaseURL = orig }()
+
+	syncer := &AsanaSyncer{
+		token:     "test-token",
+		projectID: "test-project",
+		client:    server.Client(),
+	}
+
+	err := syncer.Push("t1", planning.StatusDone)
+	if err != nil {
+		t.Fatalf("Push failed: %v", err)
 	}
 }

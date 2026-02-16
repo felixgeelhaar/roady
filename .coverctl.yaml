@@ -8,16 +8,16 @@ policy:
     - name: cmd
       match:
         - ./cmd/...
-      min: 30  # CLI entry points, lower coverage expected
+      min: 80  # Plugin binaries with httptest coverage
     - name: application
       match:
         - ./pkg/application/...
-      min: 75  # Core services, target 75%+
+      min: 80  # Core services
     - name: domain
       match:
         - ./pkg/domain/...
-      min: 73  # Domain logic, target 73%+
+      min: 80  # Domain logic
     - name: infrastructure
       match:
         - ./internal/infrastructure/...
-      min: 60  # Adapters, 60% baseline
+      min: 80  # Adapters and CLI

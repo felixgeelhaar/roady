@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/felixgeelhaar/roady/pkg/domain/planning"
@@ -35,26 +36,50 @@ func TestNotionSyncer_Init(t *testing.T) {
 }
 
 func TestNotionSyncer_Sync(t *testing.T) {
-	// Mock Notion API
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch {
-		case r.Method == "POST" && r.URL.Path == "/databases/test-db/query":
-			// Return empty query result
+		case r.Method == "POST" && strings.Contains(r.URL.Path, "/databases/"):
+			// Query database - return one existing page
 			json.NewEncoder(w).Encode(NotionQueryResult{
-				Results: []NotionPage{},
+				Results: []NotionPage{
+					{
+						ID:  "page-1",
+						URL: "https://notion.so/page-1",
+						Properties: map[string]interface{}{
+							"Roady ID": map[string]interface{}{
+								"rich_text": []interface{}{
+									map[string]interface{}{"plain_text": "t1"},
+								},
+							},
+							"Name": map[string]interface{}{
+								"title": []interface{}{
+									map[string]interface{}{"plain_text": "Task 1"},
+								},
+							},
+							"Status": map[string]interface{}{
+								"status": map[string]interface{}{"name": "In Progress"},
+							},
+						},
+					},
+				},
 				HasMore: false,
 			})
 		case r.Method == "POST" && r.URL.Path == "/pages":
-			// Return created page
+			// Create page
 			json.NewEncoder(w).Encode(NotionPage{
-				ID:  "new-page-id",
-				URL: "https://notion.so/test-page",
+				ID:         "page-2",
+				URL:        "https://notion.so/page-2",
+				Properties: map[string]interface{}{},
 			})
 		default:
-			w.WriteHeader(http.StatusNotFound)
+			w.WriteHeader(404)
 		}
 	}))
 	defer server.Close()
+
+	orig := notionBaseURL
+	notionBaseURL = server.URL
+	defer func() { notionBaseURL = orig }()
 
 	syncer := &NotionSyncer{
 		token:      "test-token",
@@ -62,24 +87,28 @@ func TestNotionSyncer_Sync(t *testing.T) {
 		client:     server.Client(),
 	}
 
-	// Override base URL by using a custom doRequest
-	originalURL := notionBaseURL
-	defer func() { _ = originalURL }() // Keep for reference
-
 	plan := &planning.Plan{
+		ID: "p1",
 		Tasks: []planning.Task{
-			{ID: "task-1", Title: "Test Task", Description: "Test description"},
+			{ID: "t1", Title: "Task 1"},
+			{ID: "t2", Title: "Task 2", Description: "New task"},
 		},
 	}
-	state := &planning.ExecutionState{
-		TaskStates: make(map[string]planning.TaskResult),
-	}
+	state := planning.NewExecutionState("p1")
 
-	// Note: This test will fail with real URL, it's here to verify compilation
-	// A proper mock would need to inject the base URL
-	_ = syncer
-	_ = plan
-	_ = state
+	result, err := syncer.Sync(plan, state)
+	if err != nil {
+		t.Fatalf("Sync failed: %v", err)
+	}
+	if _, ok := result.LinkUpdates["t1"]; !ok {
+		t.Error("expected link update for existing t1")
+	}
+	if _, ok := result.LinkUpdates["t2"]; !ok {
+		t.Error("expected link update for created t2")
+	}
+	if result.StatusUpdates["t1"] != planning.StatusInProgress {
+		t.Errorf("expected t1 status in_progress, got %q", result.StatusUpdates["t1"])
+	}
 }
 
 func TestExtractRoadyIDFromPage(t *testing.T) {
@@ -274,5 +303,101 @@ func TestShortenID(t *testing.T) {
 		if result != tt.expected {
 			t.Errorf("shortenID(%q) = %q, want %q", tt.id, result, tt.expected)
 		}
+	}
+}
+
+func TestNotionSyncer_Push(t *testing.T) {
+	var patchCalled bool
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch {
+		case r.Method == "POST" && strings.Contains(r.URL.Path, "/databases/"):
+			json.NewEncoder(w).Encode(NotionQueryResult{
+				Results: []NotionPage{
+					{
+						ID: "page-1",
+						Properties: map[string]interface{}{
+							"Roady ID": map[string]interface{}{
+								"rich_text": []interface{}{
+									map[string]interface{}{"plain_text": "t1"},
+								},
+							},
+						},
+					},
+				},
+				HasMore: false,
+			})
+		case r.Method == "PATCH":
+			patchCalled = true
+			json.NewEncoder(w).Encode(NotionPage{ID: "page-1"})
+		default:
+			w.WriteHeader(404)
+		}
+	}))
+	defer server.Close()
+
+	orig := notionBaseURL
+	notionBaseURL = server.URL
+	defer func() { notionBaseURL = orig }()
+
+	syncer := &NotionSyncer{
+		token:      "test-token",
+		databaseID: "test-db",
+		client:     server.Client(),
+	}
+
+	err := syncer.Push("t1", planning.StatusDone)
+	if err != nil {
+		t.Fatalf("Push failed: %v", err)
+	}
+	if !patchCalled {
+		t.Error("expected PATCH to be called")
+	}
+}
+
+func TestNotionSyncer_Push_NotFound(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		json.NewEncoder(w).Encode(NotionQueryResult{Results: []NotionPage{}, HasMore: false})
+	}))
+	defer server.Close()
+
+	orig := notionBaseURL
+	notionBaseURL = server.URL
+	defer func() { notionBaseURL = orig }()
+
+	syncer := &NotionSyncer{
+		token:      "test-token",
+		databaseID: "test-db",
+		client:     server.Client(),
+	}
+
+	err := syncer.Push("nonexistent", planning.StatusDone)
+	if err == nil {
+		t.Error("expected error for page not found")
+	}
+}
+
+func TestMapNotionStatus_Blocked(t *testing.T) {
+	page := NotionPage{
+		Properties: map[string]interface{}{
+			"Status": map[string]interface{}{
+				"status": map[string]interface{}{"name": "Blocked"},
+			},
+		},
+	}
+	if got := mapNotionStatus(page); got != planning.StatusBlocked {
+		t.Errorf("expected blocked, got %s", got)
+	}
+}
+
+func TestMapNotionStatus_Verified(t *testing.T) {
+	page := NotionPage{
+		Properties: map[string]interface{}{
+			"Status": map[string]interface{}{
+				"status": map[string]interface{}{"name": "Verified"},
+			},
+		},
+	}
+	if got := mapNotionStatus(page); got != planning.StatusVerified {
+		t.Errorf("expected verified, got %s", got)
 	}
 }

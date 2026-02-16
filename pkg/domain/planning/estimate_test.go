@@ -111,3 +111,12 @@ func TestEstimate_String(t *testing.T) {
 		t.Errorf("expected '4h', got '%s'", e.String())
 	}
 }
+
+func TestMustParseEstimate_Panics(t *testing.T) {
+	defer func() {
+		if r := recover(); r == nil {
+			t.Error("expected panic for invalid estimate")
+		}
+	}()
+	planning.MustParseEstimate("invalid")
+}

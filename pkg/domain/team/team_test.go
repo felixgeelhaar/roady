@@ -85,6 +85,29 @@ func TestTeamConfig_RemoveMember(t *testing.T) {
 	}
 }
 
+func TestValidRoles(t *testing.T) {
+	roles := ValidRoles()
+	if len(roles) != 3 {
+		t.Fatalf("expected 3 roles, got %d", len(roles))
+	}
+
+	expected := map[Role]bool{
+		RoleAdmin:  false,
+		RoleMember: false,
+		RoleViewer: false,
+	}
+
+	for _, r := range roles {
+		expected[r] = true
+	}
+
+	for r, found := range expected {
+		if !found {
+			t.Errorf("missing role in ValidRoles: %s", r)
+		}
+	}
+}
+
 func TestTeamConfig_FindMember(t *testing.T) {
 	cfg := &TeamConfig{Members: []Member{{Name: "alice", Role: RoleAdmin}}}
 

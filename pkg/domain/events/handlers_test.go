@@ -356,6 +356,208 @@ func TestTaskTransitionHandler_Registration(t *testing.T) {
 	}
 }
 
+func TestDependencyUnlockHandler_NilChecker(t *testing.T) {
+	handler := NewDependencyUnlockHandler(nil, nil, slog.Default())
+
+	event := &TaskCompleted{
+		BaseEvent: BaseEvent{Type: EventTypeTaskCompleted},
+		TaskID:    "task-1",
+	}
+
+	err := handler.Handle(context.Background(), event)
+	if err != nil {
+		t.Errorf("Handle should return nil when checker is nil: %v", err)
+	}
+}
+
+func TestDependencyUnlockHandler_SingleUnlockedTask(t *testing.T) {
+	checker := &mockDependencyChecker{unlockedTasks: []string{"task-2"}}
+	notifier := &mockNotifier{}
+	handler := NewDependencyUnlockHandler(checker, notifier, slog.Default())
+
+	event := &TaskCompleted{
+		BaseEvent: BaseEvent{Type: EventTypeTaskCompleted},
+		TaskID:    "task-1",
+	}
+
+	err := handler.Handle(context.Background(), event)
+	if err != nil {
+		t.Errorf("Handle failed: %v", err)
+	}
+
+	if len(notifier.notifications) != 1 {
+		t.Fatalf("Expected 1 notification, got %d", len(notifier.notifications))
+	}
+
+	// Single task should use singular message
+	msg := notifier.notifications[0].message
+	if msg != "Task task-2 is now ready to start after task-1 was completed." {
+		t.Errorf("unexpected message: %s", msg)
+	}
+}
+
+func TestDependencyUnlockHandler_NilNotifier(t *testing.T) {
+	checker := &mockDependencyChecker{unlockedTasks: []string{"task-2"}}
+	handler := NewDependencyUnlockHandler(checker, nil, slog.Default())
+
+	event := &TaskCompleted{
+		BaseEvent: BaseEvent{Type: EventTypeTaskCompleted},
+		TaskID:    "task-1",
+	}
+
+	// Should not panic even with nil notifier
+	err := handler.Handle(context.Background(), event)
+	if err != nil {
+		t.Errorf("Handle failed: %v", err)
+	}
+}
+
+func TestDriftWarningHandler_WrongEventType(t *testing.T) {
+	handler := NewDriftWarningHandler(nil, slog.Default())
+
+	event := &PlanCreated{
+		BaseEvent: BaseEvent{Type: EventTypePlanCreated},
+	}
+
+	err := handler.Handle(context.Background(), event)
+	if err != nil {
+		t.Errorf("Handle should return nil for wrong event type: %v", err)
+	}
+}
+
+func TestDriftWarningHandler_ZeroIssues(t *testing.T) {
+	notifier := &mockNotifier{}
+	handler := NewDriftWarningHandler(notifier, slog.Default())
+
+	event := &DriftDetected{
+		BaseEvent:  BaseEvent{Type: EventTypeDriftDetected},
+		IssueCount: 0,
+		Severities: nil,
+	}
+
+	handler.Handle(context.Background(), event)
+
+	// Zero issues should not trigger notification
+	if len(notifier.notifications) != 0 {
+		t.Errorf("Expected 0 notifications for 0 issues, got %d", len(notifier.notifications))
+	}
+}
+
+func TestDriftWarningHandler_NilNotifier(t *testing.T) {
+	handler := NewDriftWarningHandler(nil, slog.Default())
+
+	event := &DriftDetected{
+		BaseEvent:  BaseEvent{Type: EventTypeDriftDetected},
+		IssueCount: 5,
+		Severities: []string{"warning"},
+	}
+
+	// Should not panic with nil notifier
+	err := handler.Handle(context.Background(), event)
+	if err != nil {
+		t.Errorf("Handle failed: %v", err)
+	}
+}
+
+func TestStateProjectionHandler_WrongEventType(t *testing.T) {
+	handler := NewStateProjectionHandler(nil, slog.Default())
+
+	event := &TaskCompleted{
+		BaseEvent: BaseEvent{Type: EventTypeTaskCompleted},
+	}
+
+	err := handler.Handle(context.Background(), event)
+	if err != nil {
+		t.Errorf("Handle should return nil for wrong event type: %v", err)
+	}
+}
+
+func TestStateProjectionHandler_NilInitializer(t *testing.T) {
+	handler := NewStateProjectionHandler(nil, slog.Default())
+
+	event := &PlanApproved{
+		BaseEvent: BaseEvent{Type: EventTypePlanApproved},
+		PlanID:    "plan-1",
+	}
+
+	err := handler.Handle(context.Background(), event)
+	if err != nil {
+		t.Errorf("Handle should return nil when initializer is nil: %v", err)
+	}
+}
+
+func TestTaskTransitionHandler_WrongEventType(t *testing.T) {
+	handler := NewTaskTransitionHandler(slog.Default())
+
+	event := &PlanCreated{
+		BaseEvent: BaseEvent{Type: EventTypePlanCreated},
+	}
+
+	err := handler.Handle(context.Background(), event)
+	if err != nil {
+		t.Errorf("Handle should return nil for wrong event type: %v", err)
+	}
+}
+
+func TestTaskTransitionHandler_NoCallbacks(t *testing.T) {
+	handler := NewTaskTransitionHandler(slog.Default())
+
+	// No OnBlocked or OnUnblocked callbacks set
+	event := &TaskTransitioned{
+		BaseEvent:  BaseEvent{Type: EventTypeTaskTransitioned},
+		TaskID:     "task-1",
+		FromStatus: planning.StatusInProgress,
+		ToStatus:   planning.StatusBlocked,
+	}
+
+	err := handler.Handle(context.Background(), event)
+	if err != nil {
+		t.Errorf("Handle failed with no callbacks: %v", err)
+	}
+}
+
+func TestTaskTransitionHandler_NormalTransition(t *testing.T) {
+	handler := NewTaskTransitionHandler(slog.Default())
+
+	// Transition that is not blocked/unblocked
+	event := &TaskTransitioned{
+		BaseEvent:  BaseEvent{Type: EventTypeTaskTransitioned},
+		TaskID:     "task-1",
+		FromStatus: planning.StatusPending,
+		ToStatus:   planning.StatusInProgress,
+	}
+
+	err := handler.Handle(context.Background(), event)
+	if err != nil {
+		t.Errorf("Handle failed: %v", err)
+	}
+}
+
+func TestFormatUnlockedMessage(t *testing.T) {
+	single := formatUnlockedMessage("task-1", []string{"task-2"})
+	if single != "Task task-2 is now ready to start after task-1 was completed." {
+		t.Errorf("unexpected single message: %s", single)
+	}
+
+	multiple := formatUnlockedMessage("task-1", []string{"task-2", "task-3"})
+	if multiple != "Multiple tasks are now ready to start after task-1 was completed." {
+		t.Errorf("unexpected multiple message: %s", multiple)
+	}
+}
+
+func TestFormatDriftMessage(t *testing.T) {
+	single := formatDriftMessage(1, nil)
+	if single != "1 drift issue detected in the project." {
+		t.Errorf("unexpected single message: %s", single)
+	}
+
+	multiple := formatDriftMessage(3, []string{"warning"})
+	// Just verify it returns a non-empty string
+	if multiple == "" {
+		t.Error("expected non-empty drift message")
+	}
+}
+
 func TestContainsSeverity(t *testing.T) {
 	severities := []string{"warning", "error", "critical"}
 
