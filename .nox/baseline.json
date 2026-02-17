@@ -1,0 +1,405 @@
+{
+  "schema_version": "1.0.0",
+  "entries": [
+    {
+      "fingerprint": "1634189f68c28702a1d9d3298b30fed4f31e26da677233a02a5b12c9473f504a",
+      "rule_id": "AI-012",
+      "file_path": "pkg/ai/resilient.go",
+      "severity": "high",
+      "reason": "False positive - not SQL query, just function execution",
+      "created_at": "2026-02-15T14:37:20.610524Z"
+    },
+    {
+      "fingerprint": "0fb905e33134f254c5a685383fe8cbf07859345fdd19a2fe0a5bc4f0ab4b5768",
+      "rule_id": "AI-006",
+      "file_path": "cmd/roady-plugin-mock/main.go",
+      "severity": "medium",
+      "reason": "False positive - logging task ID, not LLM prompt",
+      "created_at": "2026-02-15T14:37:55.17228Z"
+    },
+    {
+      "fingerprint": "6ac97d1a97292c29b383857cbde73524815ef0636a5d9f9e8d53f4d983218527",
+      "rule_id": "AI-006",
+      "file_path": "internal/infrastructure/cli/forecast.go",
+      "severity": "medium",
+      "reason": "False positive - logging forecast metrics, not LLM prompt",
+      "created_at": "2026-02-15T14:38:18.858537Z"
+    },
+    {
+      "fingerprint": "94b73ebab89665c6622bf3fd7886298aa5310986972f89d59547c40520cdbd95",
+      "rule_id": "AI-006",
+      "file_path": "internal/infrastructure/cli/forecast.go",
+      "severity": "medium",
+      "reason": "False positive - logging forecast metrics, not LLM prompt",
+      "created_at": "2026-02-15T14:39:07.635805Z"
+    },
+    {
+      "fingerprint": "1b70e5aa65c384ee24ad7d8a38629ac2a977548f0be49d50287c939f84a4ac87",
+      "rule_id": "AI-006",
+      "file_path": "internal/infrastructure/cli/forecast.go",
+      "severity": "medium",
+      "reason": "False positive - logging forecast metrics, not LLM prompt",
+      "created_at": "2026-02-15T15:45:00Z"
+    },
+    {
+      "fingerprint": "51117a03f0639321dc4f585a05d4b8bccea2237ef950c093332be47e30e7dfcf",
+      "rule_id": "AI-006",
+      "file_path": "internal/infrastructure/cli/init.go",
+      "severity": "medium",
+      "reason": "False positive - logging init progress, not LLM prompt",
+      "created_at": "2026-02-15T15:45:00Z"
+    },
+    {
+      "fingerprint": "691006fd20a6658926735066c5d31a237a3c46b00ec5bfd167ce1f3661ef84de",
+      "rule_id": "AI-006",
+      "file_path": "pkg/ai/mock.go",
+      "severity": "medium",
+      "reason": "Test mock file - acceptable for testing",
+      "created_at": "2026-02-15T15:45:00Z"
+    },
+    {
+      "fingerprint": "949175306841af7298657c80713bffa7f6665a155c618113135f0cf57e82fd07",
+      "rule_id": "AI-006",
+      "file_path": "pkg/domain/events/handlers.go",
+      "severity": "medium",
+      "reason": "False positive - logging event handler data, not LLM prompt",
+      "created_at": "2026-02-15T15:45:00Z"
+    },
+    {
+      "fingerprint": "bbf4e2c9c8768547fcf579c5ac8653ecc330e7cb986ec69b312df32557047281",
+      "rule_id": "AI-006",
+      "file_path": "pkg/domain/events/velocity_projection_extended.go",
+      "severity": "medium",
+      "reason": "False positive - logging velocity projection data, not LLM prompt",
+      "created_at": "2026-02-15T15:45:00Z"
+    },
+    {
+      "fingerprint": "2b68def80c339778a2107e27918cb893dc982c8a11a77e5f51d35a2ea52b2345",
+      "rule_id": "SEC-161",
+      "file_path": "app/package-lock.json",
+      "severity": "medium",
+      "reason": "False positive - npm package checksum, not a secret",
+      "created_at": "2026-02-15T16:00:00Z"
+    },
+    {
+      "fingerprint": "898057179961d3583fa6222ae4541cd4a21d8b5c2d01e7109a34a11785248ef6",
+      "rule_id": "SEC-161",
+      "file_path": "app/package-lock.json",
+      "severity": "medium",
+      "reason": "False positive - npm package checksum, not a secret",
+      "created_at": "2026-02-15T16:00:00Z"
+    },
+    {
+      "fingerprint": "41405d036606adb8c7ff98db9e3319600ce4bae2321d389514c119a0cf45861f",
+      "rule_id": "SEC-161",
+      "file_path": "app/package-lock.json",
+      "severity": "medium",
+      "reason": "False positive - npm package checksum, not a secret",
+      "created_at": "2026-02-15T16:00:00Z"
+    },
+    {
+      "fingerprint": "4ccc7b5835480292a7dfd958b1c7894d187bccc0abcc6e9f2d6e8d82476f3356",
+      "rule_id": "SEC-161",
+      "file_path": "app/package-lock.json",
+      "severity": "medium",
+      "reason": "False positive - npm package checksum, not a secret",
+      "created_at": "2026-02-15T16:00:00Z"
+    },
+    {
+      "fingerprint": "ccd706736367084ef6f186d43ceebac4da79b0e647abb997fa154c8cb138d31f",
+      "rule_id": "SEC-161",
+      "file_path": "app/package-lock.json",
+      "severity": "medium",
+      "reason": "False positive - npm package checksum, not a secret",
+      "created_at": "2026-02-15T16:00:00Z"
+    },
+    {
+      "fingerprint": "fd36c58a538e8dee5b9a81dcafe55522b1f0e5b3cd8326ed08c3f194fb34d849",
+      "rule_id": "SEC-161",
+      "file_path": "app/package-lock.json",
+      "severity": "medium",
+      "reason": "False positive - npm package checksum, not a secret",
+      "created_at": "2026-02-15T16:00:00Z"
+    },
+    {
+      "fingerprint": "f2699e700e1249bc41a79d32137f96e52daa68a9a53ae5c2c9522552437a825f",
+      "rule_id": "SEC-161",
+      "file_path": "app/package-lock.json",
+      "severity": "medium",
+      "reason": "False positive - npm package checksum, not a secret",
+      "created_at": "2026-02-15T16:00:00Z"
+    },
+    {
+      "fingerprint": "cb55637aaf2da0d32e813f20f4d3e1efb3724db7c48959208762ad4cd01141b2",
+      "rule_id": "SEC-161",
+      "file_path": "app/package-lock.json",
+      "severity": "medium",
+      "reason": "False positive - npm package checksum, not a secret",
+      "created_at": "2026-02-15T16:00:00Z"
+    },
+    {
+      "fingerprint": "dd2403d01b476e710a94fa6bf4a3e37ee0506f507efff3d4f1b9509c540c22d8",
+      "rule_id": "SEC-161",
+      "file_path": "app/package-lock.json",
+      "severity": "medium",
+      "reason": "False positive - npm package checksum, not a secret",
+      "created_at": "2026-02-15T16:00:00Z"
+    },
+    {
+      "fingerprint": "42b4a765e9e57dd09091e0fbae3e428581644719c871ea65879ab8e34cabe486",
+      "rule_id": "SEC-161",
+      "file_path": "app/package-lock.json",
+      "severity": "medium",
+      "reason": "False positive - npm package checksum, not a secret",
+      "created_at": "2026-02-15T16:00:00Z"
+    },
+    {
+      "fingerprint": "d400d4b0bc1ebe7c58ec5dfe61a290458fcf47bb0c3e64d3c4c761a326a13cb5",
+      "rule_id": "DATA-001",
+      "file_path": ".github/roady-sync.example.yml",
+      "severity": "medium",
+      "reason": "Example email in config, not real data",
+      "created_at": "2026-02-15T16:00:00Z"
+    },
+    {
+      "fingerprint": "35050682faaa9200f022436839de2f753171bccccb00c9a131a1c6bf6b944799",
+      "rule_id": "DATA-001",
+      "file_path": "cmd/roady-plugin-jira/main_test.go",
+      "severity": "medium",
+      "reason": "Test data - email in test file",
+      "created_at": "2026-02-15T16:00:00Z"
+    },
+    {
+      "fingerprint": "46abc0083bc4d7304e3f89f84b9277374209f99423121ee79e16ab85f0e59b25",
+      "rule_id": "DATA-001",
+      "file_path": "cmd/roady-plugin-jira/main_test.go",
+      "severity": "medium",
+      "reason": "Test data - email in test file",
+      "created_at": "2026-02-15T16:00:00Z"
+    },
+    {
+      "fingerprint": "6b7bc221654253d440bd61c331455d6cd1710a2aad12e39f55b0460cf3f6d085",
+      "rule_id": "DATA-001",
+      "file_path": "cmd/roady-plugin-jira/main_test.go",
+      "severity": "medium",
+      "reason": "Test data - email in test file",
+      "created_at": "2026-02-15T16:00:00Z"
+    },
+    {
+      "fingerprint": "5bb84c58fe0355429eca2ed8fde2654afc64eb199d7986b17fbf8ca5e5e39474",
+      "rule_id": "DATA-001",
+      "file_path": "cmd/roady-plugin-jira/main_test.go",
+      "severity": "medium",
+      "reason": "Test data - email in test file",
+      "created_at": "2026-02-15T16:00:00Z"
+    },
+    {
+      "fingerprint": "53ba7b6acf66625cce525ed8ab30e36c4abea9fb970b18c9434804367cda1551",
+      "rule_id": "DATA-001",
+      "file_path": "cmd/roady-plugin-jira/main_test.go",
+      "severity": "medium",
+      "reason": "Test data - email in test file",
+      "created_at": "2026-02-15T16:00:00Z"
+    },
+    {
+      "fingerprint": "e5c8fafab16ad95f04fea688c0f325f0ff6a06e8e00ec4590ca61175409c5eeb",
+      "rule_id": "DATA-001",
+      "file_path": "cmd/roady-plugin-jira/main_test.go",
+      "severity": "medium",
+      "reason": "Test data - email in test file",
+      "created_at": "2026-02-15T16:00:00Z"
+    },
+    {
+      "fingerprint": "791e5d7368e627339843c1fb25424322f07c261469210b330e0f00bd97857d1a",
+      "rule_id": "DATA-001",
+      "file_path": "docs/docs/index.html",
+      "severity": "medium",
+      "reason": "Documentation email, not real data",
+      "created_at": "2026-02-15T16:00:00Z"
+    },
+    {
+      "fingerprint": "34fb1d85f431a3dad5205d8038c972df0ced6e888e2f35f63385f755418e49a5",
+      "rule_id": "DATA-001",
+      "file_path": "docs/docs/index.html",
+      "severity": "medium",
+      "reason": "Documentation email, not real data",
+      "created_at": "2026-02-15T16:00:00Z"
+    },
+    {
+      "fingerprint": "7faa291c3c61867cae14a053fd156c5c5f73c24a0530f1d3563bacec2febb7ca",
+      "rule_id": "DATA-001",
+      "file_path": "docs/integrations.md",
+      "severity": "medium",
+      "reason": "Documentation email, not real data",
+      "created_at": "2026-02-15T16:00:00Z"
+    },
+    {
+      "fingerprint": "80bf020d28a0d5c04ce9118421f345faad27ba52c6174812868b3884e47b785e",
+      "rule_id": "DATA-001",
+      "file_path": "internal/infrastructure/cli/git_test.go",
+      "severity": "medium",
+      "reason": "Test data - email in test file",
+      "created_at": "2026-02-15T16:00:00Z"
+    },
+    {
+      "fingerprint": "8f933e61a7bc16fadf668c29b8178622d5319d0b554b5bc28c941b8886b376a7",
+      "rule_id": "DATA-001",
+      "file_path": "internal/infrastructure/cli/sync.go",
+      "severity": "medium",
+      "reason": "Documentation email in code comment",
+      "created_at": "2026-02-15T16:00:00Z"
+    },
+    {
+      "fingerprint": "b9e5d64fe9dc6efc76625ec9f3138fea3317a5feb0956622572a986d0e61eb7e",
+      "rule_id": "DATA-001",
+      "file_path": "internal/infrastructure/cli/sync_configure.go",
+      "severity": "medium",
+      "reason": "Documentation email in code comment",
+      "created_at": "2026-02-15T16:00:00Z"
+    },
+    {
+      "fingerprint": "cb15db8aa8a1cf0d787f05ead90702d4f5553569b7004250cf9e940c5cca3da7",
+      "rule_id": "DATA-001",
+      "file_path": "internal/infrastructure/mcp/server_test.go",
+      "severity": "medium",
+      "reason": "Test data - email in test file",
+      "created_at": "2026-02-15T16:00:00Z"
+    },
+    {
+      "fingerprint": "57445d3a51ec520a87f009a48f35adf4e1ead1c52211da8950e330b4f1a2113a",
+      "rule_id": "DATA-001",
+      "file_path": "website/src/pages/docs.astro",
+      "severity": "medium",
+      "reason": "Documentation email, not real data",
+      "created_at": "2026-02-15T16:00:00Z"
+    },
+    {
+      "fingerprint": "b099c4fc0dc1423e7faf77df2fa7111fd6131fc9f51503a76540f12d3bb96d89",
+      "rule_id": "DATA-001",
+      "file_path": "website/src/pages/docs.astro",
+      "severity": "medium",
+      "reason": "Documentation email, not real data",
+      "created_at": "2026-02-15T16:00:00Z"
+    },
+    {
+      "fingerprint": "cdfe21a0420b216c2f9954361151f6d04454cd0253391a3d069a4a04013078ad",
+      "rule_id": "AI-021",
+      "file_path": "pkg/plugin/loader_test.go",
+      "severity": "medium",
+      "reason": "Test data - test model path",
+      "created_at": "2026-02-15T16:00:00Z"
+    },
+    {
+      "fingerprint": "dfc5210a27fe0d7676e64f7faa873102c8bd990bfbd4239bbcd3497bb83808d2",
+      "rule_id": "VULN-002",
+      "file_path": "app/package-lock.json",
+      "severity": "critical",
+      "reason": "False positive - jiti is a legitimate package, not typosquatting",
+      "created_at": "2026-02-15T16:10:00Z"
+    },
+    {
+      "fingerprint": "952a871461479d9524da60e70ac847cf96218d0435ceecbb73624b6d8e85ca10",
+      "rule_id": "VULN-002",
+      "file_path": "app/package-lock.json",
+      "severity": "critical",
+      "reason": "False positive - vue is a legitimate package, not typosquatting",
+      "created_at": "2026-02-15T16:10:00Z"
+    },
+    {
+      "fingerprint": "3b8be86807bbae50e653229b11be1eabaecf8bc7e210a747615ede6cd1d9bfc9",
+      "rule_id": "VULN-002",
+      "file_path": "app/package-lock.json",
+      "severity": "critical",
+      "reason": "False positive - gopd is a legitimate package, not typosquatting",
+      "created_at": "2026-02-15T16:10:00Z"
+    },
+    {
+      "fingerprint": "ca53bbc4f16283da200844833d5b1e04b9fd5c8ad30821b6c920f774810bd64b",
+      "rule_id": "VULN-002",
+      "file_path": "app/package-lock.json",
+      "severity": "critical",
+      "reason": "False positive - ms is a legitimate package, not typosquatting",
+      "created_at": "2026-02-15T16:10:00Z"
+    },
+    {
+      "fingerprint": "5b38dbdad34e19ce85eb93f530859cc04d8d126d0a9be2540f1f0aa609d7b85c",
+      "rule_id": "VULN-002",
+      "file_path": "app/package-lock.json",
+      "severity": "critical",
+      "reason": "False positive - etag is a legitimate package, not typosquatting",
+      "created_at": "2026-02-15T16:10:00Z"
+    },
+    {
+      "fingerprint": "ffeb59cc16496efdd6f846519e8f63ab28946b7874bed837573c62c6b5e206c3",
+      "rule_id": "VULN-002",
+      "file_path": "app/package-lock.json",
+      "severity": "critical",
+      "reason": "False positive - rw is a legitimate package, not typosquatting",
+      "created_at": "2026-02-15T16:10:00Z"
+    },
+    {
+      "fingerprint": "f16a3e9de5edf75b3879ce83603ee6f41dc1c511e167b91709e5bdb3067a5e04",
+      "rule_id": "VULN-002",
+      "file_path": "app/package-lock.json",
+      "severity": "critical",
+      "reason": "False positive - safer-buffer is a legitimate package, not typosquatting",
+      "created_at": "2026-02-15T16:10:00Z"
+    },
+    {
+      "fingerprint": "1da8a25edbee657256b5a5ae5270e4425dbced6ba1ef4e10cceb173001faa87a",
+      "rule_id": "VULN-002",
+      "file_path": "app/package-lock.json",
+      "severity": "critical",
+      "reason": "False positive - ajv is a legitimate package, not typosquatting",
+      "created_at": "2026-02-15T16:10:00Z"
+    },
+    {
+      "fingerprint": "ee2d768304dab5ac753ab91094c1db11237f38b63bd9cfc4078a30971b4e2fbb",
+      "rule_id": "VULN-002",
+      "file_path": "app/package-lock.json",
+      "severity": "critical",
+      "reason": "False positive - zod is a legitimate package, not typosquatting",
+      "created_at": "2026-02-15T16:10:00Z"
+    },
+    {
+      "fingerprint": "25f5a60071edd114960c2cace34679cc51f5a4cc76292e5f39fd49a3de8393e7",
+      "rule_id": "VULN-002",
+      "file_path": "app/package-lock.json",
+      "severity": "critical",
+      "reason": "False positive - hono is a legitimate package, not typosquatting",
+      "created_at": "2026-02-15T16:10:00Z"
+    },
+    {
+      "fingerprint": "255636a70fab477b61d637306696f6cb3b9436e61ee4687f1ba9a1782d433cd0",
+      "rule_id": "VULN-002",
+      "file_path": "app/package-lock.json",
+      "severity": "critical",
+      "reason": "False positive - send is a legitimate package, not typosquatting",
+      "created_at": "2026-02-15T16:10:00Z"
+    },
+    {
+      "fingerprint": "11251ff0610c04155ab46df0c32bc879828c9b08f38e316505787eb0000c0f2a",
+      "rule_id": "VULN-002",
+      "file_path": "app/package-lock.json",
+      "severity": "critical",
+      "reason": "False positive - jose is a legitimate package, not typosquatting",
+      "created_at": "2026-02-15T16:10:00Z"
+    },
+    {
+      "fingerprint": "39d91f34f48aa292a95d56defac5fe5dbbde53af6c0b7e31bf8e456202a5e83f",
+      "rule_id": "IAC-351",
+      "file_path": ".github/actions/roady-sync/action.yml",
+      "severity": "critical",
+      "reason": "Example GitHub token placeholder - not a real secret",
+      "created_at": "2026-02-15T16:10:00Z"
+    },
+    {
+      "fingerprint": "51b2cfb942ce34997abfecb9815cfaef48bfa549760e13713ddb00256013f477",
+      "rule_id": "IAC-351",
+      "file_path": ".github/actions/roady-sync/action.yml",
+      "severity": "critical",
+      "reason": "Example GitHub token placeholder - not a real secret",
+      "created_at": "2026-02-15T16:10:00Z"
+    }
+  ]
+}
