@@ -13,7 +13,7 @@ import (
 	"github.com/felixgeelhaar/roady/pkg/domain/planning"
 	domainPlugin "github.com/felixgeelhaar/roady/pkg/domain/plugin"
 	infraPlugin "github.com/felixgeelhaar/roady/pkg/plugin"
-	"github.com/hashicorp/go-plugin"
+	goplugin "github.com/hashicorp/go-plugin"
 )
 
 type LinearSyncer struct {
@@ -379,9 +379,9 @@ func (s *LinearSyncer) updateIssueState(issueID, stateID string) error {
 }
 
 func main() {
-	plugin.Serve(&plugin.ServeConfig{
+	goplugin.Serve(&goplugin.ServeConfig{
 		HandshakeConfig: infraPlugin.HandshakeConfig,
-		Plugins: map[string]plugin.Plugin{
+		Plugins: map[string]goplugin.Plugin{
 			"syncer": &domainPlugin.SyncerPlugin{Impl: &LinearSyncer{}},
 		},
 	})

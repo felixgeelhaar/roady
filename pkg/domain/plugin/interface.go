@@ -4,7 +4,7 @@ import (
 	"net/rpc"
 
 	"github.com/felixgeelhaar/roady/pkg/domain/planning"
-	"github.com/hashicorp/go-plugin"
+	goplugin "github.com/hashicorp/go-plugin"
 )
 
 // Syncer is the interface that plugins must implement.
@@ -31,11 +31,11 @@ type SyncerPlugin struct {
 	Impl Syncer
 }
 
-func (p *SyncerPlugin) Server(*plugin.MuxBroker) (interface{}, error) {
+func (p *SyncerPlugin) Server(*goplugin.MuxBroker) (interface{}, error) {
 	return &SyncerRPCServer{Impl: p.Impl}, nil
 }
 
-func (p *SyncerPlugin) Client(b *plugin.MuxBroker, c *rpc.Client) (interface{}, error) {
+func (p *SyncerPlugin) Client(b *goplugin.MuxBroker, c *rpc.Client) (interface{}, error) {
 	return &SyncerRPCClient{Client: c}, nil
 }
 

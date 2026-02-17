@@ -7,7 +7,7 @@ import (
 	"github.com/felixgeelhaar/roady/pkg/domain/planning"
 	domainPlugin "github.com/felixgeelhaar/roady/pkg/domain/plugin"
 	infraPlugin "github.com/felixgeelhaar/roady/pkg/plugin"
-	"github.com/hashicorp/go-plugin"
+	goplugin "github.com/hashicorp/go-plugin"
 )
 
 type MockSyncer struct{}
@@ -47,9 +47,9 @@ func (m *MockSyncer) Push(taskID string, status planning.TaskStatus) error {
 	return nil
 }
 func main() {
-	plugin.Serve(&plugin.ServeConfig{
+	goplugin.Serve(&goplugin.ServeConfig{
 		HandshakeConfig: infraPlugin.HandshakeConfig,
-		Plugins: map[string]plugin.Plugin{
+		Plugins: map[string]goplugin.Plugin{
 			"syncer": &domainPlugin.SyncerPlugin{Impl: &MockSyncer{}},
 		},
 	})
