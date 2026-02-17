@@ -699,3 +699,221 @@ func TestBillingService_ListRates(t *testing.T) {
 		t.Errorf("expected 1 rate, got %d", len(config.Rates))
 	}
 }
+
+func TestBillingService_GetCostReport_WithEstimates(t *testing.T) {
+	repo := &mockBillingRepo{
+		MockRepo: &MockRepo{},
+		RatesConfig: &billing.RateConfig{
+			Currency: "USD",
+			Rates: []billing.Rate{
+				{ID: "rate-1", Name: "Standard", HourlyRate: 100, IsDefault: true},
+			},
+		},
+		TimeEntries: []billing.TimeEntry{
+			{TaskID: "task-1", RateID: "rate-1", Minutes: 120}, // 2 hours actual
+		},
+		Plan: &planning.Plan{
+			Tasks: []planning.Task{
+				{ID: "task-1", Title: "Task 1", Estimate: "4h"},
+				{ID: "task-2", Title: "Task 2", Estimate: "2h"},
+			},
+		},
+	}
+	audit := newTestAudit()
+	svc := application.NewBillingService(repo, audit)
+
+	report, err := svc.GetCostReport(application.CostReportOpts{})
+	if err != nil {
+		t.Fatalf("GetCostReport failed: %v", err)
+	}
+
+	if len(report.Entries) != 1 {
+		t.Fatalf("expected 1 entry, got %d", len(report.Entries))
+	}
+
+	entry := report.Entries[0]
+	if entry.EstimatedHours != 4.0 {
+		t.Errorf("EstimatedHours: want 4.0, got %f", entry.EstimatedHours)
+	}
+	if entry.EstimatedCost != 400.0 {
+		t.Errorf("EstimatedCost: want 400.0, got %f", entry.EstimatedCost)
+	}
+	// Actual: 2h * $100 = $200. Estimated: 4h * $100 = $400. Variance: -200
+	if entry.CostVariance != -200.0 {
+		t.Errorf("CostVariance: want -200.0, got %f", entry.CostVariance)
+	}
+	if entry.HoursVariance != -2.0 {
+		t.Errorf("HoursVariance: want -2.0, got %f", entry.HoursVariance)
+	}
+
+	if report.TotalEstimatedHours != 4.0 {
+		t.Errorf("TotalEstimatedHours: want 4.0, got %f", report.TotalEstimatedHours)
+	}
+	if report.TotalEstimatedCost != 400.0 {
+		t.Errorf("TotalEstimatedCost: want 400.0, got %f", report.TotalEstimatedCost)
+	}
+	if report.EstimateCoverage != 100.0 {
+		t.Errorf("EstimateCoverage: want 100.0, got %f", report.EstimateCoverage)
+	}
+}
+
+func TestBillingService_GetCostReport_NoEstimates(t *testing.T) {
+	repo := &mockBillingRepo{
+		MockRepo: &MockRepo{},
+		RatesConfig: &billing.RateConfig{
+			Currency: "USD",
+			Rates: []billing.Rate{
+				{ID: "rate-1", Name: "Standard", HourlyRate: 100, IsDefault: true},
+			},
+		},
+		TimeEntries: []billing.TimeEntry{
+			{TaskID: "task-1", RateID: "rate-1", Minutes: 60},
+		},
+		Plan: &planning.Plan{
+			Tasks: []planning.Task{
+				{ID: "task-1", Title: "Task 1"}, // no estimate
+			},
+		},
+	}
+	audit := newTestAudit()
+	svc := application.NewBillingService(repo, audit)
+
+	report, err := svc.GetCostReport(application.CostReportOpts{})
+	if err != nil {
+		t.Fatalf("GetCostReport failed: %v", err)
+	}
+
+	if report.TotalEstimatedHours != 0 {
+		t.Errorf("TotalEstimatedHours: want 0, got %f", report.TotalEstimatedHours)
+	}
+	if report.TotalEstimatedCost != 0 {
+		t.Errorf("TotalEstimatedCost: want 0, got %f", report.TotalEstimatedCost)
+	}
+	if report.EstimateCoverage != 0 {
+		t.Errorf("EstimateCoverage: want 0, got %f", report.EstimateCoverage)
+	}
+}
+
+func TestBillingService_GetBudgetStatus_WithEstimates(t *testing.T) {
+	repo := &mockBillingRepo{
+		MockRepo: &MockRepo{},
+		Policy:   &domain.PolicyConfig{BudgetHours: 100},
+		RatesConfig: &billing.RateConfig{
+			Currency: "USD",
+			Rates: []billing.Rate{
+				{ID: "rate-1", Name: "Standard", HourlyRate: 100, IsDefault: true},
+			},
+		},
+		TimeEntries: []billing.TimeEntry{
+			{TaskID: "task-1", RateID: "rate-1", Minutes: 120}, // 2 hours
+		},
+		Plan: &planning.Plan{
+			Tasks: []planning.Task{
+				{ID: "task-1", Title: "Task 1", Estimate: "4h"},
+				{ID: "task-2", Title: "Task 2", Estimate: "6h"},
+				{ID: "task-3", Title: "Task 3"}, // no estimate
+			},
+		},
+	}
+	audit := newTestAudit()
+	svc := application.NewBillingService(repo, audit)
+
+	status, err := svc.GetBudgetStatus()
+	if err != nil {
+		t.Fatalf("GetBudgetStatus failed: %v", err)
+	}
+	if status == nil {
+		t.Fatal("expected status, got nil")
+	}
+
+	if status.EstimatedHours != 10.0 {
+		t.Errorf("EstimatedHours: want 10.0, got %f", status.EstimatedHours)
+	}
+	if status.EstimatedCost != 1000.0 {
+		t.Errorf("EstimatedCost: want 1000.0, got %f", status.EstimatedCost)
+	}
+	if status.ActualCost != 200.0 {
+		t.Errorf("ActualCost: want 200.0, got %f", status.ActualCost)
+	}
+	if status.CostVariance != -800.0 {
+		t.Errorf("CostVariance: want -800.0, got %f", status.CostVariance)
+	}
+	if status.UnestimatedTasks != 1 {
+		t.Errorf("UnestimatedTasks: want 1, got %d", status.UnestimatedTasks)
+	}
+	if status.HourlyRate != 100.0 {
+		t.Errorf("HourlyRate: want 100.0, got %f", status.HourlyRate)
+	}
+	if status.Currency != "USD" {
+		t.Errorf("Currency: want USD, got %s", status.Currency)
+	}
+}
+
+func TestBillingService_GetBudgetStatus_NoPlan(t *testing.T) {
+	repo := &mockBillingRepo{
+		MockRepo: &MockRepo{},
+		Policy:   &domain.PolicyConfig{BudgetHours: 100},
+		RatesConfig: &billing.RateConfig{
+			Currency: "USD",
+			Rates: []billing.Rate{
+				{ID: "rate-1", Name: "Standard", HourlyRate: 100, IsDefault: true},
+			},
+		},
+		TimeEntries: []billing.TimeEntry{
+			{TaskID: "task-1", RateID: "rate-1", Minutes: 60},
+		},
+		// Plan is nil — graceful fallback
+	}
+	audit := newTestAudit()
+	svc := application.NewBillingService(repo, audit)
+
+	status, err := svc.GetBudgetStatus()
+	if err != nil {
+		t.Fatalf("GetBudgetStatus failed: %v", err)
+	}
+	if status == nil {
+		t.Fatal("expected status, got nil")
+	}
+
+	// Should fall back to basic status (no estimate fields)
+	if status.EstimatedHours != 0 {
+		t.Errorf("EstimatedHours: want 0, got %f", status.EstimatedHours)
+	}
+	if status.EstimatedCost != 0 {
+		t.Errorf("EstimatedCost: want 0, got %f", status.EstimatedCost)
+	}
+	if status.UsedHours != 1.0 {
+		t.Errorf("UsedHours: want 1.0, got %f", status.UsedHours)
+	}
+}
+
+func TestBillingService_GetBudgetStatus_NoDefaultRate(t *testing.T) {
+	repo := &mockBillingRepo{
+		MockRepo: &MockRepo{},
+		Policy:   &domain.PolicyConfig{BudgetHours: 100},
+		RatesConfig: &billing.RateConfig{
+			Currency: "USD",
+			Rates:    []billing.Rate{}, // no rates at all
+		},
+		Plan: &planning.Plan{
+			Tasks: []planning.Task{
+				{ID: "task-1", Title: "Task 1", Estimate: "4h"},
+			},
+		},
+	}
+	audit := newTestAudit()
+	svc := application.NewBillingService(repo, audit)
+
+	status, err := svc.GetBudgetStatus()
+	if err != nil {
+		t.Fatalf("GetBudgetStatus failed: %v", err)
+	}
+	if status == nil {
+		t.Fatal("expected status, got nil")
+	}
+
+	// Should fall back to basic status (no default rate for estimate calc)
+	if status.EstimatedHours != 0 {
+		t.Errorf("EstimatedHours: want 0 (no default rate), got %f", status.EstimatedHours)
+	}
+}

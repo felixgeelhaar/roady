@@ -180,9 +180,16 @@ func (s *BillingService) GetCostReport(opts CostReportOpts) (*billing.CostReport
 	}
 
 	taskTitles := make(map[string]string)
+	taskEstimates := make(map[string]float64)
 	if plan != nil {
 		for _, task := range plan.Tasks {
 			taskTitles[task.ID] = task.Title
+			if task.Estimate != "" {
+				est, err := planning.ParseEstimate(task.Estimate)
+				if err == nil && !est.IsZero() {
+					taskEstimates[task.ID] = est.Hours()
+				}
+			}
 		}
 	}
 
@@ -209,16 +216,22 @@ func (s *BillingService) GetCostReport(opts CostReportOpts) (*billing.CostReport
 
 		hours := entry.Hours()
 		cost := hours * rate.HourlyRate
+		estHours := taskEstimates[entry.TaskID]
+		estCost := estHours * rate.HourlyRate
 
 		report.AddEntry(billing.CostReportEntry{
-			TaskID:      entry.TaskID,
-			Title:       taskTitles[entry.TaskID],
-			RateID:      entry.RateID,
-			RateName:    rate.Name,
-			Hours:       hours,
-			HourlyRate:  rate.HourlyRate,
-			Cost:        cost,
-			Description: entry.Description,
+			TaskID:         entry.TaskID,
+			Title:          taskTitles[entry.TaskID],
+			RateID:         entry.RateID,
+			RateName:       rate.Name,
+			Hours:          hours,
+			HourlyRate:     rate.HourlyRate,
+			Cost:           cost,
+			Description:    entry.Description,
+			EstimatedHours: estHours,
+			EstimatedCost:  estCost,
+			CostVariance:   cost - estCost,
+			HoursVariance:  hours - estHours,
 		}, config.Tax)
 	}
 
@@ -246,17 +259,25 @@ func (s *BillingService) GetCostReport(opts CostReportOpts) (*billing.CostReport
 
 		hours := float64(result.ElapsedMinutes) / 60.0
 		cost := hours * rate.HourlyRate
+		estHours := taskEstimates[taskID]
+		estCost := estHours * rate.HourlyRate
 
 		report.AddEntry(billing.CostReportEntry{
-			TaskID:     taskID,
-			Title:      taskTitles[taskID],
-			RateID:     rateID,
-			RateName:   rate.Name,
-			Hours:      hours,
-			HourlyRate: rate.HourlyRate,
-			Cost:       cost,
+			TaskID:         taskID,
+			Title:          taskTitles[taskID],
+			RateID:         rateID,
+			RateName:       rate.Name,
+			Hours:          hours,
+			HourlyRate:     rate.HourlyRate,
+			Cost:           cost,
+			EstimatedHours: estHours,
+			EstimatedCost:  estCost,
+			CostVariance:   cost - estCost,
+			HoursVariance:  hours - estHours,
 		}, config.Tax)
 	}
+
+	report.ComputeCoverage()
 
 	return report, nil
 }
@@ -412,7 +433,45 @@ func (s *BillingService) GetBudgetStatus() (*billing.BudgetStatus, error) {
 	}
 
 	totalMinutes := s.getTotalMinutes()
-	return billing.NewBudgetStatus(policy.BudgetHours, totalMinutes), nil
+
+	plan, err := s.repo.LoadPlan()
+	if err != nil || plan == nil {
+		return billing.NewBudgetStatus(policy.BudgetHours, totalMinutes), nil
+	}
+
+	config, err := s.repo.LoadRates()
+	if err != nil {
+		return billing.NewBudgetStatus(policy.BudgetHours, totalMinutes), nil
+	}
+
+	defaultRate := config.GetDefault()
+	if defaultRate == nil {
+		return billing.NewBudgetStatus(policy.BudgetHours, totalMinutes), nil
+	}
+
+	var estimatedHours float64
+	var estimatedTasks int
+	for _, task := range plan.Tasks {
+		if task.Estimate != "" {
+			est, err := planning.ParseEstimate(task.Estimate)
+			if err == nil && !est.IsZero() {
+				estimatedHours += est.Hours()
+				estimatedTasks++
+			}
+		}
+	}
+
+	currency := config.Currency
+	if currency == "" {
+		currency = "USD"
+	}
+
+	return billing.NewBudgetStatusWithEstimates(
+		policy.BudgetHours, totalMinutes,
+		estimatedHours, defaultRate.HourlyRate,
+		len(plan.Tasks), estimatedTasks,
+		currency,
+	), nil
 }
 
 func (s *BillingService) getTotalMinutes() int {

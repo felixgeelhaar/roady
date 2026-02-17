@@ -1,6 +1,7 @@
 package billing
 
 import (
+	"strings"
 	"testing"
 )
 
@@ -163,5 +164,116 @@ func TestCostReport_CSV_WithTax(t *testing.T) {
 	// Should include tax columns
 	if len(csv) < 50 {
 		t.Errorf("expected longer CSV output, got: %s", csv)
+	}
+}
+
+func TestCostReport_AddEntry_WithEstimates(t *testing.T) {
+	report := NewCostReport("USD")
+
+	entries := []CostReportEntry{
+		{
+			TaskID: "task-1", Hours: 10, HourlyRate: 100, Cost: 1000,
+			EstimatedHours: 8, EstimatedCost: 800, CostVariance: 200, HoursVariance: 2,
+		},
+		{
+			TaskID: "task-2", Hours: 5, HourlyRate: 100, Cost: 500,
+			EstimatedHours: 6, EstimatedCost: 600, CostVariance: -100, HoursVariance: -1,
+		},
+	}
+
+	for _, e := range entries {
+		report.AddEntry(e, nil)
+	}
+
+	if report.TotalEstimatedHours != 14 {
+		t.Errorf("TotalEstimatedHours: want 14, got %f", report.TotalEstimatedHours)
+	}
+	if report.TotalEstimatedCost != 1400 {
+		t.Errorf("TotalEstimatedCost: want 1400, got %f", report.TotalEstimatedCost)
+	}
+	if report.TotalCostVariance != 100 {
+		t.Errorf("TotalCostVariance: want 100, got %f", report.TotalCostVariance)
+	}
+	if report.TotalHoursVariance != 1 {
+		t.Errorf("TotalHoursVariance: want 1, got %f", report.TotalHoursVariance)
+	}
+}
+
+func TestCostReport_ComputeCoverage(t *testing.T) {
+	tests := []struct {
+		name     string
+		entries  []CostReportEntry
+		wantPct  float64
+	}{
+		{
+			name:    "empty report",
+			entries: nil,
+			wantPct: 0,
+		},
+		{
+			name: "all estimated",
+			entries: []CostReportEntry{
+				{TaskID: "t1", Hours: 1, Cost: 100, EstimatedHours: 2},
+				{TaskID: "t2", Hours: 1, Cost: 100, EstimatedHours: 3},
+			},
+			wantPct: 100,
+		},
+		{
+			name: "half estimated",
+			entries: []CostReportEntry{
+				{TaskID: "t1", Hours: 1, Cost: 100, EstimatedHours: 2},
+				{TaskID: "t2", Hours: 1, Cost: 100, EstimatedHours: 0},
+			},
+			wantPct: 50,
+		},
+		{
+			name: "none estimated",
+			entries: []CostReportEntry{
+				{TaskID: "t1", Hours: 1, Cost: 100},
+				{TaskID: "t2", Hours: 1, Cost: 100},
+			},
+			wantPct: 0,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			report := NewCostReport("USD")
+			for _, e := range tt.entries {
+				report.AddEntry(e, nil)
+			}
+			report.ComputeCoverage()
+			if report.EstimateCoverage != tt.wantPct {
+				t.Errorf("EstimateCoverage: want %f, got %f", tt.wantPct, report.EstimateCoverage)
+			}
+		})
+	}
+}
+
+func TestCostReport_CSV_IncludesEstimateColumns(t *testing.T) {
+	report := NewCostReport("USD")
+
+	report.AddEntry(CostReportEntry{
+		TaskID: "task-1", Title: "Feature A", RateName: "Senior",
+		Hours: 10, HourlyRate: 150, Cost: 1500,
+		EstimatedHours: 8, EstimatedCost: 1200, CostVariance: 300,
+	}, nil)
+
+	csv := report.CSV()
+
+	if !strings.Contains(csv, "Est.Hours") {
+		t.Error("CSV header should contain Est.Hours")
+	}
+	if !strings.Contains(csv, "Est.Cost") {
+		t.Error("CSV header should contain Est.Cost")
+	}
+	if !strings.Contains(csv, "Variance") {
+		t.Error("CSV header should contain Variance")
+	}
+	if !strings.Contains(csv, "8.00") {
+		t.Error("CSV should contain estimated hours value 8.00")
+	}
+	if !strings.Contains(csv, "1200.00") {
+		t.Error("CSV should contain estimated cost value 1200.00")
 	}
 }

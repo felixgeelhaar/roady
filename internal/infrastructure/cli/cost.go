@@ -110,6 +110,25 @@ var costBudgetCmd = &cobra.Command{
 			fmt.Printf("\n[WARNING] You are over budget by %.2f hours!\n", -status.Remaining)
 		}
 
+		if status.EstimatedHours > 0 {
+			fmt.Printf("\nEstimated Cost\n")
+			fmt.Printf("--------------\n")
+			fmt.Printf("Estimated: %.2f hours ($%.2f)\n", status.EstimatedHours, status.EstimatedCost)
+			fmt.Printf("Actual:    %.2f hours ($%.2f)\n", status.UsedHours, status.ActualCost)
+			if status.CostVariance > 0 {
+				fmt.Printf("Variance:  +$%.2f (over estimate)\n", status.CostVariance)
+			} else if status.CostVariance < 0 {
+				fmt.Printf("Variance:  -$%.2f (under estimate)\n", -status.CostVariance)
+			} else {
+				fmt.Printf("Variance:  $0.00 (on target)\n")
+			}
+			fmt.Printf("Rate:      $%.2f/hr (%s)\n", status.HourlyRate, status.Currency)
+			if status.UnestimatedTasks > 0 {
+				fmt.Printf("\n[NOTE] %d task(s) have no estimates (%.0f%% coverage)\n",
+					status.UnestimatedTasks, status.EstimateCoverage)
+			}
+		}
+
 		return nil
 	},
 }
@@ -138,33 +157,37 @@ func printTextReport(report *billing.CostReport) {
 	fmt.Printf("==================\n\n")
 	hasTax := report.TaxPercent > 0
 	if hasTax {
-		fmt.Printf("Task ID       | Title                | Rate       | Hours  | Cost      | Tax       | Total\n")
-		fmt.Printf("--------------+----------------------+------------+--------+-----------+-----------+----------\n")
+		fmt.Printf("Task ID       | Title                | Rate       | Hours  | Cost      | Tax       | Total     | Est.Hrs | Est.Cost  | Variance\n")
+		fmt.Printf("--------------+----------------------+------------+--------+-----------+-----------+-----------+---------+-----------+----------\n")
 		for _, e := range report.Entries {
 			title := e.Title
 			if len(title) > 20 {
 				title = title[:17] + "..."
 			}
-			fmt.Printf("%-14s| %-20s | %-10s | %6.2f | $%-9.2f | $%-9.2f | $%.2f\n",
-				e.TaskID, title, e.RateName, e.Hours, e.Cost, e.Tax, e.TotalWithTax)
+			fmt.Printf("%-14s| %-20s | %-10s | %6.2f | $%-9.2f | $%-9.2f | $%-9.2f | %7.2f | $%-9.2f | $%.2f\n",
+				e.TaskID, title, e.RateName, e.Hours, e.Cost, e.Tax, e.TotalWithTax,
+				e.EstimatedHours, e.EstimatedCost, e.CostVariance)
 		}
-		fmt.Printf("--------------+----------------------+------------+--------+-----------+-----------+----------\n")
-		fmt.Printf("TOTAL         |                      |            | %6.2f | $%-9.2f | $%-9.2f | $%.2f\n",
-			report.TotalHours, report.TotalCost, report.TotalTax, report.TotalWithTax)
+		fmt.Printf("--------------+----------------------+------------+--------+-----------+-----------+-----------+---------+-----------+----------\n")
+		fmt.Printf("TOTAL         |                      |            | %6.2f | $%-9.2f | $%-9.2f | $%-9.2f | %7.2f | $%-9.2f | $%.2f\n",
+			report.TotalHours, report.TotalCost, report.TotalTax, report.TotalWithTax,
+			report.TotalEstimatedHours, report.TotalEstimatedCost, report.TotalCostVariance)
 	} else {
-		fmt.Printf("Task ID       | Title                | Rate       | Hours  | Cost\n")
-		fmt.Printf("--------------+----------------------+------------+--------+----------\n")
+		fmt.Printf("Task ID       | Title                | Rate       | Hours  | Cost      | Est.Hrs | Est.Cost  | Variance\n")
+		fmt.Printf("--------------+----------------------+------------+--------+-----------+---------+-----------+----------\n")
 		for _, e := range report.Entries {
 			title := e.Title
 			if len(title) > 20 {
 				title = title[:17] + "..."
 			}
-			fmt.Printf("%-14s| %-20s | %-10s | %6.2f | $%.2f\n",
-				e.TaskID, title, e.RateName, e.Hours, e.Cost)
+			fmt.Printf("%-14s| %-20s | %-10s | %6.2f | $%-9.2f | %7.2f | $%-9.2f | $%.2f\n",
+				e.TaskID, title, e.RateName, e.Hours, e.Cost,
+				e.EstimatedHours, e.EstimatedCost, e.CostVariance)
 		}
-		fmt.Printf("--------------+----------------------+------------+--------+----------\n")
-		fmt.Printf("TOTAL         |                      |            | %6.2f | $%.2f\n",
-			report.TotalHours, report.TotalCost)
+		fmt.Printf("--------------+----------------------+------------+--------+-----------+---------+-----------+----------\n")
+		fmt.Printf("TOTAL         |                      |            | %6.2f | $%-9.2f | %7.2f | $%-9.2f | $%.2f\n",
+			report.TotalHours, report.TotalCost,
+			report.TotalEstimatedHours, report.TotalEstimatedCost, report.TotalCostVariance)
 	}
 }
 
@@ -179,22 +202,27 @@ func printMarkdownReport(report *billing.CostReport) {
 
 	hasTax := report.TaxPercent > 0
 	if hasTax {
-		fmt.Println("| Task ID | Title | Rate | Hours | Cost | Tax | Total |")
-		fmt.Println("|---------|-------|------|-------|------|-----|-------|")
+		fmt.Println("| Task ID | Title | Rate | Hours | Cost | Tax | Total | Est.Hrs | Est.Cost | Variance |")
+		fmt.Println("|---------|-------|------|-------|------|-----|-------|---------|----------|----------|")
 		for _, e := range report.Entries {
-			fmt.Printf("| %s | %s | %s | %.2f | $%.2f | $%.2f | $%.2f |\n",
-				e.TaskID, e.Title, e.RateName, e.Hours, e.Cost, e.Tax, e.TotalWithTax)
+			fmt.Printf("| %s | %s | %s | %.2f | $%.2f | $%.2f | $%.2f | %.2f | $%.2f | $%.2f |\n",
+				e.TaskID, e.Title, e.RateName, e.Hours, e.Cost, e.Tax, e.TotalWithTax,
+				e.EstimatedHours, e.EstimatedCost, e.CostVariance)
 		}
-		fmt.Printf("| **TOTAL** | | | **%.2f** | **$%.2f** | **$%.2f** | **$%.2f** |\n",
-			report.TotalHours, report.TotalCost, report.TotalTax, report.TotalWithTax)
+		fmt.Printf("| **TOTAL** | | | **%.2f** | **$%.2f** | **$%.2f** | **$%.2f** | **%.2f** | **$%.2f** | **$%.2f** |\n",
+			report.TotalHours, report.TotalCost, report.TotalTax, report.TotalWithTax,
+			report.TotalEstimatedHours, report.TotalEstimatedCost, report.TotalCostVariance)
 	} else {
-		fmt.Println("| Task ID | Title | Rate | Hours | Cost |")
-		fmt.Println("|---------|-------|------|-------|------|")
+		fmt.Println("| Task ID | Title | Rate | Hours | Cost | Est.Hrs | Est.Cost | Variance |")
+		fmt.Println("|---------|-------|------|-------|------|---------|----------|----------|")
 		for _, e := range report.Entries {
-			fmt.Printf("| %s | %s | %s | %.2f | $%.2f |\n",
-				e.TaskID, e.Title, e.RateName, e.Hours, e.Cost)
+			fmt.Printf("| %s | %s | %s | %.2f | $%.2f | %.2f | $%.2f | $%.2f |\n",
+				e.TaskID, e.Title, e.RateName, e.Hours, e.Cost,
+				e.EstimatedHours, e.EstimatedCost, e.CostVariance)
 		}
-		fmt.Printf("| **TOTAL** | | | **%.2f** | **$%.2f** |\n", report.TotalHours, report.TotalCost)
+		fmt.Printf("| **TOTAL** | | | **%.2f** | **$%.2f** | **%.2f** | **$%.2f** | **$%.2f** |\n",
+			report.TotalHours, report.TotalCost,
+			report.TotalEstimatedHours, report.TotalEstimatedCost, report.TotalCostVariance)
 	}
 }
 
@@ -208,17 +236,23 @@ func generateMarkdownReport(report *billing.CostReport) string {
 
 - Total Hours: %.2f
 - Total Cost: $%.2f
+- Estimated Hours: %.2f
+- Estimated Cost: $%.2f
+- Cost Variance: $%.2f
 
 ## Entries
 
-| Task ID | Title | Rate | Hours | Cost |
-|---------|-------|------|-------|------|
+| Task ID | Title | Rate | Hours | Cost | Est.Hrs | Est.Cost | Variance |
+|---------|-------|------|-------|------|---------|----------|----------|
 %s
 `,
 		report.Currency,
 		report.GeneratedAt.Format("2006-01-02 15:04"),
 		report.TotalHours,
 		report.TotalCost,
+		report.TotalEstimatedHours,
+		report.TotalEstimatedCost,
+		report.TotalCostVariance,
 		generateMarkdownTable(report.Entries),
 	)
 }
@@ -226,8 +260,9 @@ func generateMarkdownReport(report *billing.CostReport) string {
 func generateMarkdownTable(entries []billing.CostReportEntry) string {
 	result := ""
 	for _, e := range entries {
-		result += fmt.Sprintf("| %s | %s | %s | %.2f | $%.2f |\n",
-			e.TaskID, e.Title, e.RateName, e.Hours, e.Cost)
+		result += fmt.Sprintf("| %s | %s | %s | %.2f | $%.2f | %.2f | $%.2f | $%.2f |\n",
+			e.TaskID, e.Title, e.RateName, e.Hours, e.Cost,
+			e.EstimatedHours, e.EstimatedCost, e.CostVariance)
 	}
 	return result
 }
@@ -236,16 +271,19 @@ func generateTextReport(report *billing.CostReport) string {
 	return fmt.Sprintf(`Cost Report (%s)
 ==================
 
-Task ID       | Title                | Rate       | Hours  | Cost
---------------+----------------------+------------+--------+-----------
+Task ID       | Title                | Rate       | Hours  | Cost      | Est.Hrs | Est.Cost  | Variance
+--------------+----------------------+------------+--------+-----------+---------+-----------+----------
 %s
---------------+----------------------+------------+--------+-----------
-TOTAL         |                      |            | %6.2f | $%.2f
+--------------+----------------------+------------+--------+-----------+---------+-----------+----------
+TOTAL         |                      |            | %6.2f | $%-9.2f | %7.2f | $%-9.2f | $%.2f
 `,
 		report.Currency,
 		generateTextTable(report.Entries),
 		report.TotalHours,
 		report.TotalCost,
+		report.TotalEstimatedHours,
+		report.TotalEstimatedCost,
+		report.TotalCostVariance,
 	)
 }
 
@@ -256,8 +294,9 @@ func generateTextTable(entries []billing.CostReportEntry) string {
 		if len(title) > 20 {
 			title = title[:17] + "..."
 		}
-		result += fmt.Sprintf("%-14s| %-20s | %-10s | %6.2f | $%.2f\n",
-			e.TaskID, title, e.RateName, e.Hours, e.Cost)
+		result += fmt.Sprintf("%-14s| %-20s | %-10s | %6.2f | $%-9.2f | %7.2f | $%-9.2f | $%.2f\n",
+			e.TaskID, title, e.RateName, e.Hours, e.Cost,
+			e.EstimatedHours, e.EstimatedCost, e.CostVariance)
 	}
 	return result
 }
