@@ -215,14 +215,14 @@ func TestAsanaSyncer_Sync(t *testing.T) {
 func TestAsanaSyncer_Push(t *testing.T) {
 	var receivedMethod, receivedPath string
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		switch {
-		case r.Method == "GET":
+		switch r.Method {
+		case "GET":
 			_ = json.NewEncoder(w).Encode(AsanaTasksResponse{
 				Data: []AsanaTask{
 					{GID: "111", Name: "Task 1", Notes: "roady-id: t1", Completed: false},
 				},
 			})
-		case r.Method == "PUT":
+		case "PUT":
 			receivedMethod = r.Method
 			receivedPath = r.URL.Path
 			_ = json.NewEncoder(w).Encode(AsanaTaskResponse{

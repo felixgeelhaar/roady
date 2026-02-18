@@ -209,7 +209,7 @@ func TestDependencyGraph_GetDependency(t *testing.T) {
 
 	found := g.GetDependency(dep.ID)
 	if found == nil {
-		t.Error("GetDependency should find existing dependency")
+		t.Fatal("GetDependency should find existing dependency")
 	}
 	if found.ID != dep.ID {
 		t.Errorf("GetDependency returned wrong dependency")
@@ -285,7 +285,7 @@ func TestDependencyGraph_RepoHealth(t *testing.T) {
 
 	got := g.GetRepoHealth("./root")
 	if got == nil {
-		t.Error("GetRepoHealth should return health")
+		t.Fatal("GetRepoHealth should return health")
 	}
 	if got.RepoPath != "./root" {
 		t.Errorf("RepoPath = %s, want ./root", got.RepoPath)

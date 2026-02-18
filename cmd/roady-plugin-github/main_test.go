@@ -175,10 +175,10 @@ func TestMapGitHubStatus(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			issue := &github.Issue{
-				State: github.String(tt.state),
+				State: github.Ptr(tt.state),
 			}
 			if tt.assignee {
-				issue.Assignee = &github.User{Login: github.String("user")}
+				issue.Assignee = &github.User{Login: github.Ptr("user")}
 			}
 
 			result := mapGitHubStatus(issue)

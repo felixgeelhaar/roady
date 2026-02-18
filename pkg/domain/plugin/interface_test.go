@@ -72,9 +72,8 @@ func TestSyncerPlugin_Methods(t *testing.T) {
 
 func TestSyncerRPCClientNil(t *testing.T) {
 	c := &plugin.SyncerRPCClient{}
-	if c == nil {
-		t.Fatal("expected non-nil client")
-	}
+	// Verify the struct is usable (constructed literal is never nil)
+	_ = c
 }
 
 func TestSyncerRPCClientCalls(t *testing.T) {

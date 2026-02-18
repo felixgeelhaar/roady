@@ -146,7 +146,7 @@ features:
 		t.Fatalf("GetProjectSnapshot failed: %v", err)
 	}
 	if snapshot == nil {
-		t.Error("Expected project snapshot")
+		t.Fatal("Expected project snapshot")
 	}
 	if snapshot.Plan == nil {
 		t.Error("Expected plan in snapshot")

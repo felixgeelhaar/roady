@@ -195,8 +195,8 @@ func (s *GitHubSyncer) createIssue(ctx context.Context, task planning.Task) (*gi
 	body = fmt.Sprintf("%s\n\nroady-id: %s", body, task.ID)
 
 	issue, _, err := s.client.Issues.Create(ctx, s.owner, s.name, &github.IssueRequest{
-		Title: github.String(task.Title),
-		Body:  github.String(body),
+		Title: github.Ptr(task.Title),
+		Body:  github.Ptr(body),
 	})
 	if err != nil {
 		return nil, err
@@ -271,7 +271,7 @@ func (s *GitHubSyncer) Push(taskID string, status planning.TaskStatus) error {
 	}
 
 	_, _, err = s.client.Issues.Edit(ctx, s.owner, s.name, targetIssue.GetNumber(), &github.IssueRequest{
-		State: github.String(newState),
+		State: github.Ptr(newState),
 	})
 	if err != nil {
 		return fmt.Errorf("update issue: %w", err)

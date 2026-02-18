@@ -696,7 +696,7 @@ func (m configureModel) viewInstallPlugin() string {
 		b.WriteString("\n\n")
 		b.WriteString(helpStyle.Render("[r] Retry • [s] Skip (configure anyway) • [Esc] Back"))
 	} else {
-		b.WriteString(fmt.Sprintf("%s Installing plugin via 'go install'...\n", m.spinner.View()))
+		_, _ = fmt.Fprintf(&b, "%s Installing plugin via 'go install'...\n", m.spinner.View())
 		b.WriteString("\n")
 		b.WriteString(blurredStyle.Render("This may take a moment while Go downloads and builds the plugin."))
 	}

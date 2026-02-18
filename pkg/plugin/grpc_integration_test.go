@@ -57,7 +57,7 @@ func startGRPCServer(t *testing.T, impl domainPlugin.Syncer) (*grpc.ClientConn, 
 
 	go func() {
 		if err := s.Serve(lis); err != nil {
-			// server stopped
+			_ = err // server stopped
 		}
 	}()
 

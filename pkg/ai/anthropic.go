@@ -53,7 +53,7 @@ type anthropicResponse struct {
 
 func (p *AnthropicProvider) Complete(ctx context.Context, req ai.CompletionRequest) (*ai.CompletionResponse, error) {
 	if p.APIKey == "" {
-		return nil, fmt.Errorf("Anthropic API key not provided (set ANTHROPIC_API_KEY)")
+		return nil, fmt.Errorf("anthropic API key not provided (set ANTHROPIC_API_KEY)")
 	}
 
 	maxTokens := req.MaxTokens
@@ -89,7 +89,7 @@ func (p *AnthropicProvider) Complete(ctx context.Context, req ai.CompletionReque
 	defer resp.Body.Close() //nolint:errcheck // best-effort close on read body
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("Anthropic API returned status: %s", resp.Status)
+		return nil, fmt.Errorf("anthropic API returned status: %s", resp.Status)
 	}
 
 	var anthroResp anthropicResponse
@@ -98,7 +98,7 @@ func (p *AnthropicProvider) Complete(ctx context.Context, req ai.CompletionReque
 	}
 
 	if len(anthroResp.Content) == 0 {
-		return nil, fmt.Errorf("Anthropic API returned no content")
+		return nil, fmt.Errorf("anthropic API returned no content")
 	}
 
 	return &ai.CompletionResponse{

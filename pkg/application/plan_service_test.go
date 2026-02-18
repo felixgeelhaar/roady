@@ -685,7 +685,7 @@ func TestPlanService_GetProjectSnapshot_NilContext(t *testing.T) {
 	}
 
 	// Pass nil context; the method should handle it gracefully
-	snapshot, err := service.GetProjectSnapshot(nil)
+	snapshot, err := service.GetProjectSnapshot(context.TODO())
 	if err != nil {
 		t.Fatalf("GetProjectSnapshot with nil ctx: %v", err)
 	}

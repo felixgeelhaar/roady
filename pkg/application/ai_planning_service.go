@@ -89,7 +89,7 @@ func (s *AIPlanningService) DecomposeSpec(ctx context.Context) (*planning.Plan, 
 	}
 
 	// 3. Prompt AI
-	prompt := fmt.Sprintf(`Task: Decompose the following features into atomic engineering tasks.
+	prompt := `Task: Decompose the following features into atomic engineering tasks.
 Requirement: Every Feature and every Requirement listed below MUST be implemented.
 If a Feature has no Requirements, create at least one task for that Feature based on its description.
 
@@ -103,7 +103,7 @@ Return ONLY a JSON array of task objects with no surrounding text, no markdown, 
 Do NOT return placeholder values or the schema itself.
 
 Features to decompose:
-`)
+`
 
 	for _, f := range productSpec.Features {
 		prompt += fmt.Sprintf("- Feature: %s (ID: %s)\n", f.Title, f.ID)

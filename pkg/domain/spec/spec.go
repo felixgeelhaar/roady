@@ -43,7 +43,7 @@ type Constraint struct {
 // Hash returns a deterministic hash of the spec for drift detection.
 func (s *ProductSpec) Hash() string {
 	h := sha256.New()
-	h.Write([]byte(fmt.Sprintf("%s:%s:%s", s.ID, s.Version, s.Title)))
+	_, _ = fmt.Fprintf(h, "%s:%s:%s", s.ID, s.Version, s.Title)
 
 	// Hash features and descriptions
 	for _, f := range s.Features {

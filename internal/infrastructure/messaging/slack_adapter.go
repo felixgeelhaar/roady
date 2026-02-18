@@ -77,7 +77,7 @@ func formatSlackMessage(event *events.BaseEvent) string {
 	case events.EventTypeTaskCompleted:
 		return fmt.Sprintf(":white_check_mark: Task completed: %s", event.AggregateID())
 	case events.EventTypeDriftDetected:
-		return fmt.Sprintf(":warning: Drift detected in project")
+		return ":warning: Drift detected in project"
 	case events.EventTypePlanCreated:
 		return fmt.Sprintf(":clipboard: New plan created: %s", event.AggregateID())
 	default:

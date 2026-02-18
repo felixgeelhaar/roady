@@ -378,7 +378,7 @@ func TestDriftService_DetectDrift_NilContext(t *testing.T) {
 	svc := application.NewDriftService(repo, audit, storage.NewCodebaseInspector(), policy)
 
 	// nil context should be handled gracefully
-	report, err := svc.DetectDrift(nil)
+	report, err := svc.DetectDrift(context.TODO())
 	if err != nil {
 		t.Fatalf("DetectDrift with nil ctx: %v", err)
 	}
@@ -421,7 +421,7 @@ func TestPlanService_GeneratePlan_NilContext(t *testing.T) {
 	audit := application.NewAuditService(repo)
 	svc := application.NewPlanService(repo, audit)
 
-	plan, err := svc.GeneratePlan(nil)
+	plan, err := svc.GeneratePlan(context.TODO())
 	if err != nil {
 		t.Fatalf("GeneratePlan with nil ctx: %v", err)
 	}
@@ -468,16 +468,16 @@ func TestPlanService_TaskQueries_NilContext(t *testing.T) {
 	}
 
 	// All should handle nil context gracefully
-	if _, err := svc.GetTaskSummaries(nil); err != nil {
+	if _, err := svc.GetTaskSummaries(context.TODO()); err != nil {
 		t.Fatalf("GetTaskSummaries with nil ctx: %v", err)
 	}
-	if _, err := svc.GetReadyTasks(nil); err != nil {
+	if _, err := svc.GetReadyTasks(context.TODO()); err != nil {
 		t.Fatalf("GetReadyTasks with nil ctx: %v", err)
 	}
-	if _, err := svc.GetBlockedTasks(nil); err != nil {
+	if _, err := svc.GetBlockedTasks(context.TODO()); err != nil {
 		t.Fatalf("GetBlockedTasks with nil ctx: %v", err)
 	}
-	if _, err := svc.GetInProgressTasks(nil); err != nil {
+	if _, err := svc.GetInProgressTasks(context.TODO()); err != nil {
 		t.Fatalf("GetInProgressTasks with nil ctx: %v", err)
 	}
 }

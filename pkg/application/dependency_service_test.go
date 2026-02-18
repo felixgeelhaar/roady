@@ -384,6 +384,6 @@ func TestDependencyService_basicHealthCheck(t *testing.T) {
 		t.Error("Expected unreachable for non-existent path")
 	}
 	if health.VelocityTrend != "" && health.VelocityTrend != analytics.TrendStable {
-		// If not reachable, trend may not be set
+		_ = health.VelocityTrend // If not reachable, trend may not be set
 	}
 }

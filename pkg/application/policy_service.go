@@ -68,7 +68,7 @@ func (s *PolicyService) ValidateTransition(taskID string, event string) error {
 				}
 			}
 			if inProgressCount >= cfg.MaxWIP {
-				return fmt.Errorf("WIP limit reached (current limit: %d). Please complete or stop an existing task before starting a new one.", cfg.MaxWIP)
+				return fmt.Errorf("WIP limit reached (current limit: %d); please complete or stop an existing task before starting a new one", cfg.MaxWIP)
 			}
 		}
 	}
@@ -126,7 +126,7 @@ func (s *PolicyService) ValidateTransition(taskID string, event string) error {
 
 			// Local dependency
 			if res, ok := state.TaskStates[depID]; !ok || (res.Status != planning.StatusDone && res.Status != planning.StatusVerified) {
-				return fmt.Errorf("cannot start task '%s': it depends on '%s', which is not yet completed. Please finish all dependencies first.", taskID, depID)
+				return fmt.Errorf("cannot start task '%s': it depends on '%s', which is not yet completed", taskID, depID)
 			}
 		}
 	}

@@ -636,7 +636,7 @@ func TestCov_LoadServices_WithWarning(t *testing.T) {
 		services, err := loadServices(".")
 		// Services should be non-nil even with warnings
 		if err != nil && services == nil {
-			// Expected for some configs
+			_ = err // Expected for some configs
 		}
 		_ = services
 	})

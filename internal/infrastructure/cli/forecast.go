@@ -37,7 +37,7 @@ func runForecast(cmd *cobra.Command, args []string) error {
 	}
 	services, err := wiring.BuildAppServices(cwd)
 	if err != nil {
-		// Non-fatal - we can still try to forecast
+		_ = err // Non-fatal - we can still try to forecast
 	}
 
 	if services == nil || services.Forecast == nil {

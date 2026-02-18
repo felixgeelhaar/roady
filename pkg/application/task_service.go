@@ -311,11 +311,7 @@ func (s *TaskService) VerifyTask(ctx context.Context, taskID, verifier string) e
 }
 
 // AssignTask sets the owner on a task without requiring a status transition.
-func (s *TaskService) AssignTask(ctx context.Context, taskID, assignee string) error {
-	if ctx == nil {
-		ctx = context.Background()
-	}
-
+func (s *TaskService) AssignTask(_ context.Context, taskID, assignee string) error {
 	plan, err := s.repo.LoadPlan()
 	if err != nil {
 		return err

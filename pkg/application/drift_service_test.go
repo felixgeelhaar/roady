@@ -163,7 +163,7 @@ func TestDriftService_AcceptDrift(t *testing.T) {
 	if last.Action != "drift.accepted" {
 		t.Fatalf("unexpected event action: %s", last.Action)
 	}
-	if id, _ := last.Metadata["spec_id"]; id != spec.ID {
+	if id := last.Metadata["spec_id"]; id != spec.ID {
 		t.Fatalf("unexpected metadata: %+v", last.Metadata)
 	}
 }
