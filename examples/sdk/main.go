@@ -112,11 +112,12 @@ func main() {
 	// Example 6: Check policy compliance
 	fmt.Println("\n=== Policy Compliance ===")
 	violations, err := services.Policy.CheckCompliance()
-	if err != nil {
+	switch {
+	case err != nil:
 		log.Printf("Warning: Policy check failed: %v", err)
-	} else if len(violations) == 0 {
+	case len(violations) == 0:
 		fmt.Println("All policies satisfied!")
-	} else {
+	default:
 		fmt.Printf("Policy violations:\n")
 		for _, v := range violations {
 			fmt.Printf("  - [%s] %s: %s\n", v.Level, v.RuleID, v.Message)
@@ -161,11 +162,12 @@ func main() {
 	// Example 9: Get dependency graph
 	fmt.Println("\n=== Repository Dependencies ===")
 	deps, err := services.Dependency.ListDependencies()
-	if err != nil {
+	switch {
+	case err != nil:
 		log.Printf("Warning: Could not list dependencies: %v", err)
-	} else if len(deps) == 0 {
+	case len(deps) == 0:
 		fmt.Println("No cross-repo dependencies defined")
-	} else {
+	default:
 		fmt.Printf("Dependencies: %d\n", len(deps))
 		for _, d := range deps {
 			fmt.Printf("  - %s -> %s (%s)\n", d.SourceRepo, d.TargetRepo, d.Type)

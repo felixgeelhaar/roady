@@ -11,3 +11,7 @@ linters:
     - errcheck
     - staticcheck
     - unused
+  settings:
+    gocritic:
+      disabled-checks:
+        - deprecatedComment  # Fixing format triggers 195 SA1019 usages; defer to migration PR

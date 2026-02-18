@@ -469,11 +469,12 @@ func extractJSONPayload(text string) string {
 	startArray := strings.Index(clean, "[")
 	startObject := strings.Index(clean, "{")
 	start := -1
-	if startArray == -1 {
+	switch {
+	case startArray == -1:
 		start = startObject
-	} else if startObject == -1 || startArray < startObject {
+	case startObject == -1 || startArray < startObject:
 		start = startArray
-	} else {
+	default:
 		start = startObject
 	}
 	if start == -1 {
@@ -483,11 +484,12 @@ func extractJSONPayload(text string) string {
 	endArray := strings.LastIndex(clean, "]")
 	endObject := strings.LastIndex(clean, "}")
 	end := -1
-	if endArray == -1 {
+	switch {
+	case endArray == -1:
 		end = endObject
-	} else if endObject == -1 || endArray > endObject {
+	case endObject == -1 || endArray > endObject:
 		end = endArray
-	} else {
+	default:
 		end = endObject
 	}
 	if end == -1 || end <= start {

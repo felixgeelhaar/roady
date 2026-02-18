@@ -127,11 +127,12 @@ func outputForecastText(f *analytics.ForecastResult) error {
 
 	// Status indicator
 	fmt.Println()
-	if f.IsOnTrack() {
+	switch {
+	case f.IsOnTrack():
 		fmt.Println("Status: ON TRACK")
-	} else if f.Trend.Direction == analytics.TrendDecelerating {
+	case f.Trend.Direction == analytics.TrendDecelerating:
 		fmt.Println("Status: AT RISK (velocity declining)")
-	} else {
+	default:
 		fmt.Println("Status: NEEDS DATA")
 	}
 

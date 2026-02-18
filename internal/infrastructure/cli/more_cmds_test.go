@@ -540,9 +540,6 @@ func TestDiscoverCmd_NoProjects(t *testing.T) {
 func TestAuditVerifyCmd_Violations(t *testing.T) {
 	if os.Getenv("ROADY_TEST_AUDIT_VERIFY") == "1" {
 		tempDir, _ := os.MkdirTemp("", "roady-audit-verify-*")
-		defer func() { _ = os.RemoveAll(tempDir) }()
-		old, _ := os.Getwd()
-		defer func() { _ = os.Chdir(old) }()
 		_ = os.Chdir(tempDir)
 
 		repo := storage.NewFilesystemRepository(".")

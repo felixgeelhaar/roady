@@ -129,9 +129,10 @@ func (s *SpecService) parseMarkdownFile(path string) (*spec.ProductSpec, error) 
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
 
-		if strings.HasPrefix(line, "# ") {
+		switch {
+		case strings.HasPrefix(line, "# "):
 			productSpec.Title = strings.TrimSpace(strings.TrimPrefix(line, "# "))
-		} else if strings.HasPrefix(line, "## ") {
+		case strings.HasPrefix(line, "## "):
 			if currentFeature != nil {
 				currentFeature.Description = strings.TrimSpace(descriptionBuilder.String())
 				productSpec.Features = append(productSpec.Features, *currentFeature)
@@ -144,7 +145,7 @@ func (s *SpecService) parseMarkdownFile(path string) (*spec.ProductSpec, error) 
 				ID:    id,
 				Title: title,
 			}
-		} else {
+		default:
 			if currentFeature != nil {
 				descriptionBuilder.WriteString(line + "\n")
 			} else if productSpec.Description == "" && line != "" {

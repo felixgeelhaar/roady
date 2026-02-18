@@ -498,10 +498,8 @@ func (m configureModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m configureModel) updatePluginSelection(msg tea.Msg) (tea.Model, tea.Cmd) {
-	switch msg := msg.(type) {
-	case tea.KeyMsg:
-		switch msg.String() {
-		case "enter":
+	if msg, ok := msg.(tea.KeyMsg); ok {
+		if msg.String() == "enter" {
 			if item, ok := m.pluginList.SelectedItem().(listItem); ok {
 				m.pluginType = item.name
 				m.needsInstall = !item.installed
@@ -528,8 +526,7 @@ func (m configureModel) updatePluginSelection(msg tea.Msg) (tea.Model, tea.Cmd) 
 
 func (m configureModel) updateInstallPlugin(msg tea.Msg) (tea.Model, tea.Cmd) {
 	// Installation is handled via messages, just update spinner
-	switch msg := msg.(type) {
-	case tea.KeyMsg:
+	if msg, ok := msg.(tea.KeyMsg); ok {
 		if m.installErr != nil {
 			switch msg.String() {
 			case "enter", "r":
@@ -549,8 +546,7 @@ func (m configureModel) updateInstallPlugin(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m configureModel) updateConfigInputs(msg tea.Msg) (tea.Model, tea.Cmd) {
-	switch msg := msg.(type) {
-	case tea.KeyMsg:
+	if msg, ok := msg.(tea.KeyMsg); ok {
 		switch msg.String() {
 		case "tab", "down":
 			m.focusIndex++
