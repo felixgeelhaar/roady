@@ -9,7 +9,7 @@ import (
 
 func TestLoader_Full(t *testing.T) {
 	tempDir, _ := os.MkdirTemp("", "roady-plugin-full-*")
-	defer os.RemoveAll(tempDir)
+	defer func() { _ = os.RemoveAll(tempDir) }()
 
 	// 1. Build the mock plugin
 	pluginBin := filepath.Join(tempDir, "plugin.bin")
@@ -102,8 +102,8 @@ func TestLoader_LoadRelativePath(t *testing.T) {
 
 	// Change to tempDir and use relative path
 	oldWd, _ := os.Getwd()
-	os.Chdir(tempDir)
-	defer os.Chdir(oldWd)
+	if err := os.Chdir(tempDir); err != nil { t.Fatal(err) }
+	defer func() { if err := os.Chdir(oldWd); err != nil { t.Fatal(err) } }()
 
 	l := NewLoader()
 	// This should fail because it's not a real plugin, but the path validation should pass

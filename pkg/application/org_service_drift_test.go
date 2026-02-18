@@ -31,7 +31,9 @@ func TestDetectCrossDrift_ProjectsFound(t *testing.T) {
 	// Create two project dirs with .roady
 	for _, name := range []string{"proj-a", "proj-b"} {
 		dir := filepath.Join(root, name, ".roady")
-		os.MkdirAll(dir, 0700)
+		if err := os.MkdirAll(dir, 0700); err != nil {
+			t.Fatal(err)
+		}
 	}
 
 	svc := application.NewOrgService(root)

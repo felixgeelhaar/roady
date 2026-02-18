@@ -117,7 +117,7 @@ func TestDependencyService_AddDependency_InvalidType(t *testing.T) {
 func TestDependencyService_ListDependencies(t *testing.T) {
 	repo := newMockDependencyRepo("/test/root")
 	dep := dependency.NewRepoDependency("/test/root", "/other/repo", dependency.DependencyRuntime)
-	repo.AddDependency(dep)
+	_ = repo.AddDependency(dep)
 
 	svc := NewDependencyService(repo, "/test/root")
 
@@ -133,7 +133,7 @@ func TestDependencyService_ListDependencies(t *testing.T) {
 func TestDependencyService_RemoveDependency(t *testing.T) {
 	repo := newMockDependencyRepo("/test/root")
 	dep := dependency.NewRepoDependency("/test/root", "/other/repo", dependency.DependencyRuntime)
-	repo.AddDependency(dep)
+	_ = repo.AddDependency(dep)
 
 	svc := NewDependencyService(repo, "/test/root")
 
@@ -161,7 +161,7 @@ func TestDependencyService_RemoveDependency_NotFound(t *testing.T) {
 func TestDependencyService_GetDependency(t *testing.T) {
 	repo := newMockDependencyRepo("/test/root")
 	dep := dependency.NewRepoDependency("/test/root", "/other/repo", dependency.DependencyRuntime)
-	repo.AddDependency(dep)
+	_ = repo.AddDependency(dep)
 
 	svc := NewDependencyService(repo, "/test/root")
 
@@ -179,8 +179,8 @@ func TestDependencyService_GetDependency(t *testing.T) {
 
 func TestDependencyService_ScanDependentRepos(t *testing.T) {
 	repo := newMockDependencyRepo("/test/root")
-	repo.AddDependency(dependency.NewRepoDependency("/test/root", "/dep1", dependency.DependencyRuntime))
-	repo.AddDependency(dependency.NewRepoDependency("/test/root", "/dep2", dependency.DependencyData))
+	_ = repo.AddDependency(dependency.NewRepoDependency("/test/root", "/dep1", dependency.DependencyRuntime))
+	_ = repo.AddDependency(dependency.NewRepoDependency("/test/root", "/dep2", dependency.DependencyData))
 
 	scanner := newMockHealthScanner()
 	scanner.healthMap["/dep1"] = &dependency.RepoHealth{
@@ -211,7 +211,7 @@ func TestDependencyService_ScanDependentRepos(t *testing.T) {
 
 func TestDependencyService_ScanDependentRepos_NoScanner(t *testing.T) {
 	repo := newMockDependencyRepo("/test/root")
-	repo.AddDependency(dependency.NewRepoDependency("/test/root", "/dep1", dependency.DependencyRuntime))
+	_ = repo.AddDependency(dependency.NewRepoDependency("/test/root", "/dep1", dependency.DependencyRuntime))
 
 	svc := NewDependencyService(repo, "/test/root")
 
@@ -271,9 +271,9 @@ func TestDependencyService_ImportFromSpec_InvalidType(t *testing.T) {
 
 func TestDependencyService_GetDependencySummary(t *testing.T) {
 	repo := newMockDependencyRepo("/test/root")
-	repo.AddDependency(dependency.NewRepoDependency("/test/root", "/dep1", dependency.DependencyRuntime))
-	repo.AddDependency(dependency.NewRepoDependency("/test/root", "/dep2", dependency.DependencyRuntime))
-	repo.AddDependency(dependency.NewRepoDependency("/test/root", "/dep3", dependency.DependencyData))
+	_ = repo.AddDependency(dependency.NewRepoDependency("/test/root", "/dep1", dependency.DependencyRuntime))
+	_ = repo.AddDependency(dependency.NewRepoDependency("/test/root", "/dep2", dependency.DependencyRuntime))
+	_ = repo.AddDependency(dependency.NewRepoDependency("/test/root", "/dep3", dependency.DependencyData))
 
 	svc := NewDependencyService(repo, "/test/root")
 
@@ -292,8 +292,8 @@ func TestDependencyService_GetDependencySummary(t *testing.T) {
 
 func TestDependencyService_CheckForCycles(t *testing.T) {
 	repo := newMockDependencyRepo("/a")
-	repo.AddDependency(dependency.NewRepoDependency("/a", "/b", dependency.DependencyRuntime))
-	repo.AddDependency(dependency.NewRepoDependency("/b", "/c", dependency.DependencyRuntime))
+	_ = repo.AddDependency(dependency.NewRepoDependency("/a", "/b", dependency.DependencyRuntime))
+	_ = repo.AddDependency(dependency.NewRepoDependency("/b", "/c", dependency.DependencyRuntime))
 
 	svc := NewDependencyService(repo, "/a")
 
@@ -308,8 +308,8 @@ func TestDependencyService_CheckForCycles(t *testing.T) {
 
 func TestDependencyService_CheckForCycles_WithCycle(t *testing.T) {
 	repo := newMockDependencyRepo("/a")
-	repo.AddDependency(dependency.NewRepoDependency("/a", "/b", dependency.DependencyRuntime))
-	repo.AddDependency(dependency.NewRepoDependency("/b", "/a", dependency.DependencyRuntime)) // Cycle
+	_ = repo.AddDependency(dependency.NewRepoDependency("/a", "/b", dependency.DependencyRuntime))
+	_ = repo.AddDependency(dependency.NewRepoDependency("/b", "/a", dependency.DependencyRuntime)) // Cycle
 
 	svc := NewDependencyService(repo, "/a")
 
@@ -324,8 +324,8 @@ func TestDependencyService_CheckForCycles_WithCycle(t *testing.T) {
 
 func TestDependencyService_GetDependencyOrder(t *testing.T) {
 	repo := newMockDependencyRepo("/root")
-	repo.AddDependency(dependency.NewRepoDependency("/root", "/a", dependency.DependencyRuntime))
-	repo.AddDependency(dependency.NewRepoDependency("/a", "/b", dependency.DependencyRuntime))
+	_ = repo.AddDependency(dependency.NewRepoDependency("/root", "/a", dependency.DependencyRuntime))
+	_ = repo.AddDependency(dependency.NewRepoDependency("/a", "/b", dependency.DependencyRuntime))
 
 	svc := NewDependencyService(repo, "/root")
 
@@ -340,8 +340,8 @@ func TestDependencyService_GetDependencyOrder(t *testing.T) {
 
 func TestDependencyService_GetUnhealthyDependencies(t *testing.T) {
 	repo := newMockDependencyRepo("/root")
-	repo.UpdateRepoHealth(&dependency.RepoHealth{RepoPath: "/healthy", IsReachable: true})
-	repo.UpdateRepoHealth(&dependency.RepoHealth{RepoPath: "/unhealthy", IsReachable: true, HasDrift: true})
+	_ = repo.UpdateRepoHealth(&dependency.RepoHealth{RepoPath: "/healthy", IsReachable: true})
+	_ = repo.UpdateRepoHealth(&dependency.RepoHealth{RepoPath: "/unhealthy", IsReachable: true, HasDrift: true})
 
 	svc := NewDependencyService(repo, "/root")
 

@@ -62,7 +62,7 @@ func (w *FSWatcher) WatchRecursive(root string) error {
 
 // Run starts the event loop. It blocks until the context is cancelled.
 func (w *FSWatcher) Run(ctx context.Context) error {
-	defer w.watcher.Close()
+	defer w.watcher.Close() //nolint:errcheck // best-effort cleanup
 
 	var lastEvent ChangeEvent
 	debouncer := NewDebouncer(w.debounce, func() {

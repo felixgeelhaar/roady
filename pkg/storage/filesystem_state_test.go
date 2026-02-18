@@ -94,7 +94,7 @@ func TestSaveState_NoConflictOnNewFile(t *testing.T) {
 
 	// Remove state file if it exists
 	path, _ := repo.ResolvePath(StateFile)
-	os.Remove(path)
+	_ = os.Remove(path)
 
 	state := planning.NewExecutionState("test")
 	if err := repo.SaveState(state); err != nil {

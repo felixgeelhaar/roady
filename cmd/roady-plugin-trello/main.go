@@ -116,7 +116,7 @@ func (s *TrelloSyncer) doGet(ctx context.Context, endpoint string, params map[st
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer resp.Body.Close() //nolint:errcheck // best-effort close on read body
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -140,7 +140,7 @@ func (s *TrelloSyncer) doPost(ctx context.Context, endpoint string, params map[s
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer resp.Body.Close() //nolint:errcheck // best-effort close on read body
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -164,7 +164,7 @@ func (s *TrelloSyncer) doPut(ctx context.Context, endpoint string, params map[st
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer resp.Body.Close() //nolint:errcheck // best-effort close on read body
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {

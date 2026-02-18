@@ -9,7 +9,7 @@ import (
 
 func TestNewServer_Initialization(t *testing.T) {
 	tempDir, _ := os.MkdirTemp("", "roady-mcp-init-*")
-	defer os.RemoveAll(tempDir)
+	defer func() { _ = os.RemoveAll(tempDir) }()
 
 	s, err := mcp.NewServer(tempDir)
 	if err != nil {

@@ -23,7 +23,7 @@ func TestGeminiProvider_Complete_Success(t *testing.T) {
 
 		// Return mock response
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]interface{}{
+		_ = json.NewEncoder(w).Encode(map[string]interface{}{
 			"candidates": []map[string]interface{}{
 				{
 					"content": map[string]interface{}{
@@ -65,10 +65,10 @@ func TestGeminiProvider_Complete_WithSystemPrompt(t *testing.T) {
 	var receivedBody map[string]interface{}
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		json.NewDecoder(r.Body).Decode(&receivedBody)
+		_ = json.NewDecoder(r.Body).Decode(&receivedBody)
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]interface{}{
+		_ = json.NewEncoder(w).Encode(map[string]interface{}{
 			"candidates": []map[string]interface{}{
 				{
 					"content": map[string]interface{}{
@@ -143,7 +143,7 @@ func TestGeminiProvider_Complete_Unauthorized(t *testing.T) {
 func TestGeminiProvider_Complete_EmptyCandidates(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]interface{}{
+		_ = json.NewEncoder(w).Encode(map[string]interface{}{
 			"candidates":    []map[string]interface{}{},
 			"usageMetadata": map[string]int{"promptTokenCount": 5, "candidatesTokenCount": 0},
 		})
@@ -160,7 +160,7 @@ func TestGeminiProvider_Complete_EmptyCandidates(t *testing.T) {
 func TestGeminiProvider_Complete_EmptyParts(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]interface{}{
+		_ = json.NewEncoder(w).Encode(map[string]interface{}{
 			"candidates": []map[string]interface{}{
 				{
 					"content": map[string]interface{}{
@@ -183,7 +183,7 @@ func TestGeminiProvider_Complete_EmptyParts(t *testing.T) {
 func TestGeminiProvider_Complete_MalformedJSON(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte("not json"))
+		_, _ = w.Write([]byte("not json"))
 	}))
 	defer server.Close()
 
@@ -229,10 +229,10 @@ func TestGeminiProvider_Complete_NoSystemPrompt(t *testing.T) {
 	var receivedBody map[string]interface{}
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		json.NewDecoder(r.Body).Decode(&receivedBody)
+		_ = json.NewDecoder(r.Body).Decode(&receivedBody)
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]interface{}{
+		_ = json.NewEncoder(w).Encode(map[string]interface{}{
 			"candidates": []map[string]interface{}{
 				{
 					"content": map[string]interface{}{

@@ -38,7 +38,7 @@ func NewFileEventStore(basePath string) (*FileEventStore, error) {
 }
 
 // Append adds a new event to the store.
-func (s *FileEventStore) Append(event *events.BaseEvent) error {
+func (s *FileEventStore) Append(event *events.BaseEvent) (err error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -69,7 +69,11 @@ func (s *FileEventStore) Append(event *events.BaseEvent) error {
 	if err != nil {
 		return fmt.Errorf("open events file: %w", err)
 	}
-	defer f.Close()
+	defer func() {
+		if cerr := f.Close(); cerr != nil && err == nil {
+			err = fmt.Errorf("close events file: %w", cerr)
+		}
+	}()
 
 	// Write JSON line
 	data, err := json.Marshal(event)
@@ -221,7 +225,7 @@ func (s *FileEventStore) loadEvents() ([]*events.BaseEvent, error) {
 	if err != nil {
 		return nil, fmt.Errorf("open events file: %w", err)
 	}
-	defer f.Close()
+	defer f.Close() //nolint:errcheck // read-only file
 
 	var result []*events.BaseEvent
 	scanner := bufio.NewScanner(f)

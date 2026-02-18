@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+# Pre-commit hook — matches CI quality gates.
+# Skip with: git commit --no-verify
+set -euo pipefail
+
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+BOLD='\033[1m'
+RESET='\033[0m'
+
+pass() { echo -e "${GREEN}PASS${RESET}"; }
+fail() { echo -e "${RED}FAIL${RESET}"; exit 1; }
+warn() { echo -e "${YELLOW}WARNING: $1 not found, skipping${RESET}"; }
+
+# ---------- Step 1: Build ----------
+echo -e "${BOLD}[1/5] go build ./...${RESET}"
+go build ./... || fail
+pass
+
+# ---------- Step 2: Lint ----------
+echo -e "${BOLD}[2/5] golangci-lint run ./...${RESET}"
+if command -v golangci-lint >/dev/null 2>&1; then
+  golangci-lint run --new-from-rev=HEAD ./... || fail
+  pass
+else
+  warn "golangci-lint"
+fi
+
+# ---------- Step 3: Test + coverage profile ----------
+echo -e "${BOLD}[3/5] go test -coverprofile=coverage.out ./...${RESET}"
+go test -coverprofile=coverage.out ./... || fail
+pass
+
+# ---------- Step 4: Coverage policy ----------
+echo -e "${BOLD}[4/5] coverctl check --from-profile -p coverage.out${RESET}"
+if command -v coverctl >/dev/null 2>&1; then
+  coverctl check --from-profile -p coverage.out || fail
+  pass
+else
+  warn "coverctl"
+fi
+
+# ---------- Step 5: Security scan (staged files only, advisory) ----------
+echo -e "${BOLD}[5/5] nox scan --staged .${RESET}"
+if command -v nox >/dev/null 2>&1; then
+  # Advisory only — nox reports all findings in staged files, not just new ones.
+  # Matches CI behaviour (continue-on-error). Use 'verdict scan' for gating.
+  nox scan --staged . || echo -e "${YELLOW}nox reported findings (advisory)${RESET}"
+  pass
+else
+  warn "nox"
+fi
+
+echo -e "${GREEN}${BOLD}All checks passed.${RESET}"

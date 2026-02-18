@@ -81,7 +81,7 @@ Access the dashboard in your browser at the displayed URL.`,
 			fmt.Println("\nShutting down dashboard...")
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
-			server.Shutdown(ctx)
+			_ = server.Shutdown(ctx)
 		}()
 
 		fmt.Printf("Dashboard starting on http://localhost:%d\n", dashboardPort)
@@ -122,7 +122,7 @@ var dashboardOpenCmd = &cobra.Command{
 			fmt.Println("\nShutting down dashboard...")
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
-			server.Shutdown(ctx)
+			_ = server.Shutdown(ctx)
 		}()
 
 		// Start server in background

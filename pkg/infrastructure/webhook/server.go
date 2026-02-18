@@ -89,7 +89,7 @@ func (s *Server) Start() error {
 	// Health check endpoint
 	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("ok"))
+		_, _ = w.Write([]byte("ok"))
 	})
 
 	// Recent events endpoint (for debugging)
@@ -160,7 +160,7 @@ func (s *Server) handleWebhook(provider string) http.HandlerFunc {
 
 		log.Printf("Processed %s webhook: type=%s task=%s", provider, event.EventType, event.TaskID)
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
+		_ = json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
 	}
 }
 
@@ -171,7 +171,7 @@ func (s *Server) handleEvents(w http.ResponseWriter, r *http.Request) {
 	s.mu.RUnlock()
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(events)
+	_ = json.NewEncoder(w).Encode(events)
 }
 
 func (s *Server) storeEvent(event *Event) {

@@ -11,7 +11,9 @@ import (
 func TestFilesystemRepository_SaveLoadDependencyGraph(t *testing.T) {
 	tmpDir := t.TempDir()
 	repo := NewFilesystemRepository(tmpDir)
-	repo.Initialize()
+	if err := repo.Initialize(); err != nil {
+		t.Fatal(err)
+	}
 
 	graph := dependency.NewDependencyGraph(tmpDir)
 	graph.AddDependency(dependency.NewRepoDependency(tmpDir, "/other/repo", dependency.DependencyRuntime))
@@ -44,7 +46,9 @@ func TestFilesystemRepository_SaveLoadDependencyGraph(t *testing.T) {
 func TestFilesystemRepository_LoadDependencyGraph_NotExists(t *testing.T) {
 	tmpDir := t.TempDir()
 	repo := NewFilesystemRepository(tmpDir)
-	repo.Initialize()
+	if err := repo.Initialize(); err != nil {
+		t.Fatal(err)
+	}
 
 	graph, err := repo.LoadDependencyGraph()
 	if err != nil {
@@ -58,7 +62,9 @@ func TestFilesystemRepository_LoadDependencyGraph_NotExists(t *testing.T) {
 func TestFilesystemRepository_AddDependency(t *testing.T) {
 	tmpDir := t.TempDir()
 	repo := NewFilesystemRepository(tmpDir)
-	repo.Initialize()
+	if err := repo.Initialize(); err != nil {
+		t.Fatal(err)
+	}
 
 	dep := dependency.NewRepoDependency(tmpDir, "/other/repo", dependency.DependencyRuntime)
 
@@ -91,10 +97,14 @@ func TestFilesystemRepository_AddDependency(t *testing.T) {
 func TestFilesystemRepository_RemoveDependency(t *testing.T) {
 	tmpDir := t.TempDir()
 	repo := NewFilesystemRepository(tmpDir)
-	repo.Initialize()
+	if err := repo.Initialize(); err != nil {
+		t.Fatal(err)
+	}
 
 	dep := dependency.NewRepoDependency(tmpDir, "/other/repo", dependency.DependencyRuntime)
-	repo.AddDependency(dep)
+	if err := repo.AddDependency(dep); err != nil {
+		t.Fatal(err)
+	}
 
 	// Remove existing
 	err := repo.RemoveDependency(dep.ID)
@@ -111,7 +121,9 @@ func TestFilesystemRepository_RemoveDependency(t *testing.T) {
 func TestFilesystemRepository_RemoveDependency_NotExists(t *testing.T) {
 	tmpDir := t.TempDir()
 	repo := NewFilesystemRepository(tmpDir)
-	repo.Initialize()
+	if err := repo.Initialize(); err != nil {
+		t.Fatal(err)
+	}
 
 	// Remove from empty graph
 	err := repo.RemoveDependency("nonexistent")
@@ -123,10 +135,14 @@ func TestFilesystemRepository_RemoveDependency_NotExists(t *testing.T) {
 func TestFilesystemRepository_GetDependency(t *testing.T) {
 	tmpDir := t.TempDir()
 	repo := NewFilesystemRepository(tmpDir)
-	repo.Initialize()
+	if err := repo.Initialize(); err != nil {
+		t.Fatal(err)
+	}
 
 	dep := dependency.NewRepoDependency(tmpDir, "/other/repo", dependency.DependencyRuntime)
-	repo.AddDependency(dep)
+	if err := repo.AddDependency(dep); err != nil {
+		t.Fatal(err)
+	}
 
 	// Get existing
 	found, err := repo.GetDependency(dep.ID)
@@ -153,7 +169,9 @@ func TestFilesystemRepository_GetDependency(t *testing.T) {
 func TestFilesystemRepository_ListDependencies(t *testing.T) {
 	tmpDir := t.TempDir()
 	repo := NewFilesystemRepository(tmpDir)
-	repo.Initialize()
+	if err := repo.Initialize(); err != nil {
+		t.Fatal(err)
+	}
 
 	// List empty
 	deps, err := repo.ListDependencies()
@@ -165,8 +183,12 @@ func TestFilesystemRepository_ListDependencies(t *testing.T) {
 	}
 
 	// Add and list
-	repo.AddDependency(dependency.NewRepoDependency(tmpDir, "/a", dependency.DependencyRuntime))
-	repo.AddDependency(dependency.NewRepoDependency(tmpDir, "/b", dependency.DependencyData))
+	if err := repo.AddDependency(dependency.NewRepoDependency(tmpDir, "/a", dependency.DependencyRuntime)); err != nil {
+		t.Fatal(err)
+	}
+	if err := repo.AddDependency(dependency.NewRepoDependency(tmpDir, "/b", dependency.DependencyData)); err != nil {
+		t.Fatal(err)
+	}
 
 	deps, err = repo.ListDependencies()
 	if err != nil {
@@ -180,7 +202,7 @@ func TestFilesystemRepository_ListDependencies(t *testing.T) {
 func TestFilesystemRepository_UpdateRepoHealth(t *testing.T) {
 	tmpDir := t.TempDir()
 	repo := NewFilesystemRepository(tmpDir)
-	repo.Initialize()
+	if err := repo.Initialize(); err != nil { t.Fatal(err) }
 
 	health := &dependency.RepoHealth{
 		RepoPath:       "/some/repo",
@@ -210,7 +232,7 @@ func TestFilesystemRepository_UpdateRepoHealth(t *testing.T) {
 func TestFilesystemRepository_GetRepoHealth_NotExists(t *testing.T) {
 	tmpDir := t.TempDir()
 	repo := NewFilesystemRepository(tmpDir)
-	repo.Initialize()
+	if err := repo.Initialize(); err != nil { t.Fatal(err) }
 
 	health, err := repo.GetRepoHealth("/nonexistent")
 	if err != nil {

@@ -13,15 +13,15 @@ import (
 
 func TestSpecService_ImportFromMarkdown(t *testing.T) {
 	tempDir, _ := os.MkdirTemp("", "roady-spec-test-*")
-	defer os.RemoveAll(tempDir)
+	defer func() { _ = os.RemoveAll(tempDir) }()
 
 	repo := storage.NewFilesystemRepository(tempDir)
-	repo.Initialize()
+	_ = repo.Initialize()
 	service := application.NewSpecService(repo)
 
 	mdPath := filepath.Join(tempDir, "test.md")
 	content := "# My Project\n\n## Feature 1\nDescription 1"
-	os.WriteFile(mdPath, []byte(content), 0600)
+	_ = os.WriteFile(mdPath, []byte(content), 0600)
 
 	s, err := service.ImportFromMarkdown(mdPath)
 	if err != nil {
@@ -34,14 +34,14 @@ func TestSpecService_ImportFromMarkdown(t *testing.T) {
 
 func TestSpecService_ComplexMarkdown(t *testing.T) {
 	tempDir, _ := os.MkdirTemp("", "roady-spec-complex-*")
-	defer os.RemoveAll(tempDir)
+	defer func() { _ = os.RemoveAll(tempDir) }()
 	repo := storage.NewFilesystemRepository(tempDir)
-	repo.Initialize()
+	_ = repo.Initialize()
 	service := application.NewSpecService(repo)
 
 	mdPath := filepath.Join(tempDir, "complex.md")
 	content := "# Project\nHigh level desc\n\n## F1\nDesc 1\n- item 1\n\n## F2\nDesc 2"
-	os.WriteFile(mdPath, []byte(content), 0600)
+	_ = os.WriteFile(mdPath, []byte(content), 0600)
 
 	s, err := service.ImportFromMarkdown(mdPath)
 	if err != nil {
@@ -54,14 +54,14 @@ func TestSpecService_ComplexMarkdown(t *testing.T) {
 
 func TestSpecService_LeadingDesc(t *testing.T) {
 	tempDir, _ := os.MkdirTemp("", "roady-spec-leading-*")
-	defer os.RemoveAll(tempDir)
+	defer func() { _ = os.RemoveAll(tempDir) }()
 	repo := storage.NewFilesystemRepository(tempDir)
-	repo.Initialize()
+	_ = repo.Initialize()
 	service := application.NewSpecService(repo)
 
 	mdPath := filepath.Join(tempDir, "leading.md")
 	content := "This is a leading description.\n\n# Project Name"
-	os.WriteFile(mdPath, []byte(content), 0600)
+	_ = os.WriteFile(mdPath, []byte(content), 0600)
 
 	s, _ := service.ImportFromMarkdown(mdPath)
 	if s.Description != "This is a leading description." {
@@ -83,9 +83,13 @@ func TestSpecService_Import_Mock(t *testing.T) {
 	service := application.NewSpecService(repo)
 
 	tempFile, _ := os.CreateTemp("", "import-*.md")
-	defer os.Remove(tempFile.Name())
-	tempFile.WriteString("# Hello")
-	tempFile.Close()
+	defer func() { _ = os.Remove(tempFile.Name()) }()
+	if _, err := tempFile.WriteString("# Hello"); err != nil {
+		t.Fatal(err)
+	}
+	if err := tempFile.Close(); err != nil {
+		t.Fatal(err)
+	}
 
 	_, err := service.ImportFromMarkdown(tempFile.Name())
 	if err != nil {
@@ -109,15 +113,15 @@ func TestSpecService_ImportError(t *testing.T) {
 
 func TestSpecService_AnalyzeDirectory(t *testing.T) {
 	tempDir, _ := os.MkdirTemp("", "roady-spec-analyze-*")
-	defer os.RemoveAll(tempDir)
+	defer func() { _ = os.RemoveAll(tempDir) }()
 	repo := storage.NewFilesystemRepository(tempDir)
-	repo.Initialize()
+	_ = repo.Initialize()
 	service := application.NewSpecService(repo)
 
 	first := filepath.Join(tempDir, "a.md")
 	second := filepath.Join(tempDir, "b.md")
-	os.WriteFile(first, []byte("# Project\n\n## Feature One\nDesc A"), 0600)
-	os.WriteFile(second, []byte("# Project\n\n## Feature One\nDesc B"), 0600)
+	_ = os.WriteFile(first, []byte("# Project\n\n## Feature One\nDesc A"), 0600)
+	_ = os.WriteFile(second, []byte("# Project\n\n## Feature One\nDesc B"), 0600)
 
 	spec, err := service.AnalyzeDirectory(tempDir)
 	if err != nil {
@@ -136,9 +140,9 @@ func TestSpecService_AnalyzeDirectory(t *testing.T) {
 
 func TestSpecService_AddFeature(t *testing.T) {
 	tempDir, _ := os.MkdirTemp("", "roady-spec-add-*")
-	defer os.RemoveAll(tempDir)
+	defer func() { _ = os.RemoveAll(tempDir) }()
 	repo := storage.NewFilesystemRepository(tempDir)
-	repo.Initialize()
+	_ = repo.Initialize()
 	service := application.NewSpecService(repo)
 
 	if err := repo.SaveSpec(&spec.ProductSpec{
@@ -153,8 +157,14 @@ func TestSpecService_AddFeature(t *testing.T) {
 	}
 
 	oldWD, _ := os.Getwd()
-	defer os.Chdir(oldWD)
-	os.Chdir(tempDir)
+	defer func() {
+		if err := os.Chdir(oldWD); err != nil {
+			t.Fatal(err)
+		}
+	}()
+	if err := os.Chdir(tempDir); err != nil {
+		t.Fatal(err)
+	}
 
 	updated, err := service.AddFeature("Feature 2", "Desc 2")
 	if err != nil {

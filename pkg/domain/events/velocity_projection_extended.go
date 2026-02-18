@@ -67,7 +67,7 @@ func (p *ExtendedVelocityProjection) Apply(event *BaseEvent) error {
 }
 
 func (p *ExtendedVelocityProjection) Rebuild(events []*BaseEvent) error {
-	p.Reset()
+	_ = p.Reset()
 	for _, event := range events {
 		if err := p.Apply(event); err != nil {
 			return err

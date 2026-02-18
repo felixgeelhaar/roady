@@ -204,7 +204,7 @@ func TestGitHubSyncer_Sync(t *testing.T) {
 					Assignee: &github.User{Login: github.Ptr("dev1")},
 				},
 			}
-			json.NewEncoder(w).Encode(issues)
+			_ = json.NewEncoder(w).Encode(issues)
 			return
 		}
 		if r.Method == "POST" {
@@ -216,7 +216,7 @@ func TestGitHubSyncer_Sync(t *testing.T) {
 				State:   github.Ptr("open"),
 				HTMLURL: github.Ptr("https://github.com/owner/repo/issues/2"),
 			}
-			json.NewEncoder(w).Encode(issue)
+			_ = json.NewEncoder(w).Encode(issue)
 			return
 		}
 	})
@@ -271,12 +271,12 @@ func TestGitHubSyncer_Push(t *testing.T) {
 				HTMLURL: github.Ptr("https://github.com/owner/repo/issues/1"),
 			},
 		}
-		json.NewEncoder(w).Encode(issues)
+		_ = json.NewEncoder(w).Encode(issues)
 	})
 	mux.HandleFunc("/repos/owner/repo/issues/1", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == "PATCH" {
 			editCalled = true
-			json.NewEncoder(w).Encode(&github.Issue{
+			_ = json.NewEncoder(w).Encode(&github.Issue{
 				Number: github.Ptr(1),
 				State:  github.Ptr("closed"),
 			})
@@ -308,7 +308,7 @@ func TestGitHubSyncer_Push(t *testing.T) {
 func TestGitHubSyncer_Push_NotFound(t *testing.T) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/repos/owner/repo/issues", func(w http.ResponseWriter, r *http.Request) {
-		json.NewEncoder(w).Encode([]*github.Issue{})
+		_ = json.NewEncoder(w).Encode([]*github.Issue{})
 	})
 
 	server := httptest.NewServer(mux)
@@ -333,7 +333,7 @@ func TestGitHubSyncer_Push_NotFound(t *testing.T) {
 func TestGitHubSyncer_Push_UnsupportedStatus(t *testing.T) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/repos/owner/repo/issues", func(w http.ResponseWriter, r *http.Request) {
-		json.NewEncoder(w).Encode([]*github.Issue{
+		_ = json.NewEncoder(w).Encode([]*github.Issue{
 			{
 				Number: github.Ptr(1),
 				Body:   github.Ptr("roady-id: t1"),
@@ -364,7 +364,7 @@ func TestGitHubSyncer_Push_UnsupportedStatus(t *testing.T) {
 func TestGitHubSyncer_Push_AlreadyCorrectState(t *testing.T) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/repos/owner/repo/issues", func(w http.ResponseWriter, r *http.Request) {
-		json.NewEncoder(w).Encode([]*github.Issue{
+		_ = json.NewEncoder(w).Encode([]*github.Issue{
 			{
 				Number: github.Ptr(1),
 				Body:   github.Ptr("roady-id: t1"),
@@ -405,7 +405,7 @@ func TestGitHubSyncer_Sync_WithExistingRef(t *testing.T) {
 				HTMLURL: github.Ptr("https://github.com/owner/repo/issues/42"),
 			},
 		}
-		json.NewEncoder(w).Encode(issues)
+		_ = json.NewEncoder(w).Encode(issues)
 	})
 
 	server := httptest.NewServer(mux)
@@ -446,7 +446,7 @@ func TestGitHubSyncer_Push_ReopenIssue(t *testing.T) {
 	var editCalled bool
 	mux := http.NewServeMux()
 	mux.HandleFunc("/repos/owner/repo/issues", func(w http.ResponseWriter, r *http.Request) {
-		json.NewEncoder(w).Encode([]*github.Issue{
+		_ = json.NewEncoder(w).Encode([]*github.Issue{
 			{
 				Number: github.Ptr(1),
 				Body:   github.Ptr("roady-id: t1"),
@@ -457,7 +457,7 @@ func TestGitHubSyncer_Push_ReopenIssue(t *testing.T) {
 	mux.HandleFunc("/repos/owner/repo/issues/1", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == "PATCH" {
 			editCalled = true
-			json.NewEncoder(w).Encode(&github.Issue{
+			_ = json.NewEncoder(w).Encode(&github.Issue{
 				Number: github.Ptr(1),
 				State:  github.Ptr("open"),
 			})
@@ -501,7 +501,7 @@ func TestGitHubSyncer_Sync_TitleMatchFallback(t *testing.T) {
 					HTMLURL: github.Ptr("https://github.com/owner/repo/issues/5"),
 				},
 			}
-			json.NewEncoder(w).Encode(issues)
+			_ = json.NewEncoder(w).Encode(issues)
 			return
 		}
 	})

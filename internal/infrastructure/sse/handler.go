@@ -90,9 +90,9 @@ func (h *SSEHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				continue
 			}
 
-			fmt.Fprintf(w, "id: %s\n", event.ID)
-			fmt.Fprintf(w, "event: %s\n", event.Type)
-			fmt.Fprintf(w, "data: {\"type\":\"%s\",\"aggregate_id\":\"%s\",\"timestamp\":\"%s\"}\n\n",
+			_, _ = fmt.Fprintf(w, "id: %s\n", event.ID)
+			_, _ = fmt.Fprintf(w, "event: %s\n", event.Type)
+			_, _ = fmt.Fprintf(w, "data: {\"type\":\"%s\",\"aggregate_id\":\"%s\",\"timestamp\":\"%s\"}\n\n",
 				event.Type, event.AggregateID(), event.Timestamp.Format("2006-01-02T15:04:05Z07:00"))
 			flusher.Flush()
 		}

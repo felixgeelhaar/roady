@@ -86,7 +86,7 @@ func TestRunAIConfigureInteractiveWritesConfig(t *testing.T) {
 	os.Stdin = tmpFile
 	t.Cleanup(func() {
 		os.Stdin = origStdin
-		tmpFile.Close()
+		_ = tmpFile.Close()
 		_ = os.Remove(tmpFile.Name())
 	})
 
@@ -134,7 +134,7 @@ func TestRunAIConfigureInteractiveDisablesAI(t *testing.T) {
 	os.Stdin = tmpFile
 	t.Cleanup(func() {
 		os.Stdin = origStdin
-		tmpFile.Close()
+		_ = tmpFile.Close()
 		_ = os.Remove(tmpFile.Name())
 	})
 

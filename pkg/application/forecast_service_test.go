@@ -66,7 +66,7 @@ func TestForecastService_GetForecast_WithPlan(t *testing.T) {
 	// Add some completion events
 	now := time.Now()
 	for i := 0; i < 5; i++ {
-		projection.Apply(&events.BaseEvent{
+		_ = projection.Apply(&events.BaseEvent{
 			Type:      events.EventTypeTaskCompleted,
 			Timestamp: now.AddDate(0, 0, -i),
 			Metadata:  map[string]interface{}{"task_id": "completed-task"},
@@ -198,7 +198,7 @@ func TestForecastService_GetSimpleForecast(t *testing.T) {
 
 	now := time.Now()
 	for i := 0; i < 3; i++ {
-		projection.Apply(&events.BaseEvent{
+		_ = projection.Apply(&events.BaseEvent{
 			Type:      events.EventTypeTaskCompleted,
 			Timestamp: now.AddDate(0, 0, -i),
 			Metadata:  map[string]interface{}{"task_id": "t"},

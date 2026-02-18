@@ -67,9 +67,9 @@ func TestEventDispatcher_RegisterMultipleEventTypes(t *testing.T) {
 		EventTypes: []string{"event.a", "event.b", "event.c"},
 	})
 
-	d.Dispatch(context.Background(), newMockEvent("event.a"))
-	d.Dispatch(context.Background(), newMockEvent("event.b"))
-	d.Dispatch(context.Background(), newMockEvent("event.c"))
+	if err := d.Dispatch(context.Background(), newMockEvent("event.a")); err != nil { t.Fatal(err) }
+	if err := d.Dispatch(context.Background(), newMockEvent("event.b")); err != nil { t.Fatal(err) }
+	if err := d.Dispatch(context.Background(), newMockEvent("event.c")); err != nil { t.Fatal(err) }
 
 	if callCount != 3 {
 		t.Errorf("Expected 3 calls, got %d", callCount)
@@ -85,9 +85,9 @@ func TestEventDispatcher_Wildcard(t *testing.T) {
 		return nil
 	})
 
-	d.Dispatch(context.Background(), newMockEvent("event.a"))
-	d.Dispatch(context.Background(), newMockEvent("event.b"))
-	d.Dispatch(context.Background(), newMockEvent("event.c"))
+	_ = d.Dispatch(context.Background(), newMockEvent("event.a"))
+	_ = d.Dispatch(context.Background(), newMockEvent("event.b"))
+	_ = d.Dispatch(context.Background(), newMockEvent("event.c"))
 
 	if callCount != 3 {
 		t.Errorf("Expected 3 calls for wildcard handler, got %d", callCount)
@@ -110,7 +110,7 @@ func TestEventDispatcher_MultipleHandlers(t *testing.T) {
 		return nil
 	}, "test.event")
 
-	d.Dispatch(context.Background(), newMockEvent("test.event"))
+	_ = d.Dispatch(context.Background(), newMockEvent("test.event"))
 
 	if !handler1Called {
 		t.Error("Handler1 was not called")

@@ -540,9 +540,9 @@ func TestDiscoverCmd_NoProjects(t *testing.T) {
 func TestAuditVerifyCmd_Violations(t *testing.T) {
 	if os.Getenv("ROADY_TEST_AUDIT_VERIFY") == "1" {
 		tempDir, _ := os.MkdirTemp("", "roady-audit-verify-*")
-		defer os.RemoveAll(tempDir)
+		defer func() { _ = os.RemoveAll(tempDir) }()
 		old, _ := os.Getwd()
-		defer os.Chdir(old)
+		defer func() { _ = os.Chdir(old) }()
 		_ = os.Chdir(tempDir)
 
 		repo := storage.NewFilesystemRepository(".")
@@ -730,7 +730,7 @@ func TestDriftDetectCmd_JSON(t *testing.T) {
 	_ = repo.SaveState(planning.NewExecutionState("p1"))
 
 	_ = driftDetectCmd.Flags().Set("output", "json")
-	defer driftDetectCmd.Flags().Set("output", "text")
+	defer func() { _ = driftDetectCmd.Flags().Set("output", "text") }()
 
 	if err := driftDetectCmd.RunE(driftDetectCmd, []string{}); err == nil {
 		t.Fatal("expected drift error")

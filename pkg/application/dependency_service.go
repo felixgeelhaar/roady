@@ -156,7 +156,7 @@ func (s *DependencyService) ScanDependentRepos(healthScanner HealthScanner) (*Sc
 		}
 
 		// Update stored health
-		s.repo.UpdateRepoHealth(health)
+		_ = s.repo.UpdateRepoHealth(health)
 	}
 
 	return result, nil

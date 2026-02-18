@@ -17,7 +17,7 @@ func TestHappyPath(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer os.RemoveAll(tempDir)
+	defer func() { _ = os.RemoveAll(tempDir) }()
 
 	// Helper to run roady
 	runRoady := func(args ...string) string {
@@ -120,7 +120,7 @@ features:
 	}
 
 	// 6. Fix Drift
-	os.WriteFile(filepath.Join(tempDir, "login.html"), []byte("<html></html>"), 0644)
+	_ = os.WriteFile(filepath.Join(tempDir, "login.html"), []byte("<html></html>"), 0644)
 
 	t.Log("Running roady drift detect (after fix)...")
 	runRoady("drift", "detect") // Helper will fail if exit code != 0

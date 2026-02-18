@@ -61,7 +61,7 @@ func (a *SlackAdapter) Send(ctx context.Context, event *events.BaseEvent) error 
 	if err != nil {
 		return fmt.Errorf("send to slack: %w", err)
 	}
-	defer resp.Body.Close()
+	defer resp.Body.Close() //nolint:errcheck // best-effort close on read body
 
 	if resp.StatusCode >= 300 {
 		return fmt.Errorf("slack returned status %d", resp.StatusCode)

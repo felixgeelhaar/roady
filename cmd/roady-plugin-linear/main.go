@@ -141,7 +141,7 @@ func (s *LinearSyncer) query(query string, variables map[string]interface{}) (ma
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer resp.Body.Close() //nolint:errcheck // best-effort close on read body
 
 	body, _ := io.ReadAll(resp.Body)
 	if resp.StatusCode != http.StatusOK {
@@ -194,7 +194,7 @@ func (s *LinearSyncer) fetchTeamIssues() ([]linearIssue, error) {
 
 	var issues []linearIssue
 	marshaled, _ := json.Marshal(issuesData)
-	json.Unmarshal(marshaled, &issues)
+	_ = json.Unmarshal(marshaled, &issues)
 
 	return issues, nil
 }
@@ -234,7 +234,7 @@ func (s *LinearSyncer) createIssue(task planning.Task) (*linearIssue, error) {
 
 	var issue linearIssue
 	marshaled, _ := json.Marshal(createData["issue"])
-	json.Unmarshal(marshaled, &issue)
+	_ = json.Unmarshal(marshaled, &issue)
 
 	return &issue, nil
 }
@@ -350,7 +350,7 @@ func (s *LinearSyncer) fetchWorkflowStates() ([]workflowState, error) {
 
 	var states []workflowState
 	marshaled, _ := json.Marshal(statesData)
-	json.Unmarshal(marshaled, &states)
+	_ = json.Unmarshal(marshaled, &states)
 
 	return states, nil
 }

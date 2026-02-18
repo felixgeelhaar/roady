@@ -15,10 +15,10 @@ import (
 
 func TestAuditService_Log(t *testing.T) {
 	tempDir, _ := os.MkdirTemp("", "roady-audit-test-*")
-	defer os.RemoveAll(tempDir)
+	defer func() { _ = os.RemoveAll(tempDir) }()
 
 	repo := storage.NewFilesystemRepository(tempDir)
-	repo.Initialize()
+	_ = repo.Initialize()
 	service := application.NewAuditService(repo)
 
 	// 1. Log Event

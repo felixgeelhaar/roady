@@ -119,7 +119,7 @@ func TestMCPStdioTransport(t *testing.T) {
 	if err != nil {
 		t.Fatalf("stdio transport: %v", err)
 	}
-	defer transport.Close()
+	defer func() { _ = transport.Close() }()
 
 	mcpClient := client.New(transport, client.WithTimeout(60*time.Second))
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
@@ -188,7 +188,7 @@ func TestMCPWebSocketTransport(t *testing.T) {
 	if err != nil {
 		t.Fatalf("websocket dial: %v", err)
 	}
-	defer ws.Close()
+	defer func() { _ = ws.Close() }()
 
 	// Send initialize request
 	initReq := jsonRPCRequest{
@@ -311,7 +311,7 @@ func sendJSONRPC(t *testing.T, addr string, req jsonRPCRequest) jsonRPCResponse 
 	if err != nil {
 		t.Fatalf("http post: %v", err)
 	}
-	defer httpResp.Body.Close()
+	defer httpResp.Body.Close() //nolint:errcheck // best-effort close on read body
 
 	var resp jsonRPCResponse
 	if err := json.NewDecoder(httpResp.Body).Decode(&resp); err != nil {

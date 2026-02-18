@@ -141,31 +141,37 @@ func TestAuditService_GetAITelemetry(t *testing.T) {
 	svc := application.NewAuditService(repo)
 
 	// Log AI events
-	svc.Log("plan.ai_decomposition", "ai", map[string]interface{}{
+	if err := svc.Log("plan.ai_decomposition", "ai", map[string]interface{}{
 		"model":         "gpt-4o",
 		"input_tokens":  float64(100),
 		"output_tokens": float64(50),
-	})
-	svc.Log("spec.reconcile", "ai", map[string]interface{}{
+	}); err != nil {
+		t.Fatal(err)
+	}
+	if err := svc.Log("spec.reconcile", "ai", map[string]interface{}{
 		"model":         "claude-3",
 		"input_tokens":  float64(200),
 		"output_tokens": float64(75),
-	})
-	svc.Log("spec.ai_explanation", "ai", map[string]interface{}{
+	}); err != nil {
+		t.Fatal(err)
+	}
+	if err := svc.Log("spec.ai_explanation", "ai", map[string]interface{}{
 		"model":         "gpt-4o",
 		"input_tokens":  float64(50),
 		"output_tokens": float64(25),
-	})
-	svc.Log("drift.ai_explanation", "ai", map[string]interface{}{
+	}); err != nil {
+		t.Fatal(err)
+	}
+	_ = svc.Log("drift.ai_explanation", "ai", map[string]interface{}{
 		"model":         "gpt-4o",
 		"input_tokens":  float64(10),
 		"output_tokens": float64(5),
 	})
-	svc.Log("plan.ai_decomposition_retry", "ai", map[string]interface{}{
+	_ = svc.Log("plan.ai_decomposition_retry", "ai", map[string]interface{}{
 		"reason": "invalid json",
 	})
 	// Non-AI event should be ignored
-	svc.Log("task.started", "cli", map[string]interface{}{
+	_ = svc.Log("task.started", "cli", map[string]interface{}{
 		"task_id": "task-1",
 	})
 
@@ -1161,7 +1167,11 @@ func TestSpecService_AddFeature_SuccessPath(t *testing.T) {
 	if err := os.Chdir(tempDir); err != nil {
 		t.Fatalf("Chdir: %v", err)
 	}
-	defer os.Chdir(origDir)
+	defer func() {
+		if err := os.Chdir(origDir); err != nil {
+			t.Fatal(err)
+		}
+	}()
 
 	svc := application.NewSpecService(repo)
 

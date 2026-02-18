@@ -176,7 +176,7 @@ func TestDriftWarningHandler_CriticalSeverity(t *testing.T) {
 		Severities: []string{"critical"},
 	}
 
-	handler.Handle(context.Background(), event)
+	_ = handler.Handle(context.Background(), event)
 
 	if len(notifier.notifications) != 1 {
 		t.Fatal("Expected 1 notification")
@@ -313,7 +313,7 @@ func TestTaskTransitionHandler_BlockedCallback(t *testing.T) {
 		ToStatus:   planning.StatusBlocked,
 	}
 
-	handler.Handle(context.Background(), event)
+	_ = handler.Handle(context.Background(), event)
 
 	if !blockedCalled {
 		t.Error("Expected OnBlocked callback to be called")
@@ -336,7 +336,7 @@ func TestTaskTransitionHandler_UnblockedCallback(t *testing.T) {
 		ToStatus:   planning.StatusPending,
 	}
 
-	handler.Handle(context.Background(), event)
+	_ = handler.Handle(context.Background(), event)
 
 	if !unblockedCalled {
 		t.Error("Expected OnUnblocked callback to be called")
@@ -435,7 +435,7 @@ func TestDriftWarningHandler_ZeroIssues(t *testing.T) {
 		Severities: nil,
 	}
 
-	handler.Handle(context.Background(), event)
+	_ = handler.Handle(context.Background(), event)
 
 	// Zero issues should not trigger notification
 	if len(notifier.notifications) != 0 {

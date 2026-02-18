@@ -132,8 +132,8 @@ func (n *Notifier) send(ctx context.Context, ep events.WebhookEndpoint, body []b
 	if err != nil {
 		return fmt.Errorf("send request: %w", err)
 	}
-	defer resp.Body.Close()
-	io.Copy(io.Discard, resp.Body)
+	defer resp.Body.Close() //nolint:errcheck // best-effort close on read body
+	_, _ = io.Copy(io.Discard, resp.Body)
 
 	if resp.StatusCode >= 300 {
 		return fmt.Errorf("webhook returned status %d", resp.StatusCode)

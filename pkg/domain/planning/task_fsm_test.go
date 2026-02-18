@@ -53,7 +53,9 @@ func TestTaskStateMachine_CurrentStatus(t *testing.T) {
 		t.Errorf("Expected StatusPending, got %v", status)
 	}
 
-	fsm.Transition("start")
+	if err := fsm.Transition("start"); err != nil {
+		t.Fatal(err)
+	}
 	status = fsm.CurrentStatus()
 	if status != planning.StatusInProgress {
 		t.Errorf("Expected StatusInProgress, got %v", status)
@@ -82,7 +84,9 @@ func TestTaskStateMachine_ValidEvents(t *testing.T) {
 		t.Errorf("Expected 2 valid events for pending, got %d", len(events))
 	}
 
-	fsm.Transition("start")
+	if err := fsm.Transition("start"); err != nil {
+		t.Fatal(err)
+	}
 	events = fsm.ValidEvents()
 	if len(events) != 3 {
 		t.Errorf("Expected 3 valid events for in_progress, got %d", len(events))
@@ -96,13 +100,19 @@ func TestTaskStateMachine_IsFinal(t *testing.T) {
 		t.Error("Pending state should not be final")
 	}
 
-	fsm.Transition("start")
-	fsm.Transition("complete")
+	if err := fsm.Transition("start"); err != nil {
+		t.Fatal(err)
+	}
+	if err := fsm.Transition("complete"); err != nil {
+		t.Fatal(err)
+	}
 	if fsm.IsFinal() {
 		t.Error("Done state should not be final")
 	}
 
-	fsm.Transition("verify")
+	if err := fsm.Transition("verify"); err != nil {
+		t.Fatal(err)
+	}
 	if !fsm.IsFinal() {
 		t.Error("Verified state should be final")
 	}
@@ -115,17 +125,23 @@ func TestTaskStateMachine_IsComplete(t *testing.T) {
 		t.Error("Pending state should not be complete")
 	}
 
-	fsm.Transition("start")
+	if err := fsm.Transition("start"); err != nil {
+		t.Fatal(err)
+	}
 	if fsm.IsComplete() {
 		t.Error("InProgress state should not be complete")
 	}
 
-	fsm.Transition("complete")
+	if err := fsm.Transition("complete"); err != nil {
+		t.Fatal(err)
+	}
 	if !fsm.IsComplete() {
 		t.Error("Done state should be complete")
 	}
 
-	fsm.Transition("verify")
+	if err := fsm.Transition("verify"); err != nil {
+		t.Fatal(err)
+	}
 	if !fsm.IsComplete() {
 		t.Error("Verified state should be complete")
 	}

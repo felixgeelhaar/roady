@@ -72,9 +72,9 @@ func startGRPCServer(t *testing.T, impl domainPlugin.Syncer) (*grpc.ClientConn, 
 	}
 
 	cleanup := func() {
-		conn.Close()
+		_ = conn.Close()
 		s.Stop()
-		lis.Close()
+		_ = lis.Close()
 	}
 
 	return conn, cleanup

@@ -27,7 +27,7 @@ func TestSSEHandler_StreamsEvents(t *testing.T) {
 	// Publish event after a delay, then cancel
 	go func() {
 		time.Sleep(300 * time.Millisecond)
-		publisher.Publish(&events.BaseEvent{
+		_ = publisher.Publish(&events.BaseEvent{
 			ID:        "test-1",
 			Type:      events.EventTypeTaskStarted,
 			Timestamp: time.Now(),
@@ -45,7 +45,7 @@ func TestSSEHandler_StreamsEvents(t *testing.T) {
 		}
 		t.Fatalf("unexpected error: %v", err)
 	}
-	defer resp.Body.Close()
+	defer resp.Body.Close() //nolint:errcheck // best-effort close on read body
 
 	if resp.Header.Get("Content-Type") != "text/event-stream" {
 		t.Errorf("expected text/event-stream, got %s", resp.Header.Get("Content-Type"))

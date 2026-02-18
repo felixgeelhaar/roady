@@ -14,13 +14,13 @@ import (
 
 func TestPolicyService_CheckCompliance(t *testing.T) {
 	tempDir, _ := os.MkdirTemp("", "roady-policy-test-*")
-	defer os.RemoveAll(tempDir)
+	defer func() { _ = os.RemoveAll(tempDir) }()
 
 	repo := storage.NewFilesystemRepository(tempDir)
-	repo.Initialize()
+	_ = repo.Initialize()
 
 	// Setup: Policy with MaxWIP = 1
-	repo.SavePolicy(&domain.PolicyConfig{MaxWIP: 1})
+	_ = repo.SavePolicy(&domain.PolicyConfig{MaxWIP: 1})
 
 	// Setup: Plan with 2 InProgress tasks
 	plan := &planning.Plan{
@@ -29,13 +29,17 @@ func TestPolicyService_CheckCompliance(t *testing.T) {
 			{ID: "t2"},
 		},
 	}
-	repo.SavePlan(plan)
-	repo.SaveState(&planning.ExecutionState{
+	if err := repo.SavePlan(plan); err != nil {
+		t.Fatal(err)
+	}
+	if err := repo.SaveState(&planning.ExecutionState{
 		TaskStates: map[string]planning.TaskResult{
 			"t1": {Status: planning.StatusInProgress},
 			"t2": {Status: planning.StatusInProgress},
 		},
-	})
+	}); err != nil {
+		t.Fatal(err)
+	}
 
 	service := application.NewPolicyService(repo)
 	violations, err := service.CheckCompliance()
@@ -94,7 +98,7 @@ func TestPolicyService_ValidateTransition_ExternalDependency(t *testing.T) {
 	if err != nil {
 		t.Fatalf("temp dir: %v", err)
 	}
-	defer os.RemoveAll(root)
+	defer func() { _ = os.RemoveAll(root) }()
 
 	projectA := filepath.Join(root, "project-a")
 	projectB := filepath.Join(root, "project-b")
@@ -132,8 +136,14 @@ func TestPolicyService_ValidateTransition_ExternalDependency(t *testing.T) {
 	}
 
 	oldWD, _ := os.Getwd()
-	defer os.Chdir(oldWD)
-	_ = os.Chdir(projectA)
+	defer func() {
+		if err := os.Chdir(oldWD); err != nil {
+			t.Fatal(err)
+		}
+	}()
+	if err := os.Chdir(projectA); err != nil {
+		t.Fatal(err)
+	}
 
 	service := application.NewPolicyService(repoA)
 	if err := service.ValidateTransition("t1", "start"); err != nil {

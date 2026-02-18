@@ -112,7 +112,7 @@ func (s *SpecService) parseMarkdownFile(path string) (*spec.ProductSpec, error) 
 	if err != nil {
 		return nil, fmt.Errorf("failed to open file: %w", err)
 	}
-	defer file.Close()
+	defer file.Close() //nolint:errcheck // best-effort close on read path
 
 	scanner := bufio.NewScanner(file)
 
@@ -217,7 +217,7 @@ func (s *SpecService) AddFeature(title, description string) (*spec.ProductSpec, 
 
 }
 
-func (s *SpecService) syncToMarkdown(f spec.Feature) error {
+func (s *SpecService) syncToMarkdown(f spec.Feature) (err error) {
 
 	path := "docs/backlog.md"
 
@@ -236,7 +236,11 @@ func (s *SpecService) syncToMarkdown(f spec.Feature) error {
 
 	}
 
-	defer fWriter.Close()
+	defer func() {
+		if cerr := fWriter.Close(); cerr != nil && err == nil {
+			err = fmt.Errorf("close file: %w", cerr)
+		}
+	}()
 
 	_, err = fWriter.WriteString(content)
 

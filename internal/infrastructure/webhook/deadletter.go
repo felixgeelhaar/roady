@@ -22,7 +22,7 @@ func NewDeadLetterStore(path string) *DeadLetterStore {
 }
 
 // Append writes a dead letter entry to the JSONL file.
-func (s *DeadLetterStore) Append(dl events.DeadLetter) error {
+func (s *DeadLetterStore) Append(dl events.DeadLetter) (err error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -36,7 +36,11 @@ func (s *DeadLetterStore) Append(dl events.DeadLetter) error {
 	if err != nil {
 		return fmt.Errorf("open dead letter file: %w", err)
 	}
-	defer f.Close()
+	defer func() {
+		if cerr := f.Close(); cerr != nil && err == nil {
+			err = fmt.Errorf("close dead letter file: %w", cerr)
+		}
+	}()
 
 	_, err = f.Write(data)
 	return err

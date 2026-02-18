@@ -79,7 +79,7 @@ func (p *OllamaProvider) Complete(ctx context.Context, req ai.CompletionRequest)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to Ollama API: %w", err)
 	}
-	defer resp.Body.Close()
+	defer resp.Body.Close() //nolint:errcheck // best-effort close on read body
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("ollama API error: status %d", resp.StatusCode)

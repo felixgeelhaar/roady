@@ -137,8 +137,8 @@ func TestCov2_DebtHistoryCmd_TextWithSnapshots(t *testing.T) {
 	recordDriftEvent(t, repo, now.Add(-48*time.Hour), "f2", "Feature f2 has no tasks")
 	recordDriftEvent(t, repo, now.Add(-24*time.Hour), "f3", "Feature f3 has no tasks")
 
-	debtHistoryCmd.Flags().Set("days", "7")
-	defer debtHistoryCmd.Flags().Set("days", "0")
+	_ = debtHistoryCmd.Flags().Set("days", "7")
+	defer func() { _ = debtHistoryCmd.Flags().Set("days", "0") }()
 
 	output := captureStdout(t, func() {
 		if err := debtHistoryCmd.RunE(debtHistoryCmd, []string{}); err != nil {
@@ -164,7 +164,7 @@ func TestCov2_DebtHistoryCmd_AllTime(t *testing.T) {
 
 	recordDriftEvent(t, repo, time.Now().Add(-72*time.Hour), "f2", "Feature f2 missing tasks")
 
-	debtHistoryCmd.Flags().Set("days", "0")
+	_ = debtHistoryCmd.Flags().Set("days", "0")
 
 	output := captureStdout(t, func() {
 		if err := debtHistoryCmd.RunE(debtHistoryCmd, []string{}); err != nil {
@@ -184,8 +184,8 @@ func TestCov2_DebtHistoryCmd_EmptyWithDays(t *testing.T) {
 	defer cleanup()
 	setupBasicRepo2(t)
 
-	debtHistoryCmd.Flags().Set("days", "30")
-	defer debtHistoryCmd.Flags().Set("days", "0")
+	_ = debtHistoryCmd.Flags().Set("days", "30")
+	defer func() { _ = debtHistoryCmd.Flags().Set("days", "0") }()
 
 	output := captureStdout(t, func() {
 		if err := debtHistoryCmd.RunE(debtHistoryCmd, []string{}); err != nil {
@@ -220,8 +220,8 @@ func TestCov2_DebtTrendCmd_TextWithDirection(t *testing.T) {
 		recordDriftEvent(t, repo, recentTime.Add(time.Duration(i)*time.Second), "f3", "recent drift")
 	}
 
-	debtTrendCmd.Flags().Set("days", "30")
-	defer debtTrendCmd.Flags().Set("days", "30")
+	_ = debtTrendCmd.Flags().Set("days", "30")
+	defer func() { _ = debtTrendCmd.Flags().Set("days", "30") }()
 
 	output := captureStdout(t, func() {
 		if err := debtTrendCmd.RunE(debtTrendCmd, []string{}); err != nil {
@@ -619,15 +619,15 @@ func TestCov2_DepsAddCmd_SuccessWithDesc(t *testing.T) {
 	if err != nil {
 		t.Fatalf("create target dir: %v", err)
 	}
-	defer os.RemoveAll(targetDir)
+	defer func() { _ = os.RemoveAll(targetDir) }()
 
-	depsAddCmd.Flags().Set("repo", targetDir)
-	depsAddCmd.Flags().Set("type", "runtime")
-	depsAddCmd.Flags().Set("description", "My runtime dependency")
+	_ = depsAddCmd.Flags().Set("repo", targetDir)
+	_ = depsAddCmd.Flags().Set("type", "runtime")
+	_ = depsAddCmd.Flags().Set("description", "My runtime dependency")
 	defer func() {
-		depsAddCmd.Flags().Set("repo", "")
-		depsAddCmd.Flags().Set("type", "")
-		depsAddCmd.Flags().Set("description", "")
+		_ = depsAddCmd.Flags().Set("repo", "")
+		_ = depsAddCmd.Flags().Set("type", "")
+		_ = depsAddCmd.Flags().Set("description", "")
 	}()
 
 	output := captureStdout(t, func() {
@@ -724,8 +724,8 @@ func TestCov2_DepsGraphCmd_WithOrder(t *testing.T) {
 	dep := dependency.NewRepoDependency(".", "/other/repo", dependency.DependencyRuntime)
 	_ = repo.AddDependency(dep)
 
-	depsGraphCmd.Flags().Set("order", "true")
-	defer depsGraphCmd.Flags().Set("order", "false")
+	_ = depsGraphCmd.Flags().Set("order", "true")
+	defer func() { _ = depsGraphCmd.Flags().Set("order", "false") }()
 
 	output := captureStdout(t, func() {
 		if err := depsGraphCmd.RunE(depsGraphCmd, []string{}); err != nil {
@@ -751,8 +751,8 @@ func TestCov2_DepsGraphCmd_CheckCyclesNoCycle(t *testing.T) {
 	dep := dependency.NewRepoDependency(".", "/other/repo", dependency.DependencyRuntime)
 	_ = repo.AddDependency(dep)
 
-	depsGraphCmd.Flags().Set("check-cycles", "true")
-	defer depsGraphCmd.Flags().Set("check-cycles", "false")
+	_ = depsGraphCmd.Flags().Set("check-cycles", "true")
+	defer func() { _ = depsGraphCmd.Flags().Set("check-cycles", "false") }()
 
 	output := captureStdout(t, func() {
 		err := depsGraphCmd.RunE(depsGraphCmd, []string{})
@@ -936,10 +936,10 @@ func TestCov2_WatchCmd_AutoSyncMode(t *testing.T) {
 		t.Fatalf("write docs: %v", err)
 	}
 
-	os.Setenv("ROADY_WATCH_ONCE", "true")
-	os.Setenv("ROADY_WATCH_SEED_HASH", "old-hash-for-change")
-	defer os.Unsetenv("ROADY_WATCH_ONCE")
-	defer os.Unsetenv("ROADY_WATCH_SEED_HASH")
+	_ = os.Setenv("ROADY_WATCH_ONCE", "true")
+	_ = os.Setenv("ROADY_WATCH_SEED_HASH", "old-hash-for-change")
+	defer func() { _ = os.Unsetenv("ROADY_WATCH_ONCE") }()
+	defer func() { _ = os.Unsetenv("ROADY_WATCH_SEED_HASH") }()
 
 	autoSync = true
 	defer func() { autoSync = false }()
@@ -972,8 +972,8 @@ func TestCov2_WatchCmd_NoChange(t *testing.T) {
 		t.Fatalf("write docs: %v", err)
 	}
 
-	os.Setenv("ROADY_WATCH_ONCE", "true")
-	defer os.Unsetenv("ROADY_WATCH_ONCE")
+	_ = os.Setenv("ROADY_WATCH_ONCE", "true")
+	defer func() { _ = os.Unsetenv("ROADY_WATCH_ONCE") }()
 	// No seed hash = first pass, so no "change detected"
 
 	watchCmd.SetContext(context.Background())
@@ -1374,11 +1374,11 @@ func TestCov2_DepsListCmd_NoInit(t *testing.T) {
 func TestCov2_DepsAddCmd_NoInit(t *testing.T) {
 	_, cleanup := withTempDir(t)
 	defer cleanup()
-	depsAddCmd.Flags().Set("repo", "/some/repo")
-	depsAddCmd.Flags().Set("type", "runtime")
+	_ = depsAddCmd.Flags().Set("repo", "/some/repo")
+	_ = depsAddCmd.Flags().Set("type", "runtime")
 	defer func() {
-		depsAddCmd.Flags().Set("repo", "")
-		depsAddCmd.Flags().Set("type", "")
+		_ = depsAddCmd.Flags().Set("repo", "")
+		_ = depsAddCmd.Flags().Set("type", "")
 	}()
 	err := depsAddCmd.RunE(depsAddCmd, []string{})
 	if err == nil {
@@ -1421,8 +1421,8 @@ func TestCov2_WatchCmd_NoInit(t *testing.T) {
 	_, cleanup := withTempDir(t)
 	defer cleanup()
 
-	os.Setenv("ROADY_WATCH_ONCE", "true")
-	defer os.Unsetenv("ROADY_WATCH_ONCE")
+	_ = os.Setenv("ROADY_WATCH_ONCE", "true")
+	defer func() { _ = os.Unsetenv("ROADY_WATCH_ONCE") }()
 
 	watchCmd.SetContext(context.Background())
 	err := watchCmd.RunE(watchCmd, []string{"docs"})
@@ -1498,8 +1498,8 @@ func TestCov2_DebtReportCmd_JSONOutput(t *testing.T) {
 	defer cleanup()
 	setupDriftRepo2(t)
 
-	debtReportCmd.Flags().Set("output", "json")
-	defer debtReportCmd.Flags().Set("output", "text")
+	_ = debtReportCmd.Flags().Set("output", "json")
+	defer func() { _ = debtReportCmd.Flags().Set("output", "text") }()
 
 	output := captureStdout(t, func() {
 		if err := debtReportCmd.RunE(debtReportCmd, []string{}); err != nil {
@@ -1517,8 +1517,8 @@ func TestCov2_DebtScoreCmd_JSONOutput(t *testing.T) {
 	defer cleanup()
 	setupDriftRepo2(t)
 
-	debtScoreCmd.Flags().Set("output", "json")
-	defer debtScoreCmd.Flags().Set("output", "text")
+	_ = debtScoreCmd.Flags().Set("output", "json")
+	defer func() { _ = debtScoreCmd.Flags().Set("output", "text") }()
 
 	output := captureStdout(t, func() {
 		if err := debtScoreCmd.RunE(debtScoreCmd, []string{"f2"}); err != nil {
@@ -1536,8 +1536,8 @@ func TestCov2_DebtStickyCmd_JSONOutput(t *testing.T) {
 	defer cleanup()
 	setupDriftRepo2(t)
 
-	debtStickyCmd.Flags().Set("output", "json")
-	defer debtStickyCmd.Flags().Set("output", "text")
+	_ = debtStickyCmd.Flags().Set("output", "json")
+	defer func() { _ = debtStickyCmd.Flags().Set("output", "text") }()
 
 	output := captureStdout(t, func() {
 		if err := debtStickyCmd.RunE(debtStickyCmd, []string{}); err != nil {
@@ -1554,8 +1554,8 @@ func TestCov2_DebtSummaryCmd_JSONOutput(t *testing.T) {
 	defer cleanup()
 	setupDriftRepo2(t)
 
-	debtSummaryCmd.Flags().Set("output", "json")
-	defer debtSummaryCmd.Flags().Set("output", "text")
+	_ = debtSummaryCmd.Flags().Set("output", "json")
+	defer func() { _ = debtSummaryCmd.Flags().Set("output", "text") }()
 
 	output := captureStdout(t, func() {
 		if err := debtSummaryCmd.RunE(debtSummaryCmd, []string{}); err != nil {
@@ -1575,11 +1575,11 @@ func TestCov2_DebtHistoryCmd_JSONOutput(t *testing.T) {
 	repo := setupDriftRepo2(t)
 	recordDriftEvent(t, repo, time.Now().Add(-24*time.Hour), "f2", "missing tasks")
 
-	debtHistoryCmd.Flags().Set("output", "json")
-	debtHistoryCmd.Flags().Set("days", "7")
+	_ = debtHistoryCmd.Flags().Set("output", "json")
+	_ = debtHistoryCmd.Flags().Set("days", "7")
 	defer func() {
-		debtHistoryCmd.Flags().Set("output", "text")
-		debtHistoryCmd.Flags().Set("days", "0")
+		_ = debtHistoryCmd.Flags().Set("output", "text")
+		_ = debtHistoryCmd.Flags().Set("days", "0")
 	}()
 
 	output := captureStdout(t, func() {
@@ -1598,8 +1598,8 @@ func TestCov2_DebtTrendCmd_JSONOutput(t *testing.T) {
 	defer cleanup()
 	setupDriftRepo2(t)
 
-	debtTrendCmd.Flags().Set("output", "json")
-	defer debtTrendCmd.Flags().Set("output", "text")
+	_ = debtTrendCmd.Flags().Set("output", "json")
+	defer func() { _ = debtTrendCmd.Flags().Set("output", "text") }()
 
 	output := captureStdout(t, func() {
 		if err := debtTrendCmd.RunE(debtTrendCmd, []string{}); err != nil {
@@ -1654,8 +1654,8 @@ func TestCov2_DebtHistoryCmd_TextWithSnapshotDetails(t *testing.T) {
 	recordDriftEvent(t, repo, time.Now().Add(-3*24*time.Hour), "f2", "Feature f2 has no tasks")
 	recordDriftEvent(t, repo, time.Now().Add(-1*24*time.Hour), "f3", "Feature f3 has no tasks")
 
-	debtHistoryCmd.Flags().Set("days", "7")
-	defer debtHistoryCmd.Flags().Set("days", "0")
+	_ = debtHistoryCmd.Flags().Set("days", "7")
+	defer func() { _ = debtHistoryCmd.Flags().Set("days", "0") }()
 
 	output := captureStdout(t, func() {
 		if err := debtHistoryCmd.RunE(debtHistoryCmd, []string{}); err != nil {
@@ -2530,10 +2530,10 @@ func TestCov2_WatchCmd_ReconcileMode(t *testing.T) {
 		t.Fatalf("write docs: %v", err)
 	}
 
-	os.Setenv("ROADY_WATCH_ONCE", "true")
-	os.Setenv("ROADY_WATCH_SEED_HASH", "old-hash-triggers-change")
-	defer os.Unsetenv("ROADY_WATCH_ONCE")
-	defer os.Unsetenv("ROADY_WATCH_SEED_HASH")
+	_ = os.Setenv("ROADY_WATCH_ONCE", "true")
+	_ = os.Setenv("ROADY_WATCH_SEED_HASH", "old-hash-triggers-change")
+	defer func() { _ = os.Unsetenv("ROADY_WATCH_ONCE") }()
+	defer func() { _ = os.Unsetenv("ROADY_WATCH_SEED_HASH") }()
 
 	reconcile = true
 	defer func() { reconcile = false }()
@@ -2566,10 +2566,10 @@ func TestCov2_WatchCmd_DefaultModeWithChange(t *testing.T) {
 		t.Fatalf("write docs: %v", err)
 	}
 
-	os.Setenv("ROADY_WATCH_ONCE", "true")
-	os.Setenv("ROADY_WATCH_SEED_HASH", "different-hash-to-trigger-change")
-	defer os.Unsetenv("ROADY_WATCH_ONCE")
-	defer os.Unsetenv("ROADY_WATCH_SEED_HASH")
+	_ = os.Setenv("ROADY_WATCH_ONCE", "true")
+	_ = os.Setenv("ROADY_WATCH_SEED_HASH", "different-hash-to-trigger-change")
+	defer func() { _ = os.Unsetenv("ROADY_WATCH_ONCE") }()
+	defer func() { _ = os.Unsetenv("ROADY_WATCH_SEED_HASH") }()
 
 	autoSync = false
 	reconcile = false
@@ -2669,9 +2669,9 @@ func TestCov2_InitCmd_Interactive(t *testing.T) {
 
 	// Write newlines to accept defaults
 	go func() {
-		w.WriteString("\n") // Accept default project name
-		w.WriteString("\n") // Accept default template
-		w.Close()
+		_, _ = w.WriteString("\n") // Accept default project name
+		_, _ = w.WriteString("\n") // Accept default template
+		_ = w.Close()
 	}()
 
 	initInteractive = true
@@ -2726,7 +2726,7 @@ func TestCov2_DepsAddCmd_SuccessExternal(t *testing.T) {
 	if err != nil {
 		t.Fatalf("create external dir: %v", err)
 	}
-	defer os.RemoveAll(externalDir)
+	defer func() { _ = os.RemoveAll(externalDir) }()
 
 	// Initialize a minimal roady repo in the external dir
 	externalRoadyDir := externalDir + "/.roady"
@@ -2734,13 +2734,13 @@ func TestCov2_DepsAddCmd_SuccessExternal(t *testing.T) {
 		t.Fatalf("mkdir external .roady: %v", err)
 	}
 
-	depsAddCmd.Flags().Set("repo", externalDir)
-	depsAddCmd.Flags().Set("type", "runtime")
-	depsAddCmd.Flags().Set("description", "External runtime dependency")
+	_ = depsAddCmd.Flags().Set("repo", externalDir)
+	_ = depsAddCmd.Flags().Set("type", "runtime")
+	_ = depsAddCmd.Flags().Set("description", "External runtime dependency")
 	defer func() {
-		depsAddCmd.Flags().Set("repo", "")
-		depsAddCmd.Flags().Set("type", "")
-		depsAddCmd.Flags().Set("description", "")
+		_ = depsAddCmd.Flags().Set("repo", "")
+		_ = depsAddCmd.Flags().Set("type", "")
+		_ = depsAddCmd.Flags().Set("description", "")
 	}()
 
 	output := captureStdout(t, func() {
@@ -3069,15 +3069,15 @@ func TestCov2_ConfigWizardCmd(t *testing.T) {
 	defer func() { os.Stdin = oldStdin }()
 
 	go func() {
-		w.WriteString("ollama\n")  // AI Provider
-		w.WriteString("llama3\n")  // Model name
-		w.WriteString("3\n")       // Max retries
-		w.WriteString("2000\n")    // Retry delay
-		w.WriteString("600\n")     // Timeout
-		w.WriteString("5\n")       // Max WIP
-		w.WriteString("true\n")    // Allow AI
-		w.WriteString("10000\n")   // Token limit
-		w.Close()
+		_, _ = w.WriteString("ollama\n")  // AI Provider
+		_, _ = w.WriteString("llama3\n")  // Model name
+		_, _ = w.WriteString("3\n")       // Max retries
+		_, _ = w.WriteString("2000\n")    // Retry delay
+		_, _ = w.WriteString("600\n")     // Timeout
+		_, _ = w.WriteString("5\n")       // Max WIP
+		_, _ = w.WriteString("true\n")    // Allow AI
+		_, _ = w.WriteString("10000\n")   // Token limit
+		_ = w.Close()
 	}()
 
 	output := captureStdout(t, func() {
@@ -3114,9 +3114,9 @@ func TestCov2_ConfigWizardCmd_Defaults(t *testing.T) {
 
 	go func() {
 		for i := 0; i < 8; i++ {
-			w.WriteString("\n")
+			_, _ = w.WriteString("\n")
 		}
-		w.Close()
+		_ = w.Close()
 	}()
 
 	output := captureStdout(t, func() {
@@ -3140,11 +3140,11 @@ func TestCov2_DepsGraphCmd_WithCyclesAndOrder(t *testing.T) {
 	defer cleanup()
 	setupBasicRepo2(t)
 
-	depsGraphCmd.Flags().Set("check-cycles", "true")
-	depsGraphCmd.Flags().Set("order", "true")
+	_ = depsGraphCmd.Flags().Set("check-cycles", "true")
+	_ = depsGraphCmd.Flags().Set("order", "true")
 	defer func() {
-		depsGraphCmd.Flags().Set("check-cycles", "false")
-		depsGraphCmd.Flags().Set("order", "false")
+		_ = depsGraphCmd.Flags().Set("check-cycles", "false")
+		_ = depsGraphCmd.Flags().Set("order", "false")
 	}()
 
 	output := captureStdout(t, func() {
@@ -3164,9 +3164,9 @@ func TestCov2_DepsGraphCmd_JSONOutput(t *testing.T) {
 	defer cleanup()
 	setupBasicRepo2(t)
 
-	depsGraphCmd.Flags().Set("output", "json")
+	_ = depsGraphCmd.Flags().Set("output", "json")
 	defer func() {
-		depsGraphCmd.Flags().Set("output", "text")
+		_ = depsGraphCmd.Flags().Set("output", "text")
 	}()
 
 	output := captureStdout(t, func() {
@@ -3183,9 +3183,9 @@ func TestCov2_DepsScanCmd_JSONOutput(t *testing.T) {
 	defer cleanup()
 	setupBasicRepo2(t)
 
-	depsScanCmd.Flags().Set("output", "json")
+	_ = depsScanCmd.Flags().Set("output", "json")
 	defer func() {
-		depsScanCmd.Flags().Set("output", "text")
+		_ = depsScanCmd.Flags().Set("output", "text")
 	}()
 
 	output := captureStdout(t, func() {
@@ -3202,9 +3202,9 @@ func TestCov2_DepsListCmd_JSONOutput(t *testing.T) {
 	defer cleanup()
 	setupBasicRepo2(t)
 
-	depsListCmd.Flags().Set("output", "json")
+	_ = depsListCmd.Flags().Set("output", "json")
 	defer func() {
-		depsListCmd.Flags().Set("output", "text")
+		_ = depsListCmd.Flags().Set("output", "text")
 	}()
 
 	output := captureStdout(t, func() {

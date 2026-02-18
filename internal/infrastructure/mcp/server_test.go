@@ -89,13 +89,13 @@ func TestServerHandlersExercise(t *testing.T) {
 	}
 
 	// Initialize dummy git repo
-	exec.Command("git", "init").Run()
-	exec.Command("git", "config", "user.email", "test@example.com").Run()
-	exec.Command("git", "config", "user.name", "Test").Run()
-	exec.Command("git", "config", "commit.gpgsign", "false").Run()
-	os.WriteFile(filepath.Join(root, "README.md"), []byte("test"), 0644)
-	exec.Command("git", "add", ".").Run()
-	exec.Command("git", "commit", "-m", "Initial commit").Run()
+	_ = exec.Command("git", "init").Run()
+	_ = exec.Command("git", "config", "user.email", "test@example.com").Run()
+	_ = exec.Command("git", "config", "user.name", "Test").Run()
+	_ = exec.Command("git", "config", "commit.gpgsign", "false").Run()
+	_ = os.WriteFile(filepath.Join(root, "README.md"), []byte("test"), 0644)
+	_ = exec.Command("git", "add", ".").Run()
+	_ = exec.Command("git", "commit", "-m", "Initial commit").Run()
 
 	server, err := NewServer(root)
 	if err != nil {

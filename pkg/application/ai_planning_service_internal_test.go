@@ -64,7 +64,7 @@ func (s *stubProvider) Complete(ctx context.Context, req ai.CompletionRequest) (
 func TestCompleteDecompositionLogsAudit(t *testing.T) {
 	tempDir := t.TempDir()
 	repo := storage.NewFilesystemRepository(tempDir)
-	repo.Initialize()
+	_ = repo.Initialize()
 	provider := &stubProvider{
 		response: ai.CompletionResponse{
 			Text:  `[{"id":"task-1","title":"Task 1","feature_id":"feat"}]`,

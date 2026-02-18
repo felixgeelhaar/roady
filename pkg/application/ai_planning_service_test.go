@@ -42,15 +42,21 @@ func (m *MockProvider) Complete(ctx context.Context, req ai.CompletionRequest) (
 
 func TestAIPlanningService_Decompose(t *testing.T) {
 	tempDir, _ := os.MkdirTemp("", "roady-ai-test-*")
-	defer os.RemoveAll(tempDir)
+	defer func() { _ = os.RemoveAll(tempDir) }()
 
 	repo := storage.NewFilesystemRepository(tempDir)
-	repo.Initialize()
+	if err := repo.Initialize(); err != nil {
+		t.Fatal(err)
+	}
 	audit := application.NewAuditService(repo)
 
 	// Success Path
-	repo.SavePolicy(&domain.PolicyConfig{MaxWIP: 3, AllowAI: true})
-	repo.SaveSpec(&spec.ProductSpec{ID: "test", Title: "AI Test"})
+	if err := repo.SavePolicy(&domain.PolicyConfig{MaxWIP: 3, AllowAI: true}); err != nil {
+		t.Fatal(err)
+	}
+	if err := repo.SaveSpec(&spec.ProductSpec{ID: "test", Title: "AI Test"}); err != nil {
+		t.Fatal(err)
+	}
 
 	planSvc := application.NewPlanService(repo, audit)
 	service := application.NewAIPlanningService(repo, &MockProvider{}, audit, planSvc)
@@ -64,7 +70,9 @@ func TestAIPlanningService_Decompose(t *testing.T) {
 	}
 
 	// Policy DISABLES AI
-	repo.SavePolicy(&domain.PolicyConfig{MaxWIP: 3, AllowAI: false})
+	if err := repo.SavePolicy(&domain.PolicyConfig{MaxWIP: 3, AllowAI: false}); err != nil {
+		t.Fatal(err)
+	}
 	_, err = service.DecomposeSpec(context.Background())
 	if err == nil || !strings.Contains(err.Error(), "disabled") {
 		t.Errorf("Expected policy disabled error, got: %v", err)
@@ -306,14 +314,20 @@ func TestAIPlanningService_GetAuditLogger(t *testing.T) {
 
 func TestAIPlanningService_DecomposeSpec_TokenLimit(t *testing.T) {
 	tempDir, _ := os.MkdirTemp("", "roady-ai-limit-*")
-	defer os.RemoveAll(tempDir)
+	defer func() { _ = os.RemoveAll(tempDir) }()
 
 	repo := storage.NewFilesystemRepository(tempDir)
-	repo.Initialize()
+	if err := repo.Initialize(); err != nil {
+		t.Fatal(err)
+	}
 	audit := application.NewAuditService(repo)
 
-	repo.SavePolicy(&domain.PolicyConfig{AllowAI: true, TokenLimit: 1})
-	repo.SaveSpec(&spec.ProductSpec{ID: "test", Title: "AI Test"})
+	if err := repo.SavePolicy(&domain.PolicyConfig{AllowAI: true, TokenLimit: 1}); err != nil {
+		t.Fatal(err)
+	}
+	if err := repo.SaveSpec(&spec.ProductSpec{ID: "test", Title: "AI Test"}); err != nil {
+		t.Fatal(err)
+	}
 	_ = repo.UpdateUsage(domain.UsageStats{
 		ProviderStats: map[string]int{"mock:input": 2},
 	})
@@ -327,14 +341,20 @@ func TestAIPlanningService_DecomposeSpec_TokenLimit(t *testing.T) {
 
 func TestAIPlanningService_DecomposeSpec_JSONVariants(t *testing.T) {
 	tempDir, _ := os.MkdirTemp("", "roady-ai-json-*")
-	defer os.RemoveAll(tempDir)
+	defer func() { _ = os.RemoveAll(tempDir) }()
 
 	repo := storage.NewFilesystemRepository(tempDir)
-	repo.Initialize()
+	if err := repo.Initialize(); err != nil {
+		t.Fatal(err)
+	}
 	audit := application.NewAuditService(repo)
 	planSvc := application.NewPlanService(repo, audit)
-	repo.SavePolicy(&domain.PolicyConfig{AllowAI: true})
-	repo.SaveSpec(&spec.ProductSpec{ID: "test", Title: "AI Test", Features: []spec.Feature{{ID: "f1", Title: "F1"}}})
+	if err := repo.SavePolicy(&domain.PolicyConfig{AllowAI: true}); err != nil {
+		t.Fatal(err)
+	}
+	if err := repo.SaveSpec(&spec.ProductSpec{ID: "test", Title: "AI Test", Features: []spec.Feature{{ID: "f1", Title: "F1"}}}); err != nil {
+		t.Fatal(err)
+	}
 
 	service := application.NewAIPlanningService(repo, &MockProvider{Text: `{"tasks":[{"id":"t1","title":"Wrapped Task"}]}`}, audit, planSvc)
 	if _, err := service.DecomposeSpec(context.Background()); err != nil {
@@ -349,10 +369,12 @@ func TestAIPlanningService_DecomposeSpec_JSONVariants(t *testing.T) {
 
 func TestAIPlanningService_DecomposeSpec_MissingFeatureFallback(t *testing.T) {
 	tempDir, _ := os.MkdirTemp("", "roady-ai-fallback-*")
-	defer os.RemoveAll(tempDir)
+	defer func() { _ = os.RemoveAll(tempDir) }()
 
 	repo := storage.NewFilesystemRepository(tempDir)
-	repo.Initialize()
+	if err := repo.Initialize(); err != nil {
+		t.Fatal(err)
+	}
 	audit := application.NewAuditService(repo)
 
 	spec := &spec.ProductSpec{
@@ -366,7 +388,9 @@ func TestAIPlanningService_DecomposeSpec_MissingFeatureFallback(t *testing.T) {
 	if err := repo.SaveSpec(spec); err != nil {
 		t.Fatalf("save spec: %v", err)
 	}
-	repo.SavePolicy(&domain.PolicyConfig{AllowAI: true})
+	if err := repo.SavePolicy(&domain.PolicyConfig{AllowAI: true}); err != nil {
+		t.Fatal(err)
+	}
 
 	provider := &MockProvider{
 		Text: `[{"id":"task-req-a","title":"Task A","feature_id":"feature-a"}]`,
@@ -413,20 +437,26 @@ func (rp *retryProvider) Complete(ctx context.Context, req ai.CompletionRequest)
 
 func TestAIPlanningService_DecomposeSpec_RetryLogsEvent(t *testing.T) {
 	tempDir, _ := os.MkdirTemp("", "roady-ai-retry-*")
-	defer os.RemoveAll(tempDir)
+	defer func() { _ = os.RemoveAll(tempDir) }()
 
 	repo := storage.NewFilesystemRepository(tempDir)
-	repo.Initialize()
+	if err := repo.Initialize(); err != nil {
+		t.Fatal(err)
+	}
 	audit := application.NewAuditService(repo)
 
-	repo.SavePolicy(&domain.PolicyConfig{AllowAI: true})
-	repo.SaveSpec(&spec.ProductSpec{
+	if err := repo.SavePolicy(&domain.PolicyConfig{AllowAI: true}); err != nil {
+		t.Fatal(err)
+	}
+	if err := repo.SaveSpec(&spec.ProductSpec{
 		ID:    "retry-spec",
 		Title: "Retry Spec",
 		Features: []spec.Feature{
 			{ID: "feature-gov", Title: "Governance Feature"},
 		},
-	})
+	}); err != nil {
+		t.Fatal(err)
+	}
 
 	planSvc := application.NewPlanService(repo, audit)
 	service := application.NewAIPlanningService(repo, &retryProvider{}, audit, planSvc)

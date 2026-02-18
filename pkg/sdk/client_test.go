@@ -135,7 +135,7 @@ func TestIntegrationInitGetSpec(t *testing.T) {
 	if err != nil {
 		t.Fatalf("stdio transport: %v", err)
 	}
-	defer transport.Close()
+	defer func() { _ = transport.Close() }()
 
 	c := NewClient(transport, WithTimeout(60*time.Second))
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)

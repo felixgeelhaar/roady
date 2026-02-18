@@ -13,7 +13,7 @@ import (
 
 func TestServer_Handlers(t *testing.T) {
 	tempDir, _ := os.MkdirTemp("", "roady-mcp-handlers-*")
-	defer os.RemoveAll(tempDir)
+	defer func() { _ = os.RemoveAll(tempDir) }()
 
 	s, err := NewServer(tempDir)
 	if err != nil {
@@ -49,7 +49,7 @@ func TestServer_Handlers(t *testing.T) {
 
 	// 3.1 HandleGetSpec
 	repo := storage.NewFilesystemRepository(tempDir)
-	repo.SaveSpec(&spec.ProductSpec{ID: "s1", Title: "S1"})
+	_ = repo.SaveSpec(&spec.ProductSpec{ID: "s1", Title: "S1"})
 	_, err = s.handleGetSpec(context.Background(), GetSpecArgs{})
 	if err != nil {
 		t.Errorf("handleGetSpec failed: %v", err)
@@ -74,9 +74,9 @@ func TestServer_Handlers(t *testing.T) {
 
 	// 5. HandleDetectDrift
 	repo = storage.NewFilesystemRepository(tempDir)
-	repo.SaveSpec(&spec.ProductSpec{ID: "s1", Title: "S1", Features: []spec.Feature{{ID: "f1"}}})
+	_ = repo.SaveSpec(&spec.ProductSpec{ID: "s1", Title: "S1", Features: []spec.Feature{{ID: "f1"}}})
 	// Provide plan to avoid drift or show it
-	repo.SavePlan(&planning.Plan{Tasks: []planning.Task{{ID: "task-f1", FeatureID: "f1"}}})
+	_ = repo.SavePlan(&planning.Plan{Tasks: []planning.Task{{ID: "task-f1", FeatureID: "f1"}}})
 
 	_, err = s.handleDetectDrift(context.Background(), DetectDriftArgs{})
 	if err != nil {
@@ -84,11 +84,11 @@ func TestServer_Handlers(t *testing.T) {
 	}
 
 	// 6. HandleStatus
-	repo.SavePlan(&planning.Plan{Tasks: []planning.Task{
+	_ = repo.SavePlan(&planning.Plan{Tasks: []planning.Task{
 		{ID: "t1"},
 		{ID: "t2"},
 	}})
-	repo.SaveState(&planning.ExecutionState{
+	_ = repo.SaveState(&planning.ExecutionState{
 		TaskStates: map[string]planning.TaskResult{
 			"t1": {Status: planning.StatusInProgress},
 			"t2": {Status: planning.StatusDone},
@@ -101,22 +101,22 @@ func TestServer_Handlers(t *testing.T) {
 
 	// 7. HandleCheckPolicy
 	// Success path
-	repo.SavePolicy(&domain.PolicyConfig{MaxWIP: 10, AllowAI: true})
+	_ = repo.SavePolicy(&domain.PolicyConfig{MaxWIP: 10, AllowAI: true})
 	_, err = s.handleCheckPolicy(context.Background(), CheckPolicyArgs{})
 	if err != nil {
 		t.Errorf("handleCheckPolicy failed: %v", err)
 	}
 
 	// Force violation
-	repo.SavePolicy(&domain.PolicyConfig{MaxWIP: 1, AllowAI: true})
+	_ = repo.SavePolicy(&domain.PolicyConfig{MaxWIP: 1, AllowAI: true})
 	_, err = s.handleCheckPolicy(context.Background(), CheckPolicyArgs{})
 	if err != nil {
 		t.Errorf("handleCheckPolicy failed: %v", err)
 	}
 
 	// 8. Error cases (restricted dir)
-	os.Chmod(tempDir+"/.roady", 0000)
-	defer os.Chmod(tempDir+"/.roady", 0700)
+	_ = os.Chmod(tempDir+"/.roady", 0000)
+	defer func() { _ = os.Chmod(tempDir+"/.roady", 0700) }()
 
 	_, err = s.handleGetPlan(context.Background(), GetPlanArgs{})
 	if err == nil {
@@ -125,7 +125,7 @@ func TestServer_Handlers(t *testing.T) {
 
 	// 8.1 HandleGeneratePlan missing spec
 	tempEmpty2, _ := os.MkdirTemp("", "roady-mcp-empty-*")
-	defer os.RemoveAll(tempEmpty2)
+	defer func() { _ = os.RemoveAll(tempEmpty2) }()
 	s2, err := NewServer(tempEmpty2)
 	if err != nil {
 		t.Fatalf("create server: %v", err)

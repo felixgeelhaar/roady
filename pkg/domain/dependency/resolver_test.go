@@ -133,7 +133,9 @@ func TestResolver_isSameRepo(t *testing.T) {
 
 	// Create a sibling directory
 	siblingDir := filepath.Join(filepath.Dir(tmpDir), "sibling")
-	os.MkdirAll(siblingDir, 0755)
+	if err := os.MkdirAll(siblingDir, 0755); err != nil {
+		t.Fatal(err)
+	}
 
 	tests := []struct {
 		name     string
@@ -160,7 +162,9 @@ func TestResolver_ValidateDependencyPath(t *testing.T) {
 	// Create temp directory structure
 	tmpDir := t.TempDir()
 	depDir := filepath.Join(tmpDir, "dep-repo")
-	os.MkdirAll(depDir, 0755)
+	if err := os.MkdirAll(depDir, 0755); err != nil {
+		t.Fatal(err)
+	}
 
 	r := NewResolver(tmpDir)
 
@@ -180,7 +184,9 @@ func TestResolver_ValidateDependencyPath(t *testing.T) {
 func TestResolver_ValidateDependencyPath_NotDirectory(t *testing.T) {
 	tmpDir := t.TempDir()
 	filePath := filepath.Join(tmpDir, "somefile.txt")
-	os.WriteFile(filePath, []byte("content"), 0644)
+	if err := os.WriteFile(filePath, []byte("content"), 0644); err != nil {
+		t.Fatal(err)
+	}
 
 	r := NewResolver(tmpDir)
 
@@ -217,11 +223,17 @@ func TestResolver_DiscoverRoadyRepos(t *testing.T) {
 	// Create some roady repos
 	repo1 := filepath.Join(tmpDir, "repo1", ".roady")
 	repo2 := filepath.Join(tmpDir, "sub", "repo2", ".roady")
-	os.MkdirAll(repo1, 0755)
-	os.MkdirAll(repo2, 0755)
+	if err := os.MkdirAll(repo1, 0755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.MkdirAll(repo2, 0755); err != nil {
+		t.Fatal(err)
+	}
 
 	// Create a non-roady dir
-	os.MkdirAll(filepath.Join(tmpDir, "not-roady"), 0755)
+	if err := os.MkdirAll(filepath.Join(tmpDir, "not-roady"), 0755); err != nil {
+		t.Fatal(err)
+	}
 
 	r := NewResolver(tmpDir)
 
@@ -239,11 +251,15 @@ func TestResolver_ValidateDependenciesWithDetails(t *testing.T) {
 
 	// Create valid repo
 	validRepo := filepath.Join(tmpDir, "valid-repo")
-	os.MkdirAll(validRepo, 0755)
+	if err := os.MkdirAll(validRepo, 0755); err != nil {
+		t.Fatal(err)
+	}
 
 	// Create roady repo
 	roadyRepo := filepath.Join(tmpDir, "roady-repo")
-	os.MkdirAll(filepath.Join(roadyRepo, ".roady"), 0755)
+	if err := os.MkdirAll(filepath.Join(roadyRepo, ".roady"), 0755); err != nil {
+		t.Fatal(err)
+	}
 
 	r := NewResolver(tmpDir)
 
@@ -287,7 +303,9 @@ func TestResolver_ValidateDependenciesWithDetails(t *testing.T) {
 func TestResolver_ValidateAllDependencies(t *testing.T) {
 	tmpDir := t.TempDir()
 	validRepo := filepath.Join(tmpDir, "valid")
-	os.MkdirAll(validRepo, 0755)
+	if err := os.MkdirAll(validRepo, 0755); err != nil {
+		t.Fatal(err)
+	}
 
 	r := NewResolver(tmpDir)
 

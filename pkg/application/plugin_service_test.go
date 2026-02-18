@@ -13,11 +13,11 @@ import (
 func TestPluginService_RegisterAndList(t *testing.T) {
 	root := t.TempDir()
 	roadyDir := filepath.Join(root, ".roady")
-	os.MkdirAll(roadyDir, 0700)
+	_ = os.MkdirAll(roadyDir, 0700)
 
 	// Create a fake binary
 	binPath := filepath.Join(root, "fake-plugin")
-	os.WriteFile(binPath, []byte("#!/bin/sh\n"), 0755)
+	_ = os.WriteFile(binPath, []byte("#!/bin/sh\n"), 0755)
 
 	repo := storage.NewFilesystemRepository(root)
 	svc := application.NewPluginService(repo)
@@ -46,15 +46,17 @@ func TestPluginService_RegisterAndList(t *testing.T) {
 func TestPluginService_Unregister(t *testing.T) {
 	root := t.TempDir()
 	roadyDir := filepath.Join(root, ".roady")
-	os.MkdirAll(roadyDir, 0700)
+	_ = os.MkdirAll(roadyDir, 0700)
 
 	binPath := filepath.Join(root, "fake-plugin")
-	os.WriteFile(binPath, []byte("#!/bin/sh\n"), 0755)
+	_ = os.WriteFile(binPath, []byte("#!/bin/sh\n"), 0755)
 
 	repo := storage.NewFilesystemRepository(root)
 	svc := application.NewPluginService(repo)
 
-	svc.RegisterPlugin("test-plugin", binPath)
+	if err := svc.RegisterPlugin("test-plugin", binPath); err != nil {
+		t.Fatal(err)
+	}
 
 	if err := svc.UnregisterPlugin("test-plugin"); err != nil {
 		t.Fatalf("unregister failed: %v", err)
@@ -68,7 +70,7 @@ func TestPluginService_Unregister(t *testing.T) {
 
 func TestPluginService_UnregisterNotFound(t *testing.T) {
 	root := t.TempDir()
-	os.MkdirAll(filepath.Join(root, ".roady"), 0700)
+	_ = os.MkdirAll(filepath.Join(root, ".roady"), 0700)
 
 	repo := storage.NewFilesystemRepository(root)
 	svc := application.NewPluginService(repo)
@@ -81,14 +83,16 @@ func TestPluginService_UnregisterNotFound(t *testing.T) {
 
 func TestPluginService_Validate(t *testing.T) {
 	root := t.TempDir()
-	os.MkdirAll(filepath.Join(root, ".roady"), 0700)
+	_ = os.MkdirAll(filepath.Join(root, ".roady"), 0700)
 
 	binPath := filepath.Join(root, "fake-plugin")
-	os.WriteFile(binPath, []byte("#!/bin/sh\n"), 0755)
+	_ = os.WriteFile(binPath, []byte("#!/bin/sh\n"), 0755)
 
 	repo := storage.NewFilesystemRepository(root)
 	svc := application.NewPluginService(repo)
-	svc.RegisterPlugin("test-plugin", binPath)
+	if err := svc.RegisterPlugin("test-plugin", binPath); err != nil {
+		t.Fatal(err)
+	}
 
 	result, err := svc.ValidatePlugin("test-plugin")
 	if err != nil {
@@ -102,14 +106,16 @@ func TestPluginService_Validate(t *testing.T) {
 
 func TestPluginService_CheckHealth(t *testing.T) {
 	root := t.TempDir()
-	os.MkdirAll(filepath.Join(root, ".roady"), 0700)
+	_ = os.MkdirAll(filepath.Join(root, ".roady"), 0700)
 
 	binPath := filepath.Join(root, "fake-plugin")
-	os.WriteFile(binPath, []byte("#!/bin/sh\n"), 0755)
+	_ = os.WriteFile(binPath, []byte("#!/bin/sh\n"), 0755)
 
 	repo := storage.NewFilesystemRepository(root)
 	svc := application.NewPluginService(repo)
-	svc.RegisterPlugin("test-plugin", binPath)
+	if err := svc.RegisterPlugin("test-plugin", binPath); err != nil {
+		t.Fatal(err)
+	}
 
 	result, err := svc.CheckHealth("test-plugin")
 	if err != nil {
@@ -123,13 +129,15 @@ func TestPluginService_CheckHealth(t *testing.T) {
 
 func TestPluginService_CheckHealthMissing(t *testing.T) {
 	root := t.TempDir()
-	os.MkdirAll(filepath.Join(root, ".roady"), 0700)
+	_ = os.MkdirAll(filepath.Join(root, ".roady"), 0700)
 
 	repo := storage.NewFilesystemRepository(root)
 	svc := application.NewPluginService(repo)
 
 	// Register with nonexistent binary
-	repo.SetPluginConfig("missing", plugin.PluginConfig{Binary: "/nonexistent", Config: map[string]string{}})
+	if err := repo.SetPluginConfig("missing", plugin.PluginConfig{Binary: "/nonexistent", Config: map[string]string{}}); err != nil {
+		t.Fatal(err)
+	}
 
 	result, err := svc.CheckHealth("missing")
 	if err != nil {
@@ -143,14 +151,14 @@ func TestPluginService_CheckHealthMissing(t *testing.T) {
 
 func TestPluginService_CheckAllHealth(t *testing.T) {
 	root := t.TempDir()
-	os.MkdirAll(filepath.Join(root, ".roady"), 0700)
+	_ = os.MkdirAll(filepath.Join(root, ".roady"), 0700)
 
 	binPath := filepath.Join(root, "fake-plugin")
-	os.WriteFile(binPath, []byte("#!/bin/sh\n"), 0755)
+	_ = os.WriteFile(binPath, []byte("#!/bin/sh\n"), 0755)
 
 	repo := storage.NewFilesystemRepository(root)
 	svc := application.NewPluginService(repo)
-	svc.RegisterPlugin("test-plugin", binPath)
+	_ = svc.RegisterPlugin("test-plugin", binPath)
 
 	results, err := svc.CheckAllHealth()
 	if err != nil {

@@ -20,7 +20,7 @@ func TestRunAIConfigureInteractive(t *testing.T) {
 	if err != nil {
 		t.Fatalf("create temp stdin: %v", err)
 	}
-	defer os.Remove(tmp.Name())
+	defer func() { _ = os.Remove(tmp.Name()) }()
 	if _, err := tmp.WriteString("y\nmock\nmock-model\n42\n"); err != nil {
 		t.Fatalf("write temp stdin: %v", err)
 	}

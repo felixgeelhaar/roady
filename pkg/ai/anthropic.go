@@ -86,7 +86,7 @@ func (p *AnthropicProvider) Complete(ctx context.Context, req ai.CompletionReque
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer resp.Body.Close() //nolint:errcheck // best-effort close on read body
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("Anthropic API returned status: %s", resp.Status)

@@ -101,21 +101,27 @@ func TestFileEventStore_LoadByAggregate(t *testing.T) {
 	}
 
 	// Append events for different aggregates
-	store.Append(&events.BaseEvent{
-		Type:          events.EventTypeTaskStarted,
-		AggregateID_:  "task-1",
+	if err := store.Append(&events.BaseEvent{
+		Type:           events.EventTypeTaskStarted,
+		AggregateID_:   "task-1",
 		AggregateType_: events.AggregateTypeTask,
-	})
-	store.Append(&events.BaseEvent{
-		Type:          events.EventTypeTaskStarted,
-		AggregateID_:  "task-2",
+	}); err != nil {
+		t.Fatal(err)
+	}
+	if err := store.Append(&events.BaseEvent{
+		Type:           events.EventTypeTaskStarted,
+		AggregateID_:   "task-2",
 		AggregateType_: events.AggregateTypeTask,
-	})
-	store.Append(&events.BaseEvent{
-		Type:          events.EventTypePlanCreated,
-		AggregateID_:  "plan-1",
+	}); err != nil {
+		t.Fatal(err)
+	}
+	if err := store.Append(&events.BaseEvent{
+		Type:           events.EventTypePlanCreated,
+		AggregateID_:   "plan-1",
 		AggregateType_: events.AggregateTypePlan,
-	})
+	}); err != nil {
+		t.Fatal(err)
+	}
 
 	// Load by aggregate
 	taskEvents, err := store.LoadByAggregate(events.AggregateTypeTask, "task-1")
@@ -134,9 +140,9 @@ func TestFileEventStore_LoadByType(t *testing.T) {
 		t.Fatalf("NewFileEventStore failed: %v", err)
 	}
 
-	store.Append(&events.BaseEvent{Type: events.EventTypeTaskStarted})
-	store.Append(&events.BaseEvent{Type: events.EventTypeTaskCompleted})
-	store.Append(&events.BaseEvent{Type: events.EventTypeTaskStarted})
+	if err := store.Append(&events.BaseEvent{Type: events.EventTypeTaskStarted}); err != nil { t.Fatal(err) }
+	if err := store.Append(&events.BaseEvent{Type: events.EventTypeTaskCompleted}); err != nil { t.Fatal(err) }
+	if err := store.Append(&events.BaseEvent{Type: events.EventTypeTaskStarted}); err != nil { t.Fatal(err) }
 
 	started, err := store.LoadByType(events.EventTypeTaskStarted)
 	if err != nil {
@@ -159,14 +165,14 @@ func TestFileEventStore_LoadSince(t *testing.T) {
 		Type:      events.EventTypeTaskStarted,
 		Timestamp: time.Now().Add(-48 * time.Hour),
 	}
-	store.Append(oldEvent)
+	_ = store.Append(oldEvent)
 
 	// Add recent event
 	newEvent := &events.BaseEvent{
 		Type:      events.EventTypeTaskCompleted,
 		Timestamp: time.Now(),
 	}
-	store.Append(newEvent)
+	_ = store.Append(newEvent)
 
 	// Load since 24 hours ago
 	recent, err := store.LoadSince(time.Now().Add(-24 * time.Hour))
@@ -195,8 +201,8 @@ func TestFileEventStore_GetLastEvent(t *testing.T) {
 	}
 
 	// Add events
-	store.Append(&events.BaseEvent{Type: events.EventTypeTaskStarted, Metadata: map[string]interface{}{"index": 1}})
-	store.Append(&events.BaseEvent{Type: events.EventTypeTaskCompleted, Metadata: map[string]interface{}{"index": 2}})
+	_ = store.Append(&events.BaseEvent{Type: events.EventTypeTaskStarted, Metadata: map[string]interface{}{"index": 1}})
+	_ = store.Append(&events.BaseEvent{Type: events.EventTypeTaskCompleted, Metadata: map[string]interface{}{"index": 2}})
 
 	last, err = store.GetLastEvent()
 	if err != nil {
@@ -222,8 +228,8 @@ func TestFileEventStore_Count(t *testing.T) {
 		t.Errorf("Expected count 0, got %d", count)
 	}
 
-	store.Append(&events.BaseEvent{Type: events.EventTypeTaskStarted})
-	store.Append(&events.BaseEvent{Type: events.EventTypeTaskCompleted})
+	_ = store.Append(&events.BaseEvent{Type: events.EventTypeTaskStarted})
+	_ = store.Append(&events.BaseEvent{Type: events.EventTypeTaskCompleted})
 
 	count, _ = store.Count()
 	if count != 2 {
@@ -239,8 +245,12 @@ func TestFileEventStore_Persistence(t *testing.T) {
 	if err != nil {
 		t.Fatalf("NewFileEventStore failed: %v", err)
 	}
-	store1.Append(&events.BaseEvent{Type: events.EventTypeTaskStarted, Actor: "alice"})
-	store1.Append(&events.BaseEvent{Type: events.EventTypeTaskCompleted, Actor: "alice"})
+	if err := store1.Append(&events.BaseEvent{Type: events.EventTypeTaskStarted, Actor: "alice"}); err != nil {
+		t.Fatal(err)
+	}
+	if err := store1.Append(&events.BaseEvent{Type: events.EventTypeTaskCompleted, Actor: "alice"}); err != nil {
+		t.Fatal(err)
+	}
 
 	// Create new store instance from same path
 	store2, err := NewFileEventStore(tmpDir)
@@ -333,7 +343,9 @@ func TestInMemoryEventPublisher_MultipleSubscribers(t *testing.T) {
 		return nil
 	})
 
-	pub.Publish(&events.BaseEvent{Type: events.EventTypeTaskStarted})
+	if err := pub.Publish(&events.BaseEvent{Type: events.EventTypeTaskStarted}); err != nil {
+		t.Fatal(err)
+	}
 
 	if count1 != 1 || count2 != 1 {
 		t.Errorf("Expected both subscribers to receive event")

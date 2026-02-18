@@ -154,9 +154,9 @@ func init() {
 	rateAddCmd.Flags().StringVarP(&rateName, "name", "", "", "Rate name (e.g., Senior Developer)")
 	rateAddCmd.Flags().Float64VarP(&rateAmount, "rate", "", 0, "Hourly rate amount")
 	rateAddCmd.Flags().BoolVarP(&rateDefault, "default", "", false, "Set as default rate")
-	rateAddCmd.MarkFlagRequired("id")
-	rateAddCmd.MarkFlagRequired("name")
-	rateAddCmd.MarkFlagRequired("rate")
+	_ = rateAddCmd.MarkFlagRequired("id")
+	_ = rateAddCmd.MarkFlagRequired("name")
+	_ = rateAddCmd.MarkFlagRequired("rate")
 
 	rateCmd.AddCommand(rateAddCmd)
 	rateCmd.AddCommand(rateListCmd)
@@ -168,8 +168,8 @@ func init() {
 	rateTaxSetCmd.Flags().StringVar(&taxName, "name", "", "Tax name (e.g., VAT, Sales Tax)")
 	rateTaxSetCmd.Flags().Float64Var(&taxPercent, "percent", 0, "Tax percentage (e.g., 20 for 20%)")
 	rateTaxSetCmd.Flags().BoolVar(&taxIncluded, "included", false, "Tax is included in rate")
-	rateTaxSetCmd.MarkFlagRequired("name")
-	rateTaxSetCmd.MarkFlagRequired("percent")
+	_ = rateTaxSetCmd.MarkFlagRequired("name")
+	_ = rateTaxSetCmd.MarkFlagRequired("percent")
 
 	RootCmd.AddCommand(rateCmd)
 }
