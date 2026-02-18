@@ -228,7 +228,6 @@ var headerStyle = lipgloss.NewStyle().
 	PaddingRight(1)
 
 var statusDone = lipgloss.NewStyle().Foreground(lipgloss.Color("42"))
-var statusWIP = lipgloss.NewStyle().Foreground(lipgloss.Color("208"))
 var statusErr = lipgloss.NewStyle().Foreground(lipgloss.Color("196"))
 
 type model struct {
