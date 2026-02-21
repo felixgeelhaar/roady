@@ -3,10 +3,10 @@
 </p>
 
 [![Go Version](https://img.shields.io/github/go-mod/go-version/felixgeelhaar/roady?logo=go)](https://github.com/felixgeelhaar/roady)
-[![Coverage](https://img.shields.io/badge/coverage-65%25-yellow?logo=coveralls)](https://github.com/felixgeelhaar/roady/actions)
+[![Coverage](https://img.shields.io/badge/coverage-82%25-brightgreen?logo=coveralls)](https://github.com/felixgeelhaar/roady/actions)
 [![Release](https://img.shields.io/github/v/release/felixgeelhaar/roady?include_prereleases&logo=github)](https://github.com/felixgeelhaar/roady/releases/latest)
-[![nox Security](https://img.shields.io/badge/nox-F-red?logo=lock)](https://github.com/felixgeelhaar/roady/security)
-[![nox Scan](https://img.shields.io/badge/scan-1818%20findings-yellow)](https://github.com/felixgeelhaar/roady/security)
+[![nox Security](https://img.shields.io/badge/nox-A-brightgreen?logo=lock)](https://github.com/felixgeelhaar/roady/security)
+[![nox Scan](https://img.shields.io/badge/scan-0%20findings-brightgreen)](https://github.com/felixgeelhaar/roady/security)
 
 # Roady
 
