@@ -115,7 +115,7 @@ Secrets can be provided to validate webhook signatures:
 			fmt.Println("\nShutting down webhook server...")
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
-			server.Shutdown(ctx)
+			_ = server.Shutdown(ctx)
 		}()
 
 		fmt.Printf("Starting webhook server on %s\n", addr)

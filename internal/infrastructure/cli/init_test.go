@@ -8,11 +8,11 @@ import (
 
 func TestInitCmd_Internal(t *testing.T) {
 	tempDir, _ := os.MkdirTemp("", "roady-cli-internal-*")
-	defer os.RemoveAll(tempDir)
+	defer func() { _ = os.RemoveAll(tempDir) }()
 
 	old, _ := os.Getwd()
-	defer os.Chdir(old)
-	os.Chdir(tempDir)
+	defer func() { _ = os.Chdir(old) }()
+	_ = os.Chdir(tempDir)
 
 	buf := new(bytes.Buffer)
 	RootCmd.SetOut(buf)

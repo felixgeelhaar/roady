@@ -27,8 +27,8 @@ version: "1.0.0"
 
 	// Change to temp dir
 	oldDir, _ := os.Getwd()
-	os.Chdir(tmpDir)
-	defer os.Chdir(oldDir)
+	_ = os.Chdir(tmpDir)
+	defer func() { _ = os.Chdir(oldDir) }()
 
 	// Test list with no dependencies
 	cmd := depsListCmd
@@ -59,12 +59,12 @@ version: "1.0.0"
 
 	// Change to temp dir
 	oldDir, _ := os.Getwd()
-	os.Chdir(tmpDir)
-	defer os.Chdir(oldDir)
+	_ = os.Chdir(tmpDir)
+	defer func() { _ = os.Chdir(oldDir) }()
 
 	// Set JSON output flag
-	depsListCmd.Flags().Set("output", "json")
-	defer depsListCmd.Flags().Set("output", "text")
+	_ = depsListCmd.Flags().Set("output", "json")
+	defer func() { _ = depsListCmd.Flags().Set("output", "text") }()
 
 	err := depsListCmd.RunE(depsListCmd, nil)
 	if err != nil {
@@ -89,12 +89,12 @@ version: "1.0.0"
 
 	// Change to temp dir
 	oldDir, _ := os.Getwd()
-	os.Chdir(tmpDir)
-	defer os.Chdir(oldDir)
+	_ = os.Chdir(tmpDir)
+	defer func() { _ = os.Chdir(oldDir) }()
 
 	// Test missing --repo flag
-	depsAddCmd.Flags().Set("repo", "")
-	depsAddCmd.Flags().Set("type", "")
+	_ = depsAddCmd.Flags().Set("repo", "")
+	_ = depsAddCmd.Flags().Set("type", "")
 
 	err := depsAddCmd.RunE(depsAddCmd, nil)
 	if err == nil {
@@ -105,7 +105,7 @@ version: "1.0.0"
 	}
 
 	// Test missing --type flag
-	depsAddCmd.Flags().Set("repo", "/some/repo")
+	_ = depsAddCmd.Flags().Set("repo", "/some/repo")
 	err = depsAddCmd.RunE(depsAddCmd, nil)
 	if err == nil {
 		t.Error("Expected error for missing --type flag")
@@ -132,8 +132,8 @@ version: "1.0.0"
 
 	// Change to temp dir
 	oldDir, _ := os.Getwd()
-	os.Chdir(tmpDir)
-	defer os.Chdir(oldDir)
+	_ = os.Chdir(tmpDir)
+	defer func() { _ = os.Chdir(oldDir) }()
 
 	err := depsGraphCmd.RunE(depsGraphCmd, nil)
 	if err != nil {
@@ -158,12 +158,12 @@ version: "1.0.0"
 
 	// Change to temp dir
 	oldDir, _ := os.Getwd()
-	os.Chdir(tmpDir)
-	defer os.Chdir(oldDir)
+	_ = os.Chdir(tmpDir)
+	defer func() { _ = os.Chdir(oldDir) }()
 
 	// Enable cycle check
-	depsGraphCmd.Flags().Set("check-cycles", "true")
-	defer depsGraphCmd.Flags().Set("check-cycles", "false")
+	_ = depsGraphCmd.Flags().Set("check-cycles", "true")
+	defer func() { _ = depsGraphCmd.Flags().Set("check-cycles", "false") }()
 
 	err := depsGraphCmd.RunE(depsGraphCmd, nil)
 	if err != nil {
@@ -188,8 +188,8 @@ version: "1.0.0"
 
 	// Change to temp dir
 	oldDir, _ := os.Getwd()
-	os.Chdir(tmpDir)
-	defer os.Chdir(oldDir)
+	_ = os.Chdir(tmpDir)
+	defer func() { _ = os.Chdir(oldDir) }()
 
 	err := depsScanCmd.RunE(depsScanCmd, nil)
 	if err != nil {
@@ -214,8 +214,8 @@ version: "1.0.0"
 
 	// Change to temp dir
 	oldDir, _ := os.Getwd()
-	os.Chdir(tmpDir)
-	defer os.Chdir(oldDir)
+	_ = os.Chdir(tmpDir)
+	defer func() { _ = os.Chdir(oldDir) }()
 
 	err := depsRemoveCmd.RunE(depsRemoveCmd, []string{"nonexistent-id"})
 	if err == nil {

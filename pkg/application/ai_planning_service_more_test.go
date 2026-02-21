@@ -35,7 +35,7 @@ func (p *sequentialProvider) count() int {
 
 func TestAIPlanningService_DecomposeSpecRetriesOnInvalidJSON(t *testing.T) {
 	tempDir, _ := os.MkdirTemp("", "roady-ai-retry-*")
-	defer os.RemoveAll(tempDir)
+	defer func() { _ = os.RemoveAll(tempDir) }()
 
 	repo := storage.NewFilesystemRepository(tempDir)
 	if err := repo.Initialize(); err != nil {
@@ -137,7 +137,7 @@ func TestAIPlanningService_ParseTasksFromResponseDiverseFormats(t *testing.T) {
 
 func TestAIPlanningService_DecomposeAddsFallbackTasks(t *testing.T) {
 	tempDir, _ := os.MkdirTemp("", "roady-ai-fallback-*")
-	defer os.RemoveAll(tempDir)
+	defer func() { _ = os.RemoveAll(tempDir) }()
 
 	repo := storage.NewFilesystemRepository(tempDir)
 	if err := repo.Initialize(); err != nil {
@@ -197,7 +197,7 @@ func (f *failingProvider) Complete(ctx context.Context, req domainai.CompletionR
 
 func TestAIPlanningService_CompleteDecompositionProviderError(t *testing.T) {
 	tempDir, _ := os.MkdirTemp("", "roady-ai-error-*")
-	defer os.RemoveAll(tempDir)
+	defer func() { _ = os.RemoveAll(tempDir) }()
 
 	repo := storage.NewFilesystemRepository(tempDir)
 	if err := repo.Initialize(); err != nil {
@@ -215,7 +215,7 @@ func TestAIPlanningService_CompleteDecompositionProviderError(t *testing.T) {
 
 func TestAIPlanningService_DecomposeSpecMissingSpec(t *testing.T) {
 	tempDir, _ := os.MkdirTemp("", "roady-ai-nospec-*")
-	defer os.RemoveAll(tempDir)
+	defer func() { _ = os.RemoveAll(tempDir) }()
 
 	repo := storage.NewFilesystemRepository(tempDir)
 	if err := repo.Initialize(); err != nil {

@@ -20,12 +20,12 @@ func newTeamTestHarness(t *testing.T) (*application.TeamService, *storage.Filesy
 	}
 	repo := storage.NewFilesystemRepository(tmpDir)
 	if err := repo.Initialize(); err != nil {
-		os.RemoveAll(tmpDir)
+		_ = os.RemoveAll(tmpDir)
 		t.Fatalf("initialize repo: %v", err)
 	}
 	audit := newTestAudit()
 	svc := application.NewTeamService(repo, audit)
-	cleanup := func() { os.RemoveAll(tmpDir) }
+	cleanup := func() { _ = os.RemoveAll(tmpDir) }
 	return svc, repo, audit, cleanup
 }
 

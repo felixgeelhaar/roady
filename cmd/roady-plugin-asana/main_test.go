@@ -166,13 +166,13 @@ func TestAsanaSyncer_Sync(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch {
 		case r.Method == "GET" && strings.Contains(r.URL.Path, "/projects/"):
-			json.NewEncoder(w).Encode(AsanaTasksResponse{
+			_ = json.NewEncoder(w).Encode(AsanaTasksResponse{
 				Data: []AsanaTask{
 					{GID: "111", Name: "Task 1", Notes: "roady-id: t1", Completed: false, PermalinkURL: "https://asana.com/111"},
 				},
 			})
 		case r.Method == "POST" && r.URL.Path == "/tasks":
-			json.NewEncoder(w).Encode(AsanaTaskResponse{
+			_ = json.NewEncoder(w).Encode(AsanaTaskResponse{
 				Data: AsanaTask{GID: "222", Name: "Task 2", Notes: "roady-id: t2", PermalinkURL: "https://asana.com/222"},
 			})
 		default:
@@ -215,17 +215,17 @@ func TestAsanaSyncer_Sync(t *testing.T) {
 func TestAsanaSyncer_Push(t *testing.T) {
 	var receivedMethod, receivedPath string
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		switch {
-		case r.Method == "GET":
-			json.NewEncoder(w).Encode(AsanaTasksResponse{
+		switch r.Method {
+		case "GET":
+			_ = json.NewEncoder(w).Encode(AsanaTasksResponse{
 				Data: []AsanaTask{
 					{GID: "111", Name: "Task 1", Notes: "roady-id: t1", Completed: false},
 				},
 			})
-		case r.Method == "PUT":
+		case "PUT":
 			receivedMethod = r.Method
 			receivedPath = r.URL.Path
-			json.NewEncoder(w).Encode(AsanaTaskResponse{
+			_ = json.NewEncoder(w).Encode(AsanaTaskResponse{
 				Data: AsanaTask{GID: "111", Completed: true},
 			})
 		default:
@@ -258,7 +258,7 @@ func TestAsanaSyncer_Push(t *testing.T) {
 
 func TestAsanaSyncer_Push_NotFound(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		json.NewEncoder(w).Encode(AsanaTasksResponse{Data: []AsanaTask{}})
+		_ = json.NewEncoder(w).Encode(AsanaTasksResponse{Data: []AsanaTask{}})
 	}))
 	defer server.Close()
 
@@ -283,7 +283,7 @@ func TestAsanaSyncer_Push_AlreadyCorrectState(t *testing.T) {
 		if r.Method == "PUT" {
 			t.Error("should not PUT when already in correct state")
 		}
-		json.NewEncoder(w).Encode(AsanaTasksResponse{
+		_ = json.NewEncoder(w).Encode(AsanaTasksResponse{
 			Data: []AsanaTask{
 				{GID: "111", Notes: "roady-id: t1", Completed: true},
 			},

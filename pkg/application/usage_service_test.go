@@ -10,10 +10,10 @@ import (
 
 func TestUsageService_IncrementCommand(t *testing.T) {
 	tempDir, _ := os.MkdirTemp("", "roady-usage-*")
-	defer os.RemoveAll(tempDir)
+	defer func() { _ = os.RemoveAll(tempDir) }()
 
 	repo := storage.NewFilesystemRepository(tempDir)
-	repo.Initialize()
+	_ = repo.Initialize()
 	svc := application.NewUsageService(repo)
 
 	// Increment twice
@@ -35,10 +35,10 @@ func TestUsageService_IncrementCommand(t *testing.T) {
 
 func TestUsageService_RecordTokenUsage(t *testing.T) {
 	tempDir, _ := os.MkdirTemp("", "roady-usage-tokens-*")
-	defer os.RemoveAll(tempDir)
+	defer func() { _ = os.RemoveAll(tempDir) }()
 
 	repo := storage.NewFilesystemRepository(tempDir)
-	repo.Initialize()
+	_ = repo.Initialize()
 	svc := application.NewUsageService(repo)
 
 	// Record tokens for gpt-4
@@ -67,10 +67,10 @@ func TestUsageService_RecordTokenUsage(t *testing.T) {
 
 func TestUsageService_GetTotalTokens(t *testing.T) {
 	tempDir, _ := os.MkdirTemp("", "roady-usage-total-*")
-	defer os.RemoveAll(tempDir)
+	defer func() { _ = os.RemoveAll(tempDir) }()
 
 	repo := storage.NewFilesystemRepository(tempDir)
-	repo.Initialize()
+	_ = repo.Initialize()
 	svc := application.NewUsageService(repo)
 
 	// Record tokens across providers
@@ -89,10 +89,10 @@ func TestUsageService_GetTotalTokens(t *testing.T) {
 
 func TestUsageService_EmptyRepo(t *testing.T) {
 	tempDir, _ := os.MkdirTemp("", "roady-usage-empty-*")
-	defer os.RemoveAll(tempDir)
+	defer func() { _ = os.RemoveAll(tempDir) }()
 
 	repo := storage.NewFilesystemRepository(tempDir)
-	repo.Initialize()
+	_ = repo.Initialize()
 	svc := application.NewUsageService(repo)
 
 	total, err := svc.GetTotalTokens()

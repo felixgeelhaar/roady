@@ -51,10 +51,10 @@ func TestAnthropicProvider_Complete_Success(t *testing.T) {
 			t.Errorf("expected Content-Type 'application/json', got %q", r.Header.Get("Content-Type"))
 		}
 
-		json.NewDecoder(r.Body).Decode(&receivedBody)
+		_ = json.NewDecoder(r.Body).Decode(&receivedBody)
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]interface{}{
+		_ = json.NewEncoder(w).Encode(map[string]interface{}{
 			"content": []map[string]interface{}{
 				{"text": "Hello from Anthropic!"},
 			},

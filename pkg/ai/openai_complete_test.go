@@ -26,7 +26,7 @@ func TestOpenAIProvider_Complete_Success(t *testing.T) {
 
 		// Return mock response
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]interface{}{
+		_ = json.NewEncoder(w).Encode(map[string]interface{}{
 			"choices": []map[string]interface{}{
 				{"message": map[string]string{"role": "assistant", "content": "Hello from OpenAI!"}},
 			},
@@ -62,10 +62,10 @@ func TestOpenAIProvider_Complete_WithSystemPrompt(t *testing.T) {
 	var receivedBody map[string]interface{}
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		json.NewDecoder(r.Body).Decode(&receivedBody)
+		_ = json.NewDecoder(r.Body).Decode(&receivedBody)
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]interface{}{
+		_ = json.NewEncoder(w).Encode(map[string]interface{}{
 			"choices": []map[string]interface{}{
 				{"message": map[string]string{"role": "assistant", "content": "OK"}},
 			},
@@ -134,7 +134,7 @@ func TestOpenAIProvider_Complete_Unauthorized(t *testing.T) {
 func TestOpenAIProvider_Complete_EmptyChoices(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]interface{}{
+		_ = json.NewEncoder(w).Encode(map[string]interface{}{
 			"choices": []map[string]interface{}{},
 			"usage":   map[string]int{"prompt_tokens": 5, "completion_tokens": 0},
 		})
@@ -151,7 +151,7 @@ func TestOpenAIProvider_Complete_EmptyChoices(t *testing.T) {
 func TestOpenAIProvider_Complete_MalformedJSON(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte("not json"))
+		_, _ = w.Write([]byte("not json"))
 	}))
 	defer server.Close()
 

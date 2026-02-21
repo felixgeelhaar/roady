@@ -16,8 +16,12 @@ func TestLoadMergedPolicy_OrgOnly(t *testing.T) {
 	projectDir := filepath.Join(root, "project1")
 	roadyDir := filepath.Join(root, ".roady")
 
-	os.MkdirAll(roadyDir, 0700)
-	os.MkdirAll(filepath.Join(projectDir, ".roady"), 0700)
+	if err := os.MkdirAll(roadyDir, 0700); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.MkdirAll(filepath.Join(projectDir, ".roady"), 0700); err != nil {
+		t.Fatal(err)
+	}
 
 	orgConfig := org.OrgConfig{
 		Name: "test-org",
@@ -28,7 +32,9 @@ func TestLoadMergedPolicy_OrgOnly(t *testing.T) {
 		},
 	}
 	data, _ := yaml.Marshal(orgConfig)
-	os.WriteFile(filepath.Join(roadyDir, "org.yaml"), data, 0600)
+	if err := os.WriteFile(filepath.Join(roadyDir, "org.yaml"), data, 0600); err != nil {
+		t.Fatal(err)
+	}
 
 	svc := application.NewOrgService(root)
 	merged, err := svc.LoadMergedPolicy(projectDir)
@@ -53,8 +59,8 @@ func TestLoadMergedPolicy_ProjectOverrides(t *testing.T) {
 	roadyDir := filepath.Join(root, ".roady")
 	projectRoadyDir := filepath.Join(projectDir, ".roady")
 
-	os.MkdirAll(roadyDir, 0700)
-	os.MkdirAll(projectRoadyDir, 0700)
+	_ = os.MkdirAll(roadyDir, 0700)
+	_ = os.MkdirAll(projectRoadyDir, 0700)
 
 	orgConfig := org.OrgConfig{
 		Name: "test-org",
@@ -65,14 +71,14 @@ func TestLoadMergedPolicy_ProjectOverrides(t *testing.T) {
 		},
 	}
 	data, _ := yaml.Marshal(orgConfig)
-	os.WriteFile(filepath.Join(roadyDir, "org.yaml"), data, 0600)
+	_ = os.WriteFile(filepath.Join(roadyDir, "org.yaml"), data, 0600)
 
 	projectPolicy := policy.PolicyConfig{
 		MaxWIP:     5,
 		TokenLimit: 10000,
 	}
 	policyData, _ := yaml.Marshal(projectPolicy)
-	os.WriteFile(filepath.Join(projectRoadyDir, "policy.yaml"), policyData, 0600)
+	_ = os.WriteFile(filepath.Join(projectRoadyDir, "policy.yaml"), policyData, 0600)
 
 	svc := application.NewOrgService(root)
 	merged, err := svc.LoadMergedPolicy(projectDir)
@@ -92,11 +98,11 @@ func TestLoadMergedPolicy_NoOrg(t *testing.T) {
 	root := t.TempDir()
 	projectDir := filepath.Join(root, "project1")
 	projectRoadyDir := filepath.Join(projectDir, ".roady")
-	os.MkdirAll(projectRoadyDir, 0700)
+	_ = os.MkdirAll(projectRoadyDir, 0700)
 
 	projectPolicy := policy.PolicyConfig{MaxWIP: 2}
 	policyData, _ := yaml.Marshal(projectPolicy)
-	os.WriteFile(filepath.Join(projectRoadyDir, "policy.yaml"), policyData, 0600)
+	_ = os.WriteFile(filepath.Join(projectRoadyDir, "policy.yaml"), policyData, 0600)
 
 	svc := application.NewOrgService(root)
 	merged, err := svc.LoadMergedPolicy(projectDir)

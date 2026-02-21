@@ -54,7 +54,7 @@ func (s *BillingService) StartTask(taskID string, rateID string) error {
 		return err
 	}
 
-	s.audit.Log("billing.task_started", "system", map[string]interface{}{
+	_ = s.audit.Log("billing.task_started", "system", map[string]interface{}{
 		"task_id": taskID,
 		"rate_id": rateID,
 	})
@@ -86,7 +86,7 @@ func (s *BillingService) CompleteTask(taskID string) error {
 	// Re-read the result after CompleteTask to get elapsed minutes
 	result = state.TaskStates[taskID]
 
-	s.audit.Log("billing.task_completed", "system", map[string]interface{}{
+	_ = s.audit.Log("billing.task_completed", "system", map[string]interface{}{
 		"task_id":         taskID,
 		"elapsed_minutes": result.ElapsedMinutes,
 	})
@@ -118,7 +118,7 @@ func (s *BillingService) LogTime(taskID string, rateID string, minutes int, desc
 		return err
 	}
 
-	s.audit.Log("billing.time_logged", "system", map[string]interface{}{
+	_ = s.audit.Log("billing.time_logged", "system", map[string]interface{}{
 		"task_id": taskID,
 		"rate_id": rateID,
 		"minutes": minutes,
@@ -296,7 +296,7 @@ func (s *BillingService) AddRate(rate billing.Rate) error {
 		return err
 	}
 
-	s.audit.Log("billing.rate_added", "system", map[string]interface{}{
+	_ = s.audit.Log("billing.rate_added", "system", map[string]interface{}{
 		"rate_id":     rate.ID,
 		"rate_name":   rate.Name,
 		"hourly_rate": rate.HourlyRate,
@@ -319,7 +319,7 @@ func (s *BillingService) RemoveRate(rateID string) error {
 		return err
 	}
 
-	s.audit.Log("billing.rate_removed", "system", map[string]interface{}{
+	_ = s.audit.Log("billing.rate_removed", "system", map[string]interface{}{
 		"rate_id": rateID,
 	})
 
@@ -344,7 +344,7 @@ func (s *BillingService) SetDefaultRate(rateID string) error {
 		return err
 	}
 
-	s.audit.Log("billing.default_rate_set", "system", map[string]interface{}{
+	_ = s.audit.Log("billing.default_rate_set", "system", map[string]interface{}{
 		"rate_id": rateID,
 	})
 
@@ -367,7 +367,7 @@ func (s *BillingService) SetTax(name string, percent float64, included bool) err
 		return err
 	}
 
-	s.audit.Log("billing.tax_configured", "system", map[string]interface{}{
+	_ = s.audit.Log("billing.tax_configured", "system", map[string]interface{}{
 		"tax_name":    name,
 		"tax_percent": percent,
 		"included":    included,

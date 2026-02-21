@@ -14,6 +14,7 @@ dist/
 !.cover/history.json
 .verdict/
 coverage.out
+findings.json
 
 # Relicta artifacts
 .relicta/
@@ -40,3 +41,4 @@ website/.astro/
 
 # Claude local settings
 .claude/settings.local.json
+memory/

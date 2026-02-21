@@ -255,11 +255,11 @@ func TestTrelloSyncer_Sync(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch {
 		case r.Method == "GET" && strings.Contains(r.URL.Path, "/boards/board-1/cards"):
-			json.NewEncoder(w).Encode([]TrelloCard{
+			_ = json.NewEncoder(w).Encode([]TrelloCard{
 				{ID: "c1", Name: "Task 1", Desc: "roady-id: t1", IDList: "todo-list", URL: "https://trello.com/c1", ShortID: 1},
 			})
 		case r.Method == "POST" && strings.Contains(r.URL.Path, "/cards"):
-			json.NewEncoder(w).Encode(TrelloCard{
+			_ = json.NewEncoder(w).Encode(TrelloCard{
 				ID: "c2", Name: "Task 2", Desc: "roady-id: t2", IDList: "todo-list", URL: "https://trello.com/c2", ShortID: 2,
 			})
 		default:
@@ -311,12 +311,12 @@ func TestTrelloSyncer_Push(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch {
 		case r.Method == "GET" && strings.Contains(r.URL.Path, "/cards"):
-			json.NewEncoder(w).Encode([]TrelloCard{
+			_ = json.NewEncoder(w).Encode([]TrelloCard{
 				{ID: "c1", Desc: "roady-id: t1", IDList: "todo-list", ShortID: 1},
 			})
 		case r.Method == "PUT":
 			receivedPath = r.URL.Path
-			json.NewEncoder(w).Encode(TrelloCard{ID: "c1", IDList: "done-list"})
+			_ = json.NewEncoder(w).Encode(TrelloCard{ID: "c1", IDList: "done-list"})
 		default:
 			w.WriteHeader(404)
 		}
@@ -351,7 +351,7 @@ func TestTrelloSyncer_Push(t *testing.T) {
 
 func TestTrelloSyncer_Push_NotFound(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		json.NewEncoder(w).Encode([]TrelloCard{})
+		_ = json.NewEncoder(w).Encode([]TrelloCard{})
 	}))
 	defer server.Close()
 
@@ -375,7 +375,7 @@ func TestTrelloSyncer_Push_NotFound(t *testing.T) {
 
 func TestTrelloSyncer_Init_WithHTTPTest(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		json.NewEncoder(w).Encode([]TrelloList{
+		_ = json.NewEncoder(w).Encode([]TrelloList{
 			{ID: "list-1", Name: "To Do"},
 			{ID: "list-2", Name: "Done"},
 		})

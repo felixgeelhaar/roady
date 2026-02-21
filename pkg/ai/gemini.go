@@ -69,7 +69,7 @@ type geminiResponse struct {
 
 func (p *GeminiProvider) Complete(ctx context.Context, req ai.CompletionRequest) (*ai.CompletionResponse, error) {
 	if p.APIKey == "" {
-		return nil, fmt.Errorf("Gemini API key not provided (set GEMINI_API_KEY)")
+		return nil, fmt.Errorf("gemini API key not provided (set GEMINI_API_KEY)")
 	}
 
 	gReq := geminiRequest{
@@ -108,10 +108,10 @@ func (p *GeminiProvider) Complete(ctx context.Context, req ai.CompletionRequest)
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer resp.Body.Close() //nolint:errcheck // best-effort close on read body
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("Gemini API returned status: %s", resp.Status)
+		return nil, fmt.Errorf("gemini API returned status: %s", resp.Status)
 	}
 
 	var gResp geminiResponse
@@ -120,7 +120,7 @@ func (p *GeminiProvider) Complete(ctx context.Context, req ai.CompletionRequest)
 	}
 
 	if len(gResp.Candidates) == 0 || len(gResp.Candidates[0].Content.Parts) == 0 {
-		return nil, fmt.Errorf("Gemini API returned no candidates")
+		return nil, fmt.Errorf("gemini API returned no candidates")
 	}
 
 	return &ai.CompletionResponse{

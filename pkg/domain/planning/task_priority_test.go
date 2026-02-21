@@ -119,7 +119,8 @@ func TestTaskPriority_IsLowerThan(t *testing.T) {
 }
 
 func TestTaskPriority_Equals(t *testing.T) {
-	if !PriorityHigh.Equals(PriorityHigh) {
+	p := PriorityHigh
+	if !p.Equals(PriorityHigh) {
 		t.Error("PriorityHigh should equal itself")
 	}
 	if PriorityHigh.Equals(PriorityMedium) {

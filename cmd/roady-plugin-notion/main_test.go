@@ -40,7 +40,7 @@ func TestNotionSyncer_Sync(t *testing.T) {
 		switch {
 		case r.Method == "POST" && strings.Contains(r.URL.Path, "/databases/"):
 			// Query database - return one existing page
-			json.NewEncoder(w).Encode(NotionQueryResult{
+			_ = json.NewEncoder(w).Encode(NotionQueryResult{
 				Results: []NotionPage{
 					{
 						ID:  "page-1",
@@ -66,7 +66,7 @@ func TestNotionSyncer_Sync(t *testing.T) {
 			})
 		case r.Method == "POST" && r.URL.Path == "/pages":
 			// Create page
-			json.NewEncoder(w).Encode(NotionPage{
+			_ = json.NewEncoder(w).Encode(NotionPage{
 				ID:         "page-2",
 				URL:        "https://notion.so/page-2",
 				Properties: map[string]interface{}{},
@@ -311,7 +311,7 @@ func TestNotionSyncer_Push(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch {
 		case r.Method == "POST" && strings.Contains(r.URL.Path, "/databases/"):
-			json.NewEncoder(w).Encode(NotionQueryResult{
+			_ = json.NewEncoder(w).Encode(NotionQueryResult{
 				Results: []NotionPage{
 					{
 						ID: "page-1",
@@ -328,7 +328,7 @@ func TestNotionSyncer_Push(t *testing.T) {
 			})
 		case r.Method == "PATCH":
 			patchCalled = true
-			json.NewEncoder(w).Encode(NotionPage{ID: "page-1"})
+			_ = json.NewEncoder(w).Encode(NotionPage{ID: "page-1"})
 		default:
 			w.WriteHeader(404)
 		}
@@ -356,7 +356,7 @@ func TestNotionSyncer_Push(t *testing.T) {
 
 func TestNotionSyncer_Push_NotFound(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		json.NewEncoder(w).Encode(NotionQueryResult{Results: []NotionPage{}, HasMore: false})
+		_ = json.NewEncoder(w).Encode(NotionQueryResult{Results: []NotionPage{}, HasMore: false})
 	}))
 	defer server.Close()
 

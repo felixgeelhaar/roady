@@ -13,7 +13,7 @@ import (
 
 func TestFilesystemRepository_Thorough(t *testing.T) {
 	tempDir, _ := os.MkdirTemp("", "roady-storage-thorough-*")
-	defer os.RemoveAll(tempDir)
+	defer func() { _ = os.RemoveAll(tempDir) }()
 
 	repo := NewFilesystemRepository(tempDir)
 
@@ -122,50 +122,58 @@ func TestFilesystemRepository_Thorough(t *testing.T) {
 
 	// 9. LoadPolicy default
 	tempEmpty, _ := os.MkdirTemp("", "roady-empty-*")
-	defer os.RemoveAll(tempEmpty)
+	defer func() { _ = os.RemoveAll(tempEmpty) }()
 	repoEmpty := NewFilesystemRepository(tempEmpty)
-	repoEmpty.Initialize()
+	if err := repoEmpty.Initialize(); err != nil {
+		t.Fatal(err)
+	}
 	pPol, _ := repoEmpty.LoadPolicy()
 	if pPol.MaxWIP != 3 {
 		t.Errorf("expected default 3, got %d", pPol.MaxWIP)
 	}
 
 	// 10. Invalid JSON in plan
-	os.WriteFile(filepath.Join(repoEmpty.root, ".roady", "plan.json"), []byte("invalid json"), 0600)
+	_ = os.WriteFile(filepath.Join(repoEmpty.root, ".roady", "plan.json"), []byte("invalid json"), 0600)
 	if _, err := repoEmpty.LoadPlan(); err == nil {
 		t.Error("expected json error in LoadPlan")
 	}
 
 	// 11. Invalid YAML in policy (syntax error)
-	os.WriteFile(filepath.Join(repoEmpty.root, ".roady", "policy.yaml"), []byte("[}"), 0600)
+	_ = os.WriteFile(filepath.Join(repoEmpty.root, ".roady", "policy.yaml"), []byte("[}"), 0600)
 	if _, err := repoEmpty.LoadPolicy(); err == nil {
 		t.Error("expected yaml syntax error")
 	}
 
 	// 12. Invalid YAML in spec
-	os.WriteFile(filepath.Join(repoEmpty.root, ".roady", "spec.yaml"), []byte("[}"), 0600)
+	_ = os.WriteFile(filepath.Join(repoEmpty.root, ".roady", "spec.yaml"), []byte("[}"), 0600)
 	if _, err := repoEmpty.LoadSpec(); err == nil {
 		t.Error("expected yaml error in LoadSpec")
 	}
 
 	// 13. LoadPolicy type mismatch
-	os.WriteFile(filepath.Join(repoEmpty.root, ".roady", "policy.yaml"), []byte("123"), 0600)
+	_ = os.WriteFile(filepath.Join(repoEmpty.root, ".roady", "policy.yaml"), []byte("123"), 0600)
 	if _, err := repoEmpty.LoadPolicy(); err == nil {
 		t.Error("expected yaml error for integer policy")
 	}
 
 	// 14. Read failure (is a directory)
-	os.Remove(repoEmpty.root + "/.roady/spec.yaml")
-	os.Mkdir(repoEmpty.root+"/.roady/spec.yaml", 0700)
+	_ = os.Remove(repoEmpty.root + "/.roady/spec.yaml")
+	if err := os.Mkdir(repoEmpty.root+"/.roady/spec.yaml", 0700); err != nil {
+		t.Fatal(err)
+	}
 	if _, err := repoEmpty.LoadSpec(); err == nil {
 		t.Error("expected read error for directory (spec)")
 	}
 
-	os.Mkdir(repoEmpty.root+"/.roady/policy.isadir", 0700)
+	if err := os.Mkdir(repoEmpty.root+"/.roady/policy.isadir", 0700); err != nil {
+		t.Fatal(err)
+	}
 	// We can't rename because PolicyFile is a constant "policy.yaml"
 	// I'll just remove the file and create a dir with same name
-	os.Remove(repoEmpty.root + "/.roady/policy.yaml")
-	os.Mkdir(repoEmpty.root+"/.roady/policy.yaml", 0700)
+	_ = os.Remove(repoEmpty.root + "/.roady/policy.yaml")
+	if err := os.Mkdir(repoEmpty.root+"/.roady/policy.yaml", 0700); err != nil {
+		t.Fatal(err)
+	}
 	if _, err := repoEmpty.LoadPolicy(); err == nil {
 		t.Error("expected read error for directory (policy)")
 	}
@@ -197,13 +205,13 @@ func TestFilesystemRepository_ResolvePath_Edge(t *testing.T) {
 
 func TestFilesystemRepository_Errors(t *testing.T) {
 	tempDir, _ := os.MkdirTemp("", "roady-readonly-*")
-	defer os.RemoveAll(tempDir)
+	defer func() { _ = os.RemoveAll(tempDir) }()
 	repo := NewFilesystemRepository(tempDir)
-	repo.Initialize()
+	if err := repo.Initialize(); err != nil { t.Fatal(err) }
 
 	// Make .roady read-only to force WriteFile failure
-	os.Chmod(filepath.Join(repo.root, ".roady"), 0400)
-	defer os.Chmod(filepath.Join(repo.root, ".roady"), 0700)
+	if err := os.Chmod(filepath.Join(repo.root, ".roady"), 0400); err != nil { t.Fatal(err) }
+	defer func() { if err := os.Chmod(filepath.Join(repo.root, ".roady"), 0700); err != nil { t.Fatal(err) } }()
 
 	if err := repo.SaveSpec(&spec.ProductSpec{ID: "fail"}); err == nil {
 		t.Error("expected write error on readonly dir (spec)")
@@ -227,7 +235,7 @@ func TestFilesystemRepository_Errors(t *testing.T) {
 
 func TestFilesystemRepository_InitError(t *testing.T) {
 	tempFile, _ := os.CreateTemp("", "roady-init-fail-*")
-	defer os.Remove(tempFile.Name())
+	defer func() { _ = os.Remove(tempFile.Name()) }()
 
 	repo := NewFilesystemRepository(tempFile.Name())
 	if err := repo.Initialize(); err == nil {

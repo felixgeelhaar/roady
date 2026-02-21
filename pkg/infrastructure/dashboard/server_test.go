@@ -1,6 +1,7 @@
 package dashboard
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -473,7 +474,7 @@ func TestServerShutdown(t *testing.T) {
 	}
 
 	// Shutdown without Start should not error
-	err = server.Shutdown(nil)
+	err = server.Shutdown(context.TODO())
 	if err != nil {
 		t.Errorf("Shutdown without Start should not error: %v", err)
 	}

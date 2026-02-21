@@ -7,10 +7,10 @@ import (
 
 func TestExecute(t *testing.T) {
 	tempDir, _ := os.MkdirTemp("", "roady-root-test-*")
-	defer os.RemoveAll(tempDir)
+	defer func() { _ = os.RemoveAll(tempDir) }()
 	old, _ := os.Getwd()
-	defer os.Chdir(old)
-	os.Chdir(tempDir)
+	defer func() { _ = os.Chdir(old) }()
+	_ = os.Chdir(tempDir)
 
 	// Help
 	os.Args = []string{"roady", "--help"}

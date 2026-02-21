@@ -162,7 +162,7 @@ func TestPayloadFormat(t *testing.T) {
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		body, _ := io.ReadAll(r.Body)
-		json.Unmarshal(body, &receivedPayload)
+		if err := json.Unmarshal(body, &receivedPayload); err != nil { t.Fatal(err) }
 		w.WriteHeader(http.StatusOK)
 	}))
 	defer server.Close()

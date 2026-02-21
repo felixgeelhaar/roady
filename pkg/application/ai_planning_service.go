@@ -89,7 +89,7 @@ func (s *AIPlanningService) DecomposeSpec(ctx context.Context) (*planning.Plan, 
 	}
 
 	// 3. Prompt AI
-	prompt := fmt.Sprintf(`Task: Decompose the following features into atomic engineering tasks.
+	prompt := `Task: Decompose the following features into atomic engineering tasks.
 Requirement: Every Feature and every Requirement listed below MUST be implemented.
 If a Feature has no Requirements, create at least one task for that Feature based on its description.
 
@@ -103,7 +103,7 @@ Return ONLY a JSON array of task objects with no surrounding text, no markdown, 
 Do NOT return placeholder values or the schema itself.
 
 Features to decompose:
-`)
+`
 
 	for _, f := range productSpec.Features {
 		prompt += fmt.Sprintf("- Feature: %s (ID: %s)\n", f.Title, f.ID)
@@ -469,11 +469,12 @@ func extractJSONPayload(text string) string {
 	startArray := strings.Index(clean, "[")
 	startObject := strings.Index(clean, "{")
 	start := -1
-	if startArray == -1 {
+	switch {
+	case startArray == -1:
 		start = startObject
-	} else if startObject == -1 || startArray < startObject {
+	case startObject == -1 || startArray < startObject:
 		start = startArray
-	} else {
+	default:
 		start = startObject
 	}
 	if start == -1 {
@@ -483,11 +484,12 @@ func extractJSONPayload(text string) string {
 	endArray := strings.LastIndex(clean, "]")
 	endObject := strings.LastIndex(clean, "}")
 	end := -1
-	if endArray == -1 {
+	switch {
+	case endArray == -1:
 		end = endObject
-	} else if endObject == -1 || endArray > endObject {
+	case endObject == -1 || endArray > endObject:
 		end = endArray
-	} else {
+	default:
 		end = endObject
 	}
 	if end == -1 || end <= start {

@@ -8,10 +8,10 @@ import (
 
 func TestCmdFailures_Internal(t *testing.T) {
 	tempEmpty, _ := os.MkdirTemp("", "roady-cli-fail-*")
-	defer os.RemoveAll(tempEmpty)
+	defer func() { _ = os.RemoveAll(tempEmpty) }()
 	old, _ := os.Getwd()
-	defer os.Chdir(old)
-	os.Chdir(tempEmpty)
+	defer func() { _ = os.Chdir(old) }()
+	_ = os.Chdir(tempEmpty)
 
 	buf := new(bytes.Buffer)
 	RootCmd.SetOut(buf)
@@ -38,7 +38,7 @@ func TestCmdFailures_Internal(t *testing.T) {
 	_ = RootCmd.Execute()
 
 	// 3. Init failure
-	os.Mkdir(".roady", 0700)
+	_ = os.Mkdir(".roady", 0700)
 	RootCmd.SetArgs([]string{"init", "fail"})
 	_ = RootCmd.Execute()
 
@@ -55,12 +55,12 @@ func TestCmdFailures_Internal(t *testing.T) {
 	_ = RootCmd.Execute()
 
 	// 5.1 Spec Validate fail
-	os.WriteFile(".roady/spec.yaml", []byte("invalid"), 0600)
+	_ = os.WriteFile(".roady/spec.yaml", []byte("invalid"), 0600)
 	RootCmd.SetArgs([]string{"spec", "validate"})
 	_ = RootCmd.Execute()
 
 	// 6. Policy load failure
-	os.WriteFile(".roady/policy.yaml", []byte("max_wip: [invalid]"), 0600)
+	_ = os.WriteFile(".roady/policy.yaml", []byte("max_wip: [invalid]"), 0600)
 	RootCmd.SetArgs([]string{"policy", "check"})
 	_ = RootCmd.Execute()
 
@@ -69,14 +69,14 @@ func TestCmdFailures_Internal(t *testing.T) {
 	_ = RootCmd.Execute()
 
 	// 8. MCP skip
-	os.Setenv("ROADY_SKIP_MCP_START", "true")
-	defer os.Unsetenv("ROADY_SKIP_MCP_START")
+	_ = os.Setenv("ROADY_SKIP_MCP_START", "true")
+	defer func() { _ = os.Unsetenv("ROADY_SKIP_MCP_START") }()
 	RootCmd.SetArgs([]string{"mcp"})
 	_ = RootCmd.Execute()
 
 	// 9. Dashboard skip
-	os.Setenv("ROADY_SKIP_DASHBOARD_RUN", "true")
-	defer os.Unsetenv("ROADY_SKIP_DASHBOARD_RUN")
+	_ = os.Setenv("ROADY_SKIP_DASHBOARD_RUN", "true")
+	defer func() { _ = os.Unsetenv("ROADY_SKIP_DASHBOARD_RUN") }()
 	RootCmd.SetArgs([]string{"dashboard"})
 	_ = RootCmd.Execute()
 }

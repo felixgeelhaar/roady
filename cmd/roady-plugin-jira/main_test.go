@@ -244,7 +244,7 @@ func TestJiraSyncer_FetchProjectIssues(t *testing.T) {
 			"nextPageToken": "",
 		}
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(resp)
+		_ = json.NewEncoder(w).Encode(resp)
 	})
 
 	syncer, cleanup := newTestSyncer(t, mux)
@@ -280,7 +280,7 @@ func TestJiraSyncer_CreateIssue(t *testing.T) {
 		}
 		createCalled = true
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]interface{}{
+		_ = json.NewEncoder(w).Encode(map[string]interface{}{
 			"id":   "200",
 			"key":  "RD-10",
 			"self": "https://example.atlassian.net/rest/api/3/issue/200",
@@ -294,7 +294,7 @@ func TestJiraSyncer_CreateIssue(t *testing.T) {
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(jiraIssueJSON("200", "RD-10", "New Task", "New task desc\nroady-id: t-new", "To Do"))
+		_ = json.NewEncoder(w).Encode(jiraIssueJSON("200", "RD-10", "New Task", "New task desc\nroady-id: t-new", "To Do"))
 	})
 
 	syncer, cleanup := newTestSyncer(t, mux)
@@ -331,7 +331,7 @@ func TestJiraSyncer_Sync(t *testing.T) {
 			"nextPageToken": "",
 		}
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(resp)
+		_ = json.NewEncoder(w).Encode(resp)
 	})
 
 	syncer, cleanup := newTestSyncer(t, mux)
@@ -368,14 +368,14 @@ func TestJiraSyncer_Sync_CreatesMissing(t *testing.T) {
 			"nextPageToken": "",
 		}
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(resp)
+		_ = json.NewEncoder(w).Encode(resp)
 	})
 
 	// Create endpoint for t2
 	mux.HandleFunc("/rest/api/3/issue", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodPost {
 			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(map[string]interface{}{
+			_ = json.NewEncoder(w).Encode(map[string]interface{}{
 				"id":   "201",
 				"key":  "RD-2",
 				"self": "https://example.atlassian.net/rest/api/3/issue/201",
@@ -388,7 +388,7 @@ func TestJiraSyncer_Sync_CreatesMissing(t *testing.T) {
 	// Get endpoint for fetching the newly created issue
 	mux.HandleFunc("/rest/api/3/issue/RD-2", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(jiraIssueJSON("201", "RD-2", "Task 2", "task 2 desc\nroady-id: t2", "To Do"))
+		_ = json.NewEncoder(w).Encode(jiraIssueJSON("201", "RD-2", "Task 2", "task 2 desc\nroady-id: t2", "To Do"))
 	})
 
 	syncer, cleanup := newTestSyncer(t, mux)
@@ -436,7 +436,7 @@ func TestJiraSyncer_Sync_WithExistingRef(t *testing.T) {
 			"nextPageToken": "",
 		}
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(resp)
+		_ = json.NewEncoder(w).Encode(resp)
 	})
 
 	syncer, cleanup := newTestSyncer(t, mux)
@@ -476,7 +476,7 @@ func TestJiraSyncer_Sync_ExistingRefByKey(t *testing.T) {
 			"nextPageToken": "",
 		}
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(resp)
+		_ = json.NewEncoder(w).Encode(resp)
 	})
 
 	syncer, cleanup := newTestSyncer(t, mux)
@@ -515,7 +515,7 @@ func TestJiraSyncer_Sync_NoStatusChange(t *testing.T) {
 			"nextPageToken": "",
 		}
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(resp)
+		_ = json.NewEncoder(w).Encode(resp)
 	})
 
 	syncer, cleanup := newTestSyncer(t, mux)
@@ -547,14 +547,14 @@ func TestJiraSyncer_Sync_CreateFails(t *testing.T) {
 			"nextPageToken": "",
 		}
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(resp)
+		_ = json.NewEncoder(w).Encode(resp)
 	})
 
 	// Create fails with server error
 	mux.HandleFunc("/rest/api/3/issue", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]interface{}{
+		_ = json.NewEncoder(w).Encode(map[string]interface{}{
 			"errorMessages": []string{"server error"},
 		})
 	})
@@ -593,7 +593,7 @@ func TestJiraSyncer_Push(t *testing.T) {
 			"nextPageToken": "",
 		}
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(resp)
+		_ = json.NewEncoder(w).Encode(resp)
 	})
 
 	// Transition endpoint
@@ -630,7 +630,7 @@ func TestJiraSyncer_Push_InProgress(t *testing.T) {
 			"nextPageToken": "",
 		}
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(resp)
+		_ = json.NewEncoder(w).Encode(resp)
 	})
 
 	mux.HandleFunc("/rest/api/3/issue/RD-1/transitions", func(w http.ResponseWriter, r *http.Request) {
@@ -662,7 +662,7 @@ func TestJiraSyncer_Push_Pending(t *testing.T) {
 			"nextPageToken": "",
 		}
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(resp)
+		_ = json.NewEncoder(w).Encode(resp)
 	})
 
 	mux.HandleFunc("/rest/api/3/issue/RD-1/transitions", func(w http.ResponseWriter, r *http.Request) {
@@ -692,7 +692,7 @@ func TestJiraSyncer_Push_NotFound(t *testing.T) {
 			"nextPageToken": "",
 		}
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(resp)
+		_ = json.NewEncoder(w).Encode(resp)
 	})
 
 	syncer, cleanup := newTestSyncer(t, mux)
@@ -718,7 +718,7 @@ func TestJiraSyncer_Push_Blocked(t *testing.T) {
 			"nextPageToken": "",
 		}
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(resp)
+		_ = json.NewEncoder(w).Encode(resp)
 	})
 
 	syncer, cleanup := newTestSyncer(t, mux)
@@ -744,7 +744,7 @@ func TestJiraSyncer_Push_UnsupportedStatus(t *testing.T) {
 			"nextPageToken": "",
 		}
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(resp)
+		_ = json.NewEncoder(w).Encode(resp)
 	})
 
 	syncer, cleanup := newTestSyncer(t, mux)
@@ -770,13 +770,13 @@ func TestJiraSyncer_Push_TransitionFails(t *testing.T) {
 			"nextPageToken": "",
 		}
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(resp)
+		_ = json.NewEncoder(w).Encode(resp)
 	})
 
 	mux.HandleFunc("/rest/api/3/issue/RD-1/transitions", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]interface{}{
+		_ = json.NewEncoder(w).Encode(map[string]interface{}{
 			"errorMessages": []string{"transition not valid"},
 		})
 	})
@@ -796,7 +796,7 @@ func TestJiraSyncer_Sync_FetchError(t *testing.T) {
 	mux.HandleFunc("/rest/api/3/search/jql", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]interface{}{
+		_ = json.NewEncoder(w).Encode(map[string]interface{}{
 			"errorMessages": []string{"internal error"},
 		})
 	})
@@ -822,7 +822,7 @@ func TestJiraSyncer_Push_FetchError(t *testing.T) {
 	mux.HandleFunc("/rest/api/3/search/jql", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]interface{}{
+		_ = json.NewEncoder(w).Encode(map[string]interface{}{
 			"errorMessages": []string{"internal error"},
 		})
 	})
@@ -869,7 +869,7 @@ func TestJiraSyncer_Sync_MultipleTasks(t *testing.T) {
 			"nextPageToken": "",
 		}
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(resp)
+		_ = json.NewEncoder(w).Encode(resp)
 	})
 
 	syncer, cleanup := newTestSyncer(t, mux)

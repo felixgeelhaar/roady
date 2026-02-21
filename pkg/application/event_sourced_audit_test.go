@@ -60,10 +60,10 @@ func TestEventSourcedAuditService_Projections(t *testing.T) {
 	}
 
 	// Log task events
-	svc.Log(events.EventTypeTaskStarted, "alice", map[string]interface{}{
+	_ = svc.Log(events.EventTypeTaskStarted, "alice", map[string]interface{}{
 		"task_id": "task-1",
 	})
-	svc.Log(events.EventTypeTaskCompleted, "alice", map[string]interface{}{
+	_ = svc.Log(events.EventTypeTaskCompleted, "alice", map[string]interface{}{
 		"task_id": "task-1",
 	})
 
@@ -94,7 +94,7 @@ func TestEventSourcedAuditService_TaskState(t *testing.T) {
 	}
 
 	// Log task started
-	svc.Log(events.EventTypeTaskStarted, "alice", map[string]interface{}{
+	_ = svc.Log(events.EventTypeTaskStarted, "alice", map[string]interface{}{
 		"task_id": "task-1",
 	})
 
@@ -135,7 +135,7 @@ func TestEventSourcedAuditService_Velocity(t *testing.T) {
 
 	// Log completions
 	for i := 0; i < 7; i++ {
-		svc.Log(events.EventTypeTaskCompleted, "alice", map[string]interface{}{
+		_ = svc.Log(events.EventTypeTaskCompleted, "alice", map[string]interface{}{
 			"task_id": "task-" + string(rune('0'+i)),
 		})
 	}
@@ -160,8 +160,8 @@ func TestEventSourcedAuditService_VerifyIntegrity(t *testing.T) {
 	}
 
 	// Log events
-	svc.Log("task.started", "alice", nil)
-	svc.Log("task.completed", "alice", nil)
+	_ = svc.Log("task.started", "alice", nil)
+	_ = svc.Log("task.completed", "alice", nil)
 
 	// Verify integrity
 	violations, err := svc.VerifyIntegrity()
@@ -188,8 +188,8 @@ func TestEventSourcedAuditService_LoadEventsSince(t *testing.T) {
 	// Record time before logging
 	before := time.Now().Add(-time.Second)
 
-	svc.Log("task.started", "alice", nil)
-	svc.Log("task.completed", "alice", nil)
+	_ = svc.Log("task.started", "alice", nil)
+	_ = svc.Log("task.completed", "alice", nil)
 
 	// Load since before
 	evts, err := svc.LoadEventsSince(before)
@@ -219,7 +219,7 @@ func TestEventSourcedAuditService_RebuildFromExisting(t *testing.T) {
 	}
 
 	// Pre-populate events directly in store
-	store.Append(&events.BaseEvent{
+	_ = store.Append(&events.BaseEvent{
 		Type:  events.EventTypeTaskStarted,
 		Actor: "bob",
 		Metadata: map[string]interface{}{
@@ -365,9 +365,9 @@ func TestEventSourcedAuditService_DispatcherIntegration(t *testing.T) {
 	svc.SetDispatcher(dispatcher)
 
 	// Log multiple events
-	svc.Log(events.EventTypeTaskStarted, "alice", map[string]interface{}{"task_id": "task-1"})
-	svc.Log(events.EventTypeTaskCompleted, "alice", map[string]interface{}{"task_id": "task-1"})
-	svc.Log(events.EventTypeTaskVerified, "alice", map[string]interface{}{"task_id": "task-1"})
+	_ = svc.Log(events.EventTypeTaskStarted, "alice", map[string]interface{}{"task_id": "task-1"})
+	_ = svc.Log(events.EventTypeTaskCompleted, "alice", map[string]interface{}{"task_id": "task-1"})
+	_ = svc.Log(events.EventTypeTaskVerified, "alice", map[string]interface{}{"task_id": "task-1"})
 
 	// Wait for dispatches with timeout
 	received := make([]string, 0, 3)
@@ -399,22 +399,22 @@ func TestEventSourcedAuditService_GetAITelemetry(t *testing.T) {
 	}
 
 	// Log AI events
-	svc.Log("plan.ai_decomposition", "ai", map[string]interface{}{
+	_ = svc.Log("plan.ai_decomposition", "ai", map[string]interface{}{
 		"model":         "gpt-4o",
 		"input_tokens":  float64(100),
 		"output_tokens": float64(50),
 	})
-	svc.Log("plan.ai_decomposition_retry", "ai", map[string]interface{}{
+	_ = svc.Log("plan.ai_decomposition_retry", "ai", map[string]interface{}{
 		"reason":  "invalid json",
 		"attempt": 2,
 	})
-	svc.Log("spec.ai_explanation", "ai", map[string]interface{}{
+	_ = svc.Log("spec.ai_explanation", "ai", map[string]interface{}{
 		"model":         "gpt-4o",
 		"input_tokens":  float64(200),
 		"output_tokens": float64(100),
 	})
 	// Non-AI event should be ignored
-	svc.Log("task.started", "cli", map[string]interface{}{
+	_ = svc.Log("task.started", "cli", map[string]interface{}{
 		"task_id": "task-1",
 	})
 

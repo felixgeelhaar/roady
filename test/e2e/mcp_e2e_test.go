@@ -19,7 +19,7 @@ func TestMCPServicesHappyPath(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer os.RemoveAll(tempDir)
+	defer func() { _ = os.RemoveAll(tempDir) }()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
@@ -146,7 +146,7 @@ features:
 		t.Fatalf("GetProjectSnapshot failed: %v", err)
 	}
 	if snapshot == nil {
-		t.Error("Expected project snapshot")
+		t.Fatal("Expected project snapshot")
 	}
 	if snapshot.Plan == nil {
 		t.Error("Expected plan in snapshot")

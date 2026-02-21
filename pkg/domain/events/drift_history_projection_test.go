@@ -79,7 +79,7 @@ func TestDriftHistoryProjection_MultipleDetections(t *testing.T) {
 			"issue_count":  1,
 		},
 	}
-	p.Apply(event1)
+	if err := p.Apply(event1); err != nil { t.Fatal(err) }
 
 	// Second detection of same drift
 	event2 := &BaseEvent{
@@ -93,7 +93,7 @@ func TestDriftHistoryProjection_MultipleDetections(t *testing.T) {
 			"issue_count":  1,
 		},
 	}
-	p.Apply(event2)
+	if err := p.Apply(event2); err != nil { t.Fatal(err) }
 
 	// Should have 2 history entries but 1 debt item with count 2
 	history := p.GetDriftHistory()
@@ -125,7 +125,7 @@ func TestDriftHistoryProjection_DriftAccepted(t *testing.T) {
 			"issue_count":  1,
 		},
 	}
-	p.Apply(detectEvent)
+	if err := p.Apply(detectEvent); err != nil { t.Fatal(err) }
 
 	// Accept drift
 	acceptEvent := &BaseEvent{
@@ -137,7 +137,7 @@ func TestDriftHistoryProjection_DriftAccepted(t *testing.T) {
 			"drift_type":   "plan",
 		},
 	}
-	p.Apply(acceptEvent)
+	_ = p.Apply(acceptEvent)
 
 	items := p.GetActiveDebtItems()
 	if len(items) != 1 {
@@ -163,7 +163,7 @@ func TestDriftHistoryProjection_DriftResolved(t *testing.T) {
 			"issue_count":  1,
 		},
 	}
-	p.Apply(detectEvent)
+	_ = p.Apply(detectEvent)
 
 	// Verify active
 	if len(p.GetActiveDebtItems()) != 1 {
@@ -180,7 +180,7 @@ func TestDriftHistoryProjection_DriftResolved(t *testing.T) {
 			"drift_type":   "plan",
 		},
 	}
-	p.Apply(resolveEvent)
+	_ = p.Apply(resolveEvent)
 
 	// Should be resolved
 	if len(p.GetActiveDebtItems()) != 0 {
@@ -206,7 +206,7 @@ func TestDriftHistoryProjection_GetStickyDebtItems(t *testing.T) {
 			"issue_count":  1,
 		},
 	}
-	p.Apply(event)
+	_ = p.Apply(event)
 
 	// Manually set as sticky for testing
 	items := p.GetActiveDebtItems()
@@ -237,7 +237,7 @@ func TestDriftHistoryProjection_GetDebtByComponent(t *testing.T) {
 				"issue_count":  1,
 			},
 		}
-		p.Apply(event)
+		_ = p.Apply(event)
 	}
 
 	byComponent := p.GetDebtByComponent()
@@ -262,7 +262,7 @@ func TestDriftHistoryProjection_GetDebtReport(t *testing.T) {
 			"issue_count":  1,
 		},
 	}
-	p.Apply(event)
+	_ = p.Apply(event)
 
 	report := p.GetDebtReport()
 
@@ -290,7 +290,7 @@ func TestDriftHistoryProjection_GetDriftTrend(t *testing.T) {
 				"issue_count":  i + 1, // Increasing issues
 			},
 		}
-		p.Apply(event)
+		_ = p.Apply(event)
 	}
 
 	trend := p.GetDriftTrend(30)
@@ -319,7 +319,7 @@ func TestDriftHistoryProjection_GetDriftHistoryInWindow(t *testing.T) {
 			"issue_count":  1,
 		},
 	}
-	p.Apply(oldEvent)
+	_ = p.Apply(oldEvent)
 
 	// Add recent event
 	recentEvent := &BaseEvent{
@@ -332,7 +332,7 @@ func TestDriftHistoryProjection_GetDriftHistoryInWindow(t *testing.T) {
 			"issue_count":  1,
 		},
 	}
-	p.Apply(recentEvent)
+	_ = p.Apply(recentEvent)
 
 	// 7-day window should only include recent
 	history := p.GetDriftHistoryInWindow(7)
@@ -399,13 +399,13 @@ func TestDriftHistoryProjection_Reset(t *testing.T) {
 			"issue_count":  1,
 		},
 	}
-	p.Apply(event)
+	_ = p.Apply(event)
 
 	if len(p.GetActiveDebtItems()) != 1 {
 		t.Fatal("Expected 1 item before reset")
 	}
 
-	p.Reset()
+	_ = p.Reset()
 
 	if len(p.GetActiveDebtItems()) != 0 {
 		t.Error("Expected 0 items after reset")
@@ -429,7 +429,7 @@ func TestDriftHistoryProjection_Regression(t *testing.T) {
 			"message":      "Missing task",
 		},
 	}
-	p.Apply(detectEvent)
+	_ = p.Apply(detectEvent)
 
 	resolveEvent := &BaseEvent{
 		ID:        "event-2",
@@ -440,7 +440,7 @@ func TestDriftHistoryProjection_Regression(t *testing.T) {
 			"drift_type":   "plan",
 		},
 	}
-	p.Apply(resolveEvent)
+	_ = p.Apply(resolveEvent)
 
 	// Detect same drift again (regression)
 	regressionEvent := &BaseEvent{
@@ -453,7 +453,7 @@ func TestDriftHistoryProjection_Regression(t *testing.T) {
 			"message":      "Missing task again",
 		},
 	}
-	p.Apply(regressionEvent)
+	_ = p.Apply(regressionEvent)
 
 	items := p.GetActiveDebtItems()
 	if len(items) != 1 {
@@ -479,7 +479,7 @@ func TestDriftHistoryProjection_GetDebtByCategory(t *testing.T) {
 			"issue_count":  1,
 		},
 	}
-	p.Apply(detectEvent)
+	_ = p.Apply(detectEvent)
 
 	// Add another and accept it (makes it intentional)
 	detectEvent2 := &BaseEvent{
@@ -493,7 +493,7 @@ func TestDriftHistoryProjection_GetDebtByCategory(t *testing.T) {
 			"issue_count":  1,
 		},
 	}
-	p.Apply(detectEvent2)
+	_ = p.Apply(detectEvent2)
 
 	acceptEvent := &BaseEvent{
 		ID:        "event-3",
@@ -504,7 +504,7 @@ func TestDriftHistoryProjection_GetDebtByCategory(t *testing.T) {
 			"drift_type":   "spec",
 		},
 	}
-	p.Apply(acceptEvent)
+	_ = p.Apply(acceptEvent)
 
 	byCategory := p.GetDebtByCategory()
 	if len(byCategory) == 0 {
@@ -536,7 +536,7 @@ func TestDriftHistoryProjection_CategorizeChurn(t *testing.T) {
 				"issue_count":  1,
 			},
 		}
-		p.Apply(event)
+		_ = p.Apply(event)
 	}
 
 	items := p.GetActiveDebtItems()
@@ -564,7 +564,7 @@ func TestDriftHistoryProjection_CategorizeNeglect(t *testing.T) {
 			"issue_count":  1,
 		},
 	}
-	p.Apply(event1)
+	_ = p.Apply(event1)
 
 	// Manually adjust first detected to simulate age
 	items := p.GetActiveDebtItems()
@@ -584,7 +584,7 @@ func TestDriftHistoryProjection_CategorizeNeglect(t *testing.T) {
 			"issue_count":  1,
 		},
 	}
-	p.Apply(event2)
+	_ = p.Apply(event2)
 
 	items = p.GetActiveDebtItems()
 	if len(items) != 1 {
@@ -610,7 +610,7 @@ func TestDriftHistoryProjection_GetDebtReport_WithResolved(t *testing.T) {
 			"issue_count":  1,
 		},
 	}
-	p.Apply(detectEvent)
+	_ = p.Apply(detectEvent)
 
 	resolveEvent := &BaseEvent{
 		ID:        "event-2",
@@ -621,7 +621,7 @@ func TestDriftHistoryProjection_GetDebtReport_WithResolved(t *testing.T) {
 			"drift_type":   "plan",
 		},
 	}
-	p.Apply(resolveEvent)
+	_ = p.Apply(resolveEvent)
 
 	report := p.GetDebtReport()
 	if report.TotalItems != 0 {
@@ -707,7 +707,7 @@ func TestDriftHistoryProjection_GetDriftTrend_Decreasing(t *testing.T) {
 				"issue_count":  3, // More issues
 			},
 		}
-		p.Apply(event)
+		_ = p.Apply(event)
 	}
 
 	// Only 1 event in second half
@@ -721,7 +721,7 @@ func TestDriftHistoryProjection_GetDriftTrend_Decreasing(t *testing.T) {
 			"issue_count":  1,
 		},
 	}
-	p.Apply(event)
+	_ = p.Apply(event)
 
 	trend := p.GetDriftTrend(30)
 	if trend.WindowDays != 30 {

@@ -16,14 +16,14 @@ import (
 
 func TestPlanService_FullCoverage(t *testing.T) {
 	tempDir, _ := os.MkdirTemp("", "roady-plan-cov-*")
-	defer os.RemoveAll(tempDir)
+	defer func() { _ = os.RemoveAll(tempDir) }()
 	repo := storage.NewFilesystemRepository(tempDir)
-	repo.Initialize()
+	_ = repo.Initialize()
 	audit := application.NewAuditService(repo)
 	service := application.NewPlanService(repo, audit)
 
 	// 1. Success Path
-	repo.SaveSpec(&spec.ProductSpec{ID: "s1", Features: []spec.Feature{{ID: "f1", Title: "F1"}}})
+	_ = repo.SaveSpec(&spec.ProductSpec{ID: "s1", Features: []spec.Feature{{ID: "f1", Title: "F1"}}})
 	p, err := service.GeneratePlan(context.Background())
 	if err != nil {
 		t.Fatal(err)
@@ -33,15 +33,19 @@ func TestPlanService_FullCoverage(t *testing.T) {
 	}
 
 	// 2. Reconciliation Path
-	repo.SaveState(&planning.ExecutionState{
+	if err := repo.SaveState(&planning.ExecutionState{
 		TaskStates: map[string]planning.TaskResult{
 			p.Tasks[0].ID: {Status: planning.StatusDone},
 		},
-	})
-	repo.SavePlan(p)
+	}); err != nil {
+		t.Fatal(err)
+	}
+	if err := repo.SavePlan(p); err != nil {
+		t.Fatal(err)
+	}
 
 	// Add f2
-	repo.SaveSpec(&spec.ProductSpec{ID: "s1", Features: []spec.Feature{{ID: "f1", Title: "F1"}, {ID: "f2", Title: "F2"}}})
+	_ = repo.SaveSpec(&spec.ProductSpec{ID: "s1", Features: []spec.Feature{{ID: "f1", Title: "F1"}, {ID: "f2", Title: "F2"}}})
 	p2, _ := service.GeneratePlan(context.Background())
 	state, _ := repo.LoadState()
 	if len(p2.Tasks) != 2 || state.TaskStates[p2.Tasks[0].ID].Status != planning.StatusDone {
@@ -80,7 +84,7 @@ func TestPlanService_FailurePaths(t *testing.T) {
 
 func TestPlanService_GeneratePlanLocksSpec(t *testing.T) {
 	tempDir, _ := os.MkdirTemp("", "roady-plan-lock-*")
-	defer os.RemoveAll(tempDir)
+	defer func() { _ = os.RemoveAll(tempDir) }()
 
 	repo := storage.NewFilesystemRepository(tempDir)
 	if err := repo.Initialize(); err != nil {
@@ -120,7 +124,7 @@ func TestPlanService_GeneratePlanLocksSpec(t *testing.T) {
 
 func TestPlanService_UpdatePlanLocksSpec(t *testing.T) {
 	tempDir, _ := os.MkdirTemp("", "roady-plan-update-lock-*")
-	defer os.RemoveAll(tempDir)
+	defer func() { _ = os.RemoveAll(tempDir) }()
 
 	repo := storage.NewFilesystemRepository(tempDir)
 	if err := repo.Initialize(); err != nil {
@@ -218,10 +222,10 @@ func TestPlanService_PrunePlan(t *testing.T) {
 
 func TestPlanService_GovernanceEventsFromManualTransitions(t *testing.T) {
 	tempDir, _ := os.MkdirTemp("", "roady-plan-events-*")
-	defer os.RemoveAll(tempDir)
+	defer func() { _ = os.RemoveAll(tempDir) }()
 
 	repo := storage.NewFilesystemRepository(tempDir)
-	repo.Initialize()
+	_ = repo.Initialize()
 	audit := application.NewAuditService(repo)
 	service := application.NewPlanService(repo, audit)
 
@@ -302,9 +306,9 @@ func TestPlanService_GetStateUsage(t *testing.T) {
 
 func TestPlanService_GeneratePlanWithRequirements(t *testing.T) {
 	tempDir, _ := os.MkdirTemp("", "roady-plan-req-*")
-	defer os.RemoveAll(tempDir)
+	defer func() { _ = os.RemoveAll(tempDir) }()
 	repo := storage.NewFilesystemRepository(tempDir)
-	repo.Initialize()
+	_ = repo.Initialize()
 	service := application.NewPlanService(repo, application.NewAuditService(repo))
 
 	if err := repo.SaveSpec(&spec.ProductSpec{
@@ -391,7 +395,7 @@ func TestPlanService_UpdatePlanKeepsOrphans(t *testing.T) {
 
 func TestPlanService_GovernanceEvents(t *testing.T) {
 	tempDir, _ := os.MkdirTemp("", "roady-plan-events-*")
-	defer os.RemoveAll(tempDir)
+	defer func() { _ = os.RemoveAll(tempDir) }()
 
 	repo := storage.NewFilesystemRepository(tempDir)
 	if err := repo.Initialize(); err != nil {
@@ -455,7 +459,7 @@ func TestPlanService_GovernanceEvents(t *testing.T) {
 
 func TestPlanService_GettersReturnStoredValues(t *testing.T) {
 	tempDir, _ := os.MkdirTemp("", "roady-plan-getters-*")
-	defer os.RemoveAll(tempDir)
+	defer func() { _ = os.RemoveAll(tempDir) }()
 
 	repo := storage.NewFilesystemRepository(tempDir)
 	if err := repo.Initialize(); err != nil {
@@ -564,7 +568,7 @@ func TestPlanService_PrunePlanSpecLoadFails(t *testing.T) {
 
 func TestPlanService_UpdatePlanFiltersInvalidTasks(t *testing.T) {
 	tempDir, _ := os.MkdirTemp("", "roady-plan-filter-*")
-	defer os.RemoveAll(tempDir)
+	defer func() { _ = os.RemoveAll(tempDir) }()
 
 	repo := storage.NewFilesystemRepository(tempDir)
 	if err := repo.Initialize(); err != nil {
@@ -615,7 +619,7 @@ func TestPlanService_GetCoordinator(t *testing.T) {
 
 func TestPlanService_GetProjectSnapshot(t *testing.T) {
 	tempDir, _ := os.MkdirTemp("", "roady-plan-snapshot-*")
-	defer os.RemoveAll(tempDir)
+	defer func() { _ = os.RemoveAll(tempDir) }()
 
 	repo := storage.NewFilesystemRepository(tempDir)
 	if err := repo.Initialize(); err != nil {
@@ -656,7 +660,7 @@ func TestPlanService_GetProjectSnapshot(t *testing.T) {
 
 func TestPlanService_GetProjectSnapshot_NilContext(t *testing.T) {
 	tempDir, _ := os.MkdirTemp("", "roady-plan-snap-nilctx-*")
-	defer os.RemoveAll(tempDir)
+	defer func() { _ = os.RemoveAll(tempDir) }()
 
 	repo := storage.NewFilesystemRepository(tempDir)
 	if err := repo.Initialize(); err != nil {
@@ -681,7 +685,7 @@ func TestPlanService_GetProjectSnapshot_NilContext(t *testing.T) {
 	}
 
 	// Pass nil context; the method should handle it gracefully
-	snapshot, err := service.GetProjectSnapshot(nil)
+	snapshot, err := service.GetProjectSnapshot(context.TODO())
 	if err != nil {
 		t.Fatalf("GetProjectSnapshot with nil ctx: %v", err)
 	}
@@ -692,7 +696,7 @@ func TestPlanService_GetProjectSnapshot_NilContext(t *testing.T) {
 
 func TestPlanService_GetTaskSummaries(t *testing.T) {
 	tempDir, _ := os.MkdirTemp("", "roady-plan-summaries-*")
-	defer os.RemoveAll(tempDir)
+	defer func() { _ = os.RemoveAll(tempDir) }()
 
 	repo := storage.NewFilesystemRepository(tempDir)
 	if err := repo.Initialize(); err != nil {
@@ -732,7 +736,7 @@ func TestPlanService_GetTaskSummaries(t *testing.T) {
 
 func TestPlanService_GetReadyTasks(t *testing.T) {
 	tempDir, _ := os.MkdirTemp("", "roady-plan-ready-*")
-	defer os.RemoveAll(tempDir)
+	defer func() { _ = os.RemoveAll(tempDir) }()
 
 	repo := storage.NewFilesystemRepository(tempDir)
 	if err := repo.Initialize(); err != nil {
@@ -772,7 +776,7 @@ func TestPlanService_GetReadyTasks(t *testing.T) {
 
 func TestPlanService_GetBlockedTasks(t *testing.T) {
 	tempDir, _ := os.MkdirTemp("", "roady-plan-blocked-*")
-	defer os.RemoveAll(tempDir)
+	defer func() { _ = os.RemoveAll(tempDir) }()
 
 	repo := storage.NewFilesystemRepository(tempDir)
 	if err := repo.Initialize(); err != nil {
@@ -812,7 +816,7 @@ func TestPlanService_GetBlockedTasks(t *testing.T) {
 
 func TestPlanService_GetInProgressTasks(t *testing.T) {
 	tempDir, _ := os.MkdirTemp("", "roady-plan-inprog-*")
-	defer os.RemoveAll(tempDir)
+	defer func() { _ = os.RemoveAll(tempDir) }()
 
 	repo := storage.NewFilesystemRepository(tempDir)
 	if err := repo.Initialize(); err != nil {
@@ -861,7 +865,7 @@ func TestPlanService_GetInProgressTasks(t *testing.T) {
 
 func TestPlanService_ReconcilePlanKeepsOrphans(t *testing.T) {
 	tempDir, _ := os.MkdirTemp("", "roady-plan-orphans-*")
-	defer os.RemoveAll(tempDir)
+	defer func() { _ = os.RemoveAll(tempDir) }()
 
 	repo := storage.NewFilesystemRepository(tempDir)
 	if err := repo.Initialize(); err != nil {

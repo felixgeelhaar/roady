@@ -90,7 +90,7 @@ func (s *NotionSyncer) doRequest(ctx context.Context, method, endpoint string, b
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer resp.Body.Close() //nolint:errcheck // best-effort close on read body
 
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {

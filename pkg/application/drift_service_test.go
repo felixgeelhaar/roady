@@ -16,10 +16,10 @@ import (
 
 func TestDriftService_Detect(t *testing.T) {
 	tempDir, _ := os.MkdirTemp("", "roady-drift-test-*")
-	defer os.RemoveAll(tempDir)
+	defer func() { _ = os.RemoveAll(tempDir) }()
 
 	repo := storage.NewFilesystemRepository(tempDir)
-	repo.Initialize()
+	_ = repo.Initialize()
 	audit := application.NewAuditService(repo)
 	policy := application.NewPolicyService(repo)
 	service := application.NewDriftService(repo, audit, storage.NewCodebaseInspector(), policy)
@@ -29,10 +29,14 @@ func TestDriftService_Detect(t *testing.T) {
 		ID: "f1", Title: "F1",
 		Requirements: []spec.Requirement{{ID: "r1", Title: "R1"}},
 	}}}
-	repo.SaveSpec(s)
+	if err := repo.SaveSpec(s); err != nil {
+		t.Fatal(err)
+	}
 
 	plan := &planning.Plan{Tasks: []planning.Task{}}
-	repo.SavePlan(plan)
+	if err := repo.SavePlan(plan); err != nil {
+		t.Fatal(err)
+	}
 
 	report, err := service.DetectDrift(context.Background())
 	if err != nil {
@@ -44,18 +48,24 @@ func TestDriftService_Detect(t *testing.T) {
 
 	// 2. Code Drift (Empty File)
 	emptyFile := filepath.Join(tempDir, "empty.go")
-	os.WriteFile(emptyFile, []byte(""), 0600)
+	if err := os.WriteFile(emptyFile, []byte(""), 0600); err != nil {
+		t.Fatal(err)
+	}
 
 	// Add t1 as task-r1 to match requirement r1 and avoid orphan
 	plan.Tasks = append(plan.Tasks, planning.Task{
 		ID: "task-r1", FeatureID: "f1",
 	})
-	repo.SavePlan(plan)
-	repo.SaveState(&planning.ExecutionState{
+	if err := repo.SavePlan(plan); err != nil {
+		t.Fatal(err)
+	}
+	if err := repo.SaveState(&planning.ExecutionState{
 		TaskStates: map[string]planning.TaskResult{
 			"task-r1": {Status: planning.StatusDone, Path: emptyFile},
 		},
-	})
+	}); err != nil {
+		t.Fatal(err)
+	}
 
 	report, err = service.DetectDrift(context.Background())
 	if err != nil {
@@ -74,7 +84,9 @@ func TestDriftService_Detect(t *testing.T) {
 	}
 
 	// 3. Normal code drift (file exists and not empty)
-	os.WriteFile(emptyFile, []byte("content"), 0600)
+	if err := os.WriteFile(emptyFile, []byte("content"), 0600); err != nil {
+		t.Fatal(err)
+	}
 	report, _ = service.DetectDrift(context.Background())
 	// Should have 0 issues now because task-r1 matches r1 and code is present
 	if len(report.Issues) != 0 {
@@ -112,7 +124,7 @@ func TestDriftService_Errors(t *testing.T) {
 
 func TestDriftService_AcceptDrift(t *testing.T) {
 	tempDir, _ := os.MkdirTemp("", "roady-drift-accept-*")
-	defer os.RemoveAll(tempDir)
+	defer func() { _ = os.RemoveAll(tempDir) }()
 
 	repo := storage.NewFilesystemRepository(tempDir)
 	if err := repo.Initialize(); err != nil {
@@ -151,7 +163,7 @@ func TestDriftService_AcceptDrift(t *testing.T) {
 	if last.Action != "drift.accepted" {
 		t.Fatalf("unexpected event action: %s", last.Action)
 	}
-	if id, _ := last.Metadata["spec_id"]; id != spec.ID {
+	if id := last.Metadata["spec_id"]; id != spec.ID {
 		t.Fatalf("unexpected metadata: %+v", last.Metadata)
 	}
 }

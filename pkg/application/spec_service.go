@@ -112,7 +112,7 @@ func (s *SpecService) parseMarkdownFile(path string) (*spec.ProductSpec, error) 
 	if err != nil {
 		return nil, fmt.Errorf("failed to open file: %w", err)
 	}
-	defer file.Close()
+	defer file.Close() //nolint:errcheck // best-effort close on read path
 
 	scanner := bufio.NewScanner(file)
 
@@ -129,9 +129,10 @@ func (s *SpecService) parseMarkdownFile(path string) (*spec.ProductSpec, error) 
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
 
-		if strings.HasPrefix(line, "# ") {
+		switch {
+		case strings.HasPrefix(line, "# "):
 			productSpec.Title = strings.TrimSpace(strings.TrimPrefix(line, "# "))
-		} else if strings.HasPrefix(line, "## ") {
+		case strings.HasPrefix(line, "## "):
 			if currentFeature != nil {
 				currentFeature.Description = strings.TrimSpace(descriptionBuilder.String())
 				productSpec.Features = append(productSpec.Features, *currentFeature)
@@ -144,7 +145,7 @@ func (s *SpecService) parseMarkdownFile(path string) (*spec.ProductSpec, error) 
 				ID:    id,
 				Title: title,
 			}
-		} else {
+		default:
 			if currentFeature != nil {
 				descriptionBuilder.WriteString(line + "\n")
 			} else if productSpec.Description == "" && line != "" {
@@ -217,7 +218,7 @@ func (s *SpecService) AddFeature(title, description string) (*spec.ProductSpec, 
 
 }
 
-func (s *SpecService) syncToMarkdown(f spec.Feature) error {
+func (s *SpecService) syncToMarkdown(f spec.Feature) (err error) {
 
 	path := "docs/backlog.md"
 
@@ -236,7 +237,11 @@ func (s *SpecService) syncToMarkdown(f spec.Feature) error {
 
 	}
 
-	defer fWriter.Close()
+	defer func() {
+		if cerr := fWriter.Close(); cerr != nil && err == nil {
+			err = fmt.Errorf("close file: %w", cerr)
+		}
+	}()
 
 	_, err = fWriter.WriteString(content)
 

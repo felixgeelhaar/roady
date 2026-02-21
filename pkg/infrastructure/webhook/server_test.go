@@ -2,7 +2,6 @@ package webhook_test
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -11,15 +10,6 @@ import (
 	"github.com/felixgeelhaar/roady/pkg/domain/planning"
 	"github.com/felixgeelhaar/roady/pkg/infrastructure/webhook"
 )
-
-type mockProcessor struct {
-	events []*webhook.Event
-}
-
-func (m *mockProcessor) ProcessEvent(ctx context.Context, event *webhook.Event) error {
-	m.events = append(m.events, event)
-	return nil
-}
 
 func TestServer_Health(t *testing.T) {
 	server := webhook.NewServer(":8080", nil)
@@ -31,7 +21,7 @@ func TestServer_Health(t *testing.T) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("ok"))
+		_, _ = w.Write([]byte("ok"))
 	})
 	mux.ServeHTTP(w, req)
 

@@ -103,7 +103,7 @@ func (p *OpenAIProvider) Complete(ctx context.Context, req ai.CompletionRequest)
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer resp.Body.Close() //nolint:errcheck // best-effort close on read body
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("OpenAI API returned status: %s", resp.Status)

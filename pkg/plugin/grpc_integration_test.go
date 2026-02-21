@@ -57,7 +57,7 @@ func startGRPCServer(t *testing.T, impl domainPlugin.Syncer) (*grpc.ClientConn, 
 
 	go func() {
 		if err := s.Serve(lis); err != nil {
-			// server stopped
+			_ = err // server stopped
 		}
 	}()
 
@@ -72,9 +72,9 @@ func startGRPCServer(t *testing.T, impl domainPlugin.Syncer) (*grpc.ClientConn, 
 	}
 
 	cleanup := func() {
-		conn.Close()
+		_ = conn.Close()
 		s.Stop()
-		lis.Close()
+		_ = lis.Close()
 	}
 
 	return conn, cleanup

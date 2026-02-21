@@ -72,9 +72,8 @@ func TestSyncerPlugin_Methods(t *testing.T) {
 
 func TestSyncerRPCClientNil(t *testing.T) {
 	c := &plugin.SyncerRPCClient{}
-	if c == nil {
-		t.Fatal("expected non-nil client")
-	}
+	// Verify the struct is usable (constructed literal is never nil)
+	_ = c
 }
 
 func TestSyncerRPCClientCalls(t *testing.T) {
@@ -92,8 +91,8 @@ func TestSyncerRPCClientCalls(t *testing.T) {
 	rpcClient := &plugin.SyncerRPCClient{Client: client}
 
 	defer func() {
-		client.Close()
-		serverConn.Close()
+		_ = client.Close()
+		_ = serverConn.Close()
 	}()
 
 	if err := rpcClient.Init(map[string]string{"foo": "bar"}); err != nil {
@@ -150,8 +149,8 @@ func TestSyncerRPCClientCalls_InitError(t *testing.T) {
 	client := rpc.NewClient(clientConn)
 	rpcClient := &plugin.SyncerRPCClient{Client: client}
 	defer func() {
-		client.Close()
-		serverConn.Close()
+		_ = client.Close()
+		_ = serverConn.Close()
 	}()
 
 	if err := rpcClient.Init(map[string]string{"key": "val"}); err == nil {
@@ -170,8 +169,8 @@ func TestSyncerRPCClientCalls_SyncError(t *testing.T) {
 	client := rpc.NewClient(clientConn)
 	rpcClient := &plugin.SyncerRPCClient{Client: client}
 	defer func() {
-		client.Close()
-		serverConn.Close()
+		_ = client.Close()
+		_ = serverConn.Close()
 	}()
 
 	_, err := rpcClient.Sync(&planning.Plan{}, &planning.ExecutionState{})
@@ -191,8 +190,8 @@ func TestSyncerRPCClientCalls_PushError(t *testing.T) {
 	client := rpc.NewClient(clientConn)
 	rpcClient := &plugin.SyncerRPCClient{Client: client}
 	defer func() {
-		client.Close()
-		serverConn.Close()
+		_ = client.Close()
+		_ = serverConn.Close()
 	}()
 
 	if err := rpcClient.Push("task-1", planning.StatusDone); err == nil {
@@ -202,11 +201,11 @@ func TestSyncerRPCClientCalls_PushError(t *testing.T) {
 
 func TestSyncerPlugin_Client(t *testing.T) {
 	serverConn, clientConn := net.Pipe()
-	defer serverConn.Close()
-	defer clientConn.Close()
+	defer func() { _ = serverConn.Close() }()
+	defer func() { _ = clientConn.Close() }()
 
 	rpcClient := rpc.NewClient(clientConn)
-	defer rpcClient.Close()
+	defer func() { _ = rpcClient.Close() }()
 
 	p := &plugin.SyncerPlugin{Impl: &StubSyncer{}}
 	iface, err := p.Client(nil, rpcClient)

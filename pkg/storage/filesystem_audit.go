@@ -9,7 +9,7 @@ import (
 	"github.com/felixgeelhaar/roady/pkg/domain"
 )
 
-func (r *FilesystemRepository) RecordEvent(event domain.Event) error {
+func (r *FilesystemRepository) RecordEvent(event domain.Event) (err error) {
 	path, err := r.ResolvePath(EventsFile)
 	if err != nil {
 		return err
@@ -27,7 +27,11 @@ func (r *FilesystemRepository) RecordEvent(event domain.Event) error {
 	if err != nil {
 		return fmt.Errorf("failed to open events file: %w", err)
 	}
-	defer f.Close()
+	defer func() {
+		if cerr := f.Close(); cerr != nil && err == nil {
+			err = fmt.Errorf("failed to close events file: %w", cerr)
+		}
+	}()
 
 	if _, err := f.Write(data); err != nil {
 		return fmt.Errorf("failed to write event: %w", err)

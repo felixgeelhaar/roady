@@ -81,7 +81,7 @@ Access the dashboard in your browser at the displayed URL.`,
 			fmt.Println("\nShutting down dashboard...")
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
-			server.Shutdown(ctx)
+			_ = server.Shutdown(ctx)
 		}()
 
 		fmt.Printf("Dashboard starting on http://localhost:%d\n", dashboardPort)
@@ -122,7 +122,7 @@ var dashboardOpenCmd = &cobra.Command{
 			fmt.Println("\nShutting down dashboard...")
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
-			server.Shutdown(ctx)
+			_ = server.Shutdown(ctx)
 		}()
 
 		// Start server in background
@@ -228,7 +228,6 @@ var headerStyle = lipgloss.NewStyle().
 	PaddingRight(1)
 
 var statusDone = lipgloss.NewStyle().Foreground(lipgloss.Color("42"))
-var statusWIP = lipgloss.NewStyle().Foreground(lipgloss.Color("208"))
 var statusErr = lipgloss.NewStyle().Foreground(lipgloss.Color("196"))
 
 type model struct {
@@ -342,8 +341,7 @@ func (m model) Init() tea.Cmd { return nil }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
-	switch msg := msg.(type) {
-	case tea.KeyMsg:
+	if msg, ok := msg.(tea.KeyMsg); ok {
 		switch msg.String() {
 		case "q", "ctrl+c":
 			return m, tea.Quit

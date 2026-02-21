@@ -82,7 +82,7 @@ func (h *DependencyUnlockHandler) Handle(ctx context.Context, event DomainEvent)
 			"unlocked_tasks", unlocked)
 
 		if h.notifier != nil {
-			h.notifier.Notify(ctx, NotificationLevelInfo,
+			_ = h.notifier.Notify(ctx, NotificationLevelInfo,
 				"Tasks Unlocked",
 				formatUnlockedMessage(completed.TaskID, unlocked))
 		}
@@ -135,7 +135,7 @@ func (h *DriftWarningHandler) Handle(ctx context.Context, event DomainEvent) err
 			level = NotificationLevelError
 		}
 
-		h.notifier.Notify(ctx, level,
+		_ = h.notifier.Notify(ctx, level,
 			"Drift Detected",
 			formatDriftMessage(drift.IssueCount, drift.Severities))
 	}

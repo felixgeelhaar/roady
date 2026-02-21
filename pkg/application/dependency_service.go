@@ -147,16 +147,17 @@ func (s *DependencyService) ScanDependentRepos(healthScanner HealthScanner) (*Sc
 
 		result.Details[repoPath] = health
 
-		if !health.IsReachable {
+		switch {
+		case !health.IsReachable:
 			result.Unreachable++
-		} else if health.IsHealthy() {
+		case health.IsHealthy():
 			result.HealthyRepos++
-		} else {
+		default:
 			result.UnhealthyRepos++
 		}
 
 		// Update stored health
-		s.repo.UpdateRepoHealth(health)
+		_ = s.repo.UpdateRepoHealth(health)
 	}
 
 	return result, nil

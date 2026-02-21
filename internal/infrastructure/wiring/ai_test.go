@@ -16,16 +16,20 @@ func TestLoadAIProviderDefaults(t *testing.T) {
 
 	prevProvider := os.Getenv("ROADY_AI_PROVIDER")
 	prevModel := os.Getenv("ROADY_AI_MODEL")
-	os.Unsetenv("ROADY_AI_PROVIDER")
-	os.Unsetenv("ROADY_AI_MODEL")
+	if err := os.Unsetenv("ROADY_AI_PROVIDER"); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Unsetenv("ROADY_AI_MODEL"); err != nil {
+		t.Fatal(err)
+	}
 	t.Cleanup(func() {
 		if prevProvider == "" {
-			os.Unsetenv("ROADY_AI_PROVIDER")
+			_ = os.Unsetenv("ROADY_AI_PROVIDER")
 		} else {
 			_ = os.Setenv("ROADY_AI_PROVIDER", prevProvider)
 		}
 		if prevModel == "" {
-			os.Unsetenv("ROADY_AI_MODEL")
+			_ = os.Unsetenv("ROADY_AI_MODEL")
 		} else {
 			_ = os.Setenv("ROADY_AI_MODEL", prevModel)
 		}
@@ -53,16 +57,20 @@ func TestLoadAIProviderFromConfig(t *testing.T) {
 
 	prevProvider := os.Getenv("ROADY_AI_PROVIDER")
 	prevModel := os.Getenv("ROADY_AI_MODEL")
-	os.Unsetenv("ROADY_AI_PROVIDER")
-	os.Unsetenv("ROADY_AI_MODEL")
+	if err := os.Unsetenv("ROADY_AI_PROVIDER"); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Unsetenv("ROADY_AI_MODEL"); err != nil {
+		t.Fatal(err)
+	}
 	t.Cleanup(func() {
 		if prevProvider == "" {
-			os.Unsetenv("ROADY_AI_PROVIDER")
+			_ = os.Unsetenv("ROADY_AI_PROVIDER")
 		} else {
 			_ = os.Setenv("ROADY_AI_PROVIDER", prevProvider)
 		}
 		if prevModel == "" {
-			os.Unsetenv("ROADY_AI_MODEL")
+			_ = os.Unsetenv("ROADY_AI_MODEL")
 		} else {
 			_ = os.Setenv("ROADY_AI_MODEL", prevModel)
 		}

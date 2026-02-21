@@ -326,8 +326,8 @@ func TestAuditTimelineProjection_Descriptions(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		proj.Reset()
-		proj.Apply(tc.event)
+		_ = proj.Reset()
+		if err := proj.Apply(tc.event); err != nil { t.Fatal(err) }
 		timeline := proj.GetTimeline()
 		if len(timeline) != 1 {
 			t.Fatalf("Expected 1 entry for %s", tc.event.Type)

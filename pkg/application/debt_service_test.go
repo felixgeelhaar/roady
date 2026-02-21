@@ -258,7 +258,7 @@ func TestDebtService_RecordDriftAccepted(t *testing.T) {
 			},
 		},
 	}
-	debtSvc.RecordDriftDetection(ctx, driftReport)
+	_ = debtSvc.RecordDriftDetection(ctx, driftReport)
 
 	// Accept the drift
 	err := debtSvc.RecordDriftAccepted("feature-1", drift.DriftTypePlan)
@@ -291,7 +291,7 @@ func TestDebtService_RecordDriftResolved(t *testing.T) {
 			},
 		},
 	}
-	debtSvc.RecordDriftDetection(ctx, driftReport)
+	_ = debtSvc.RecordDriftDetection(ctx, driftReport)
 
 	// Verify it's active
 	byComponent, _ := debtSvc.GetDebtByComponent()

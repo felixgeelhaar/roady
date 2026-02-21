@@ -61,7 +61,7 @@ func (a *SlackAdapter) Send(ctx context.Context, event *events.BaseEvent) error 
 	if err != nil {
 		return fmt.Errorf("send to slack: %w", err)
 	}
-	defer resp.Body.Close()
+	defer resp.Body.Close() //nolint:errcheck // best-effort close on read body
 
 	if resp.StatusCode >= 300 {
 		return fmt.Errorf("slack returned status %d", resp.StatusCode)
@@ -77,7 +77,7 @@ func formatSlackMessage(event *events.BaseEvent) string {
 	case events.EventTypeTaskCompleted:
 		return fmt.Sprintf(":white_check_mark: Task completed: %s", event.AggregateID())
 	case events.EventTypeDriftDetected:
-		return fmt.Sprintf(":warning: Drift detected in project")
+		return ":warning: Drift detected in project"
 	case events.EventTypePlanCreated:
 		return fmt.Sprintf(":clipboard: New plan created: %s", event.AggregateID())
 	default:

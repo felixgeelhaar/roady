@@ -115,7 +115,7 @@ func TestPromptAIConfigInteractive(t *testing.T) {
 	if err != nil {
 		t.Fatalf("create stdin temp file: %v", err)
 	}
-	defer os.Remove(tmp.Name())
+	defer func() { _ = os.Remove(tmp.Name()) }()
 	if _, err := tmp.WriteString("y\nmock\nmock-model\n77\n"); err != nil {
 		t.Fatalf("write temp stdin: %v", err)
 	}
@@ -126,7 +126,7 @@ func TestPromptAIConfigInteractive(t *testing.T) {
 	os.Stdin = tmp
 	t.Cleanup(func() {
 		os.Stdin = oldStdin
-		tmp.Close()
+		_ = tmp.Close()
 	})
 
 	cfg := &domain.PolicyConfig{}

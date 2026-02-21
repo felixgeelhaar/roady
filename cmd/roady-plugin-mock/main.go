@@ -30,10 +30,11 @@ func (m *MockSyncer) Sync(plan *planning.Plan, state *planning.ExecutionState) (
 			status = res.Status
 		}
 
-		if status == planning.StatusInProgress {
+		switch status {
+		case planning.StatusInProgress:
 			log.Printf("Simulating external completion of task: %s", t.ID)
 			updates[t.ID] = planning.StatusDone
-		} else if status == planning.StatusPending {
+		case planning.StatusPending:
 			log.Printf("Simulating external start of task: %s", t.ID)
 			updates[t.ID] = planning.StatusInProgress
 		}

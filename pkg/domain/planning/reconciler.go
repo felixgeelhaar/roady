@@ -60,11 +60,9 @@ func (r *PlanReconciler) Reconcile(existing *Plan, proposedTasks []Task, opts Re
 		if proposed.ID == "" || proposed.Title == "" {
 			continue // Skip malformed proposed tasks
 		}
-		if _, ok := currentTaskState[proposed.ID]; ok {
-			// Task already exists - use the proposed structure.
-			// Execution state (Status/Path) is persisted separately in state.json.
-			delete(currentTaskState, proposed.ID)
-		}
+		// Task already exists - use the proposed structure.
+		// Execution state (Status/Path) is persisted separately in state.json.
+		delete(currentTaskState, proposed.ID)
 		newPlan.Tasks = append(newPlan.Tasks, proposed)
 	}
 

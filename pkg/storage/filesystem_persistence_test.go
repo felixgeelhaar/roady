@@ -36,7 +36,9 @@ func TestRecordAndLoadEvents(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			d := t.TempDir()
 			r := NewFilesystemRepository(d)
-			r.Initialize()
+			if err := r.Initialize(); err != nil {
+				t.Fatal(err)
+			}
 
 			for _, ev := range tt.events {
 				if err := r.RecordEvent(ev); err != nil {
@@ -63,7 +65,9 @@ func TestRecordAndLoadEvents(t *testing.T) {
 func TestLoadEvents_MissingFile(t *testing.T) {
 	d := t.TempDir()
 	r := NewFilesystemRepository(d)
-	r.Initialize()
+	if err := r.Initialize(); err != nil {
+		t.Fatal(err)
+	}
 
 	events, err := r.LoadEvents()
 	if err != nil {
@@ -77,16 +81,24 @@ func TestLoadEvents_MissingFile(t *testing.T) {
 func TestLoadEvents_MalformedLines(t *testing.T) {
 	d := t.TempDir()
 	r := NewFilesystemRepository(d)
-	r.Initialize()
+	if err := r.Initialize(); err != nil {
+		t.Fatal(err)
+	}
 
-	r.RecordEvent(domain.Event{ID: "good", Action: "test"})
+	if err := r.RecordEvent(domain.Event{ID: "good", Action: "test"}); err != nil {
+		t.Fatal(err)
+	}
 
 	path, _ := r.ResolvePath(EventsFile)
 	f, _ := os.OpenFile(path, os.O_APPEND|os.O_WRONLY, 0600)
-	f.Write([]byte("NOT JSON\n"))
-	f.Close()
+	if _, err := f.Write([]byte("NOT JSON\n")); err != nil {
+		t.Fatal(err)
+	}
+	_ = f.Close()
 
-	r.RecordEvent(domain.Event{ID: "good2", Action: "test2"})
+	if err := r.RecordEvent(domain.Event{ID: "good2", Action: "test2"}); err != nil {
+		t.Fatal(err)
+	}
 
 	events, err := r.LoadEvents()
 	if err != nil {
@@ -120,7 +132,7 @@ func TestSaveAndLoadPlan(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			d := t.TempDir()
 			r := NewFilesystemRepository(d)
-			r.Initialize()
+			if err := r.Initialize(); err != nil { t.Fatal(err) }
 
 			if err := r.SavePlan(tt.plan); err != nil {
 				t.Fatalf("SavePlan: %v", err)
@@ -142,7 +154,7 @@ func TestSaveAndLoadPlan(t *testing.T) {
 func TestLoadPlan_Missing(t *testing.T) {
 	d := t.TempDir()
 	r := NewFilesystemRepository(d)
-	r.Initialize()
+	if err := r.Initialize(); err != nil { t.Fatal(err) }
 
 	plan, err := r.LoadPlan()
 	if err != nil {
@@ -156,10 +168,12 @@ func TestLoadPlan_Missing(t *testing.T) {
 func TestLoadPlan_InvalidJSON(t *testing.T) {
 	d := t.TempDir()
 	r := NewFilesystemRepository(d)
-	r.Initialize()
+	if err := r.Initialize(); err != nil { t.Fatal(err) }
 
 	path, _ := r.ResolvePath(PlanFile)
-	os.WriteFile(path, []byte("{invalid"), 0600)
+	if err := os.WriteFile(path, []byte("{invalid"), 0600); err != nil {
+		t.Fatal(err)
+	}
 
 	_, err := r.LoadPlan()
 	if err == nil {
@@ -187,7 +201,7 @@ func TestSaveAndLoadState(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			d := t.TempDir()
 			r := NewFilesystemRepository(d)
-			r.Initialize()
+			_ = r.Initialize()
 
 			if err := r.SaveState(tt.state); err != nil {
 				t.Fatalf("SaveState: %v", err)
@@ -209,7 +223,7 @@ func TestSaveAndLoadState(t *testing.T) {
 func TestLoadState_Missing(t *testing.T) {
 	d := t.TempDir()
 	r := NewFilesystemRepository(d)
-	r.Initialize()
+	_ = r.Initialize()
 
 	state, err := r.LoadState()
 	if err != nil {
@@ -223,10 +237,12 @@ func TestLoadState_Missing(t *testing.T) {
 func TestLoadState_InvalidJSON(t *testing.T) {
 	d := t.TempDir()
 	r := NewFilesystemRepository(d)
-	r.Initialize()
+	_ = r.Initialize()
 
 	path, _ := r.ResolvePath(StateFile)
-	os.WriteFile(path, []byte("not-json"), 0600)
+	if err := os.WriteFile(path, []byte("not-json"), 0600); err != nil {
+		t.Fatal(err)
+	}
 
 	_, err := r.LoadState()
 	if err == nil {
@@ -249,7 +265,7 @@ func TestSaveAndLoadPolicy(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			d := t.TempDir()
 			r := NewFilesystemRepository(d)
-			r.Initialize()
+			_ = r.Initialize()
 
 			if err := r.SavePolicy(tt.policy); err != nil {
 				t.Fatalf("SavePolicy: %v", err)
@@ -271,7 +287,7 @@ func TestSaveAndLoadPolicy(t *testing.T) {
 func TestLoadPolicy_MissingReturnsDefaults(t *testing.T) {
 	d := t.TempDir()
 	r := NewFilesystemRepository(d)
-	r.Initialize()
+	_ = r.Initialize()
 
 	pol, err := r.LoadPolicy()
 	if err != nil {
@@ -288,10 +304,12 @@ func TestLoadPolicy_MissingReturnsDefaults(t *testing.T) {
 func TestLoadPolicy_Legacy(t *testing.T) {
 	d := t.TempDir()
 	r := NewFilesystemRepository(d)
-	r.Initialize()
+	_ = r.Initialize()
 
 	path, _ := r.ResolvePath(PolicyFile)
-	os.WriteFile(path, []byte("max_wip: 5\nallow_ai: true\nai_provider: openai\nai_model: gpt-4\n"), 0600)
+	if err := os.WriteFile(path, []byte("max_wip: 5\nallow_ai: true\nai_provider: openai\nai_model: gpt-4\n"), 0600); err != nil {
+		t.Fatal(err)
+	}
 
 	pol, err := r.LoadPolicy()
 	if err != nil {
@@ -307,7 +325,7 @@ func TestLoadPolicy_Legacy(t *testing.T) {
 func TestSaveAndLoadPluginConfigs(t *testing.T) {
 	d := t.TempDir()
 	r := NewFilesystemRepository(d)
-	r.Initialize()
+	_ = r.Initialize()
 
 	configs := plugin.NewPluginConfigs()
 	configs.Set("github", plugin.PluginConfig{
@@ -340,7 +358,7 @@ func TestSaveAndLoadPluginConfigs(t *testing.T) {
 func TestLoadPluginConfigs_MissingFile(t *testing.T) {
 	d := t.TempDir()
 	r := NewFilesystemRepository(d)
-	r.Initialize()
+	_ = r.Initialize()
 
 	configs, err := r.LoadPluginConfigs()
 	if err != nil {
@@ -354,7 +372,7 @@ func TestLoadPluginConfigs_MissingFile(t *testing.T) {
 func TestGetPluginConfig_NotFound(t *testing.T) {
 	d := t.TempDir()
 	r := NewFilesystemRepository(d)
-	r.Initialize()
+	_ = r.Initialize()
 
 	_, err := r.GetPluginConfig("nonexistent")
 	if err == nil {
@@ -365,7 +383,7 @@ func TestGetPluginConfig_NotFound(t *testing.T) {
 func TestSetAndRemovePluginConfig(t *testing.T) {
 	d := t.TempDir()
 	r := NewFilesystemRepository(d)
-	r.Initialize()
+	_ = r.Initialize()
 
 	cfg := plugin.PluginConfig{Binary: "/bin/test", Config: map[string]string{}}
 	if err := r.SetPluginConfig("test", cfg); err != nil {
@@ -393,10 +411,10 @@ func TestSetAndRemovePluginConfig(t *testing.T) {
 func TestLoadPluginConfigs_InvalidYAML(t *testing.T) {
 	d := t.TempDir()
 	r := NewFilesystemRepository(d)
-	r.Initialize()
+	_ = r.Initialize()
 
 	path, _ := r.ResolvePath(PluginsFile)
-	os.WriteFile(path, []byte("[}invalid"), 0600)
+	if err := os.WriteFile(path, []byte("[}invalid"), 0600); err != nil { t.Fatal(err) }
 
 	_, err := r.LoadPluginConfigs()
 	if err == nil {
@@ -436,10 +454,10 @@ func TestCodebaseInspector_FileNotEmpty(t *testing.T) {
 
 	d := t.TempDir()
 	emptyFile := filepath.Join(d, "empty.txt")
-	os.WriteFile(emptyFile, []byte(""), 0600)
+	if err := os.WriteFile(emptyFile, []byte(""), 0600); err != nil { t.Fatal(err) }
 
 	nonEmptyFile := filepath.Join(d, "notempty.txt")
-	os.WriteFile(nonEmptyFile, []byte("content"), 0600)
+	if err := os.WriteFile(nonEmptyFile, []byte("content"), 0600); err != nil { t.Fatal(err) }
 
 	tests := []struct {
 		name     string
@@ -487,10 +505,16 @@ func TestCodebaseInspector_GitStatus(t *testing.T) {
 func TestSaveState_ReadonlyDir(t *testing.T) {
 	d := t.TempDir()
 	r := NewFilesystemRepository(d)
-	r.Initialize()
+	_ = r.Initialize()
 
-	os.Chmod(filepath.Join(d, RoadyDir), 0400)
-	defer os.Chmod(filepath.Join(d, RoadyDir), 0700)
+	if err := os.Chmod(filepath.Join(d, RoadyDir), 0400); err != nil {
+		t.Fatal(err)
+	}
+	defer func() {
+		if err := os.Chmod(filepath.Join(d, RoadyDir), 0700); err != nil {
+			t.Fatal(err)
+		}
+	}()
 
 	err := r.SaveState(planning.NewExecutionState("p1"))
 	if err == nil {
@@ -501,10 +525,16 @@ func TestSaveState_ReadonlyDir(t *testing.T) {
 func TestSavePluginConfigs_ReadonlyDir(t *testing.T) {
 	d := t.TempDir()
 	r := NewFilesystemRepository(d)
-	r.Initialize()
+	_ = r.Initialize()
 
-	os.Chmod(filepath.Join(d, RoadyDir), 0400)
-	defer os.Chmod(filepath.Join(d, RoadyDir), 0700)
+	if err := os.Chmod(filepath.Join(d, RoadyDir), 0400); err != nil {
+		t.Fatal(err)
+	}
+	defer func() {
+		if err := os.Chmod(filepath.Join(d, RoadyDir), 0700); err != nil {
+			t.Fatal(err)
+		}
+	}()
 
 	err := r.SavePluginConfigs(plugin.NewPluginConfigs())
 	if err == nil {

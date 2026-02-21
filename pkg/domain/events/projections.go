@@ -112,7 +112,7 @@ func (p *TaskStateProjection) Apply(event *BaseEvent) error {
 }
 
 func (p *TaskStateProjection) Rebuild(events []*BaseEvent) error {
-	p.Reset()
+	_ = p.Reset()
 	for _, event := range events {
 		if err := p.Apply(event); err != nil {
 			return err
@@ -199,7 +199,7 @@ func (p *VelocityProjection) Apply(event *BaseEvent) error {
 }
 
 func (p *VelocityProjection) Rebuild(events []*BaseEvent) error {
-	p.Reset()
+	_ = p.Reset()
 	for _, event := range events {
 		if err := p.Apply(event); err != nil {
 			return err
@@ -293,7 +293,7 @@ func (p *AuditTimelineProjection) Apply(event *BaseEvent) error {
 }
 
 func (p *AuditTimelineProjection) Rebuild(events []*BaseEvent) error {
-	p.Reset()
+	_ = p.Reset()
 	for _, event := range events {
 		if err := p.Apply(event); err != nil {
 			return err

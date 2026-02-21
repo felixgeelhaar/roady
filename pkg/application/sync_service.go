@@ -83,11 +83,12 @@ func (s *SyncService) SyncWithPluginConfig(pluginPath string, config map[string]
 
 	// 1. Handle Link Updates
 	provider := "external"
-	if strings.Contains(pluginPath, "linear") {
+	switch {
+	case strings.Contains(pluginPath, "linear"):
 		provider = "linear"
-	} else if strings.Contains(pluginPath, "jira") {
+	case strings.Contains(pluginPath, "jira"):
 		provider = "jira"
-	} else if strings.Contains(pluginPath, "github") {
+	case strings.Contains(pluginPath, "github"):
 		provider = "github"
 	}
 

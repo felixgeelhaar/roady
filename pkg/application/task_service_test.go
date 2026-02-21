@@ -1,6 +1,7 @@
 package application_test
 
 import (
+	"context"
 	"errors"
 	"testing"
 
@@ -252,7 +253,7 @@ func TestTaskService_StartTask_Context(t *testing.T) {
 	policy := application.NewPolicyService(repo)
 	service := application.NewTaskService(repo, audit, policy)
 
-	err := service.StartTask(nil, "t1", "test-user", "")
+	err := service.StartTask(context.TODO(), "t1", "test-user", "")
 	if err != nil {
 		t.Fatalf("StartTask failed: %v", err)
 	}
@@ -277,7 +278,7 @@ func TestTaskService_CompleteTask_Context(t *testing.T) {
 	policy := application.NewPolicyService(repo)
 	service := application.NewTaskService(repo, audit, policy)
 
-	unlocked, err := service.CompleteTask(nil, "t1", "evidence")
+	unlocked, err := service.CompleteTask(context.TODO(), "t1", "evidence")
 	if err != nil {
 		t.Fatalf("CompleteTask failed: %v", err)
 	}
@@ -304,7 +305,7 @@ func TestTaskService_BlockTask_Context(t *testing.T) {
 	policy := application.NewPolicyService(repo)
 	service := application.NewTaskService(repo, audit, policy)
 
-	err := service.BlockTask(nil, "t1", "waiting for API")
+	err := service.BlockTask(context.TODO(), "t1", "waiting for API")
 	if err != nil {
 		t.Fatalf("BlockTask failed: %v", err)
 	}
@@ -329,7 +330,7 @@ func TestTaskService_UnblockTask_Context(t *testing.T) {
 	policy := application.NewPolicyService(repo)
 	service := application.NewTaskService(repo, audit, policy)
 
-	err := service.UnblockTask(nil, "t1")
+	err := service.UnblockTask(context.TODO(), "t1")
 	if err != nil {
 		t.Fatalf("UnblockTask failed: %v", err)
 	}
@@ -354,7 +355,7 @@ func TestTaskService_VerifyTask_Context(t *testing.T) {
 	policy := application.NewPolicyService(repo)
 	service := application.NewTaskService(repo, audit, policy)
 
-	err := service.VerifyTask(nil, "t1", "reviewer")
+	err := service.VerifyTask(context.TODO(), "t1", "reviewer")
 	if err != nil {
 		t.Fatalf("VerifyTask failed: %v", err)
 	}
@@ -378,7 +379,7 @@ func TestTaskService_AssignTask(t *testing.T) {
 	policy := application.NewPolicyService(repo)
 	service := application.NewTaskService(repo, audit, policy)
 
-	err := service.AssignTask(nil, "t1", "alice")
+	err := service.AssignTask(context.TODO(), "t1", "alice")
 	if err != nil {
 		t.Fatalf("AssignTask failed: %v", err)
 	}
@@ -400,7 +401,7 @@ func TestTaskService_AssignTask_NotFound(t *testing.T) {
 	policy := application.NewPolicyService(repo)
 	service := application.NewTaskService(repo, audit, policy)
 
-	err := service.AssignTask(nil, "missing", "alice")
+	err := service.AssignTask(context.TODO(), "missing", "alice")
 	if err == nil {
 		t.Error("expected error for missing task")
 	}
@@ -415,7 +416,7 @@ func TestTaskService_AssignTask_NoPlan(t *testing.T) {
 	policy := application.NewPolicyService(repo)
 	service := application.NewTaskService(repo, audit, policy)
 
-	err := service.AssignTask(nil, "t1", "alice")
+	err := service.AssignTask(context.TODO(), "t1", "alice")
 	if err == nil {
 		t.Error("expected error when no plan exists")
 	}
@@ -438,7 +439,7 @@ func TestTaskService_AssignThenStart(t *testing.T) {
 	service := application.NewTaskService(repo, audit, policy)
 
 	// Assign owner first
-	if err := service.AssignTask(nil, "t1", "alice"); err != nil {
+	if err := service.AssignTask(context.TODO(), "t1", "alice"); err != nil {
 		t.Fatalf("AssignTask failed: %v", err)
 	}
 	if repo.State.TaskStates["t1"].Owner != "alice" {
@@ -470,7 +471,7 @@ func TestTaskService_AssignNewTask_ThenStart(t *testing.T) {
 	service := application.NewTaskService(repo, audit, policy)
 
 	// Assign creates an entry — with the fix, Status should be "pending"
-	if err := service.AssignTask(nil, "t1", "bob"); err != nil {
+	if err := service.AssignTask(context.TODO(), "t1", "bob"); err != nil {
 		t.Fatalf("AssignTask failed: %v", err)
 	}
 
