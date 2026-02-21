@@ -31,6 +31,11 @@ Designed for individuals, teams, and AI agents, Roady ensures that your developm
 *   **Continuous Automation:** Watch documents for changes and sync task statuses via Git commit markers (`[roady:task-id]`).
 *   **Interactive TUI:** Real-time visibility into your project's health and velocity (`roady dashboard`).
 *   **Interactive D3 Visualizations:** Rich, browser-based charts embedded in MCP apps — donut charts for status breakdowns, force-directed DAGs for plan and dependency graphs, gauges for usage and compliance, bar charts for drift severity, line charts for debt trends, and tree diagrams for spec hierarchies.
+*   **Billing & Cost Tracking:** Define hourly rates with multi-currency and tax support, log time on task transitions, and generate cost reports with estimated-vs-actual variance analysis (`roady cost report`, `roady rate add`, `roady cost budget`).
+*   **Quantified Debt Analysis:** Score and classify recurring drift as planning debt with sticky thresholds, category breakdowns, and historical trend analysis (`roady debt report`, `roady debt score`, `roady debt trend`).
+*   **Team & Workspace Sync:** Manage team members with role-based access (admin/member/viewer) and synchronize `.roady/` state across collaborators via Git with conflict detection (`roady team add`, `roady workspace push/pull`).
+*   **Cross-Repo Dependencies:** Declare runtime, build, and data dependencies between repositories, visualize the graph, detect cycles, and scan health (`roady deps add`, `roady deps graph`, `roady deps scan`).
+*   **Smart AI Workflows:** Codebase-aware task decomposition, AI-suggested priority rebalancing, and natural language queries about project state (`roady plan smart-decompose`, `roady plan prioritize`, `roady query`).
 *   **MCP First:** Seamlessly expose planning capabilities to AI agents via the Model Context Protocol.
 
 ## Quick Start
@@ -71,6 +76,13 @@ roady git sync
 roady status
 roady drift detect
 roady forecast
+```
+
+### 6. Track Costs
+```bash
+roady rate add --id dev --name "Developer" --rate 120
+roady cost report
+roady cost budget
 ```
 
 ## Governance & Policy
@@ -145,7 +157,7 @@ See `docs/mcp-guide.md` for the complete MCP documentation, including all availa
 Roady is built on clean **Domain-Driven Design (DDD)** principles:
 *   **Domain:** Pure business logic for Specs, Plans, Drift, Policy, and Domain Events. Value objects (`TaskStatus`, `TaskPriority`, `ApprovalStatus`) enforce transitions. An `EventDispatcher` routes events to handlers (logging, drift warnings, task transitions) and projections (velocity, state, audit timeline).
 *   **Infrastructure:** Modern Go stack using `cobra`, `bubbletea`, `mcp-go`, and `fortify`. Pluggable messaging adapters (webhook, Slack) via factory registry. SSE handler for realtime event streaming. MCP apps built with Vue 3 + D3.js, compiled to self-contained HTML files via Vite.
-*   **Storage:** Git-friendly YAML/JSON artifacts in `.roady/`. Events stored as hash-chained JSONL via `FileEventStore` with `InMemoryEventPublisher` for live subscriptions. Messaging config in `.roady/messaging.yaml`.
+*   **Storage:** Git-friendly YAML/JSON artifacts in `.roady/`. Events stored as hash-chained JSONL via `FileEventStore` with `InMemoryEventPublisher` for live subscriptions. Messaging config in `.roady/messaging.yaml`. Billing data in `rates.yaml` and `time_entries.yaml`.
 
 ## License
 

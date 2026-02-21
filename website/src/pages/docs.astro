@@ -28,6 +28,7 @@ import Footer from '../components/Footer.astro';
           <a href="#plan-commands" class="text-violet-400 hover:text-violet-300 transition-colors">Plan Commands</a>
           <a href="#task-commands" class="text-violet-400 hover:text-violet-300 transition-colors">Task Commands</a>
           <a href="#drift-commands" class="text-violet-400 hover:text-violet-300 transition-colors">Drift & Debt</a>
+          <a href="#billing-commands" class="text-violet-400 hover:text-violet-300 transition-colors">Billing & Cost</a>
           <a href="#status-commands" class="text-violet-400 hover:text-violet-300 transition-colors">Status & Analytics</a>
           <a href="#integration-commands" class="text-violet-400 hover:text-violet-300 transition-colors">Integrations</a>
           <a href="#plugin-config" class="text-violet-400 hover:text-violet-300 transition-colors">Plugin Config</a>
@@ -321,6 +322,166 @@ import Footer from '../components/Footer.astro';
             <p class="text-gray-400 mb-4">Analyze drift trend over time.</p>
             <div class="bg-black/40 rounded-lg p-4">
               <code class="text-sm text-gray-300">roady debt trend</code>
+            </div>
+          </div>
+
+          <div class="glass rounded-xl p-6">
+            <h3 class="text-lg font-semibold text-white mb-2">roady debt summary</h3>
+            <p class="text-gray-400 mb-4">Quick debt health overview showing health level, top debtor, and sticky count.</p>
+            <div class="bg-black/40 rounded-lg p-4">
+              <code class="text-sm text-gray-300">roady debt summary</code>
+            </div>
+          </div>
+
+          <div class="glass rounded-xl p-6">
+            <h3 class="text-lg font-semibold text-white mb-2">roady debt score</h3>
+            <p class="text-gray-400 mb-4">Component-level debt score with category breakdown.</p>
+            <div class="bg-black/40 rounded-lg p-4">
+              <code class="text-sm text-gray-300">roady debt score [component-id]</code>
+            </div>
+          </div>
+
+          <div class="glass rounded-xl p-6">
+            <h3 class="text-lg font-semibold text-white mb-2">roady debt history</h3>
+            <p class="text-gray-400 mb-4">Historical debt tracking over a configurable time window.</p>
+            <div class="bg-black/40 rounded-lg p-4 mb-4">
+              <code class="text-sm text-gray-300">roady debt history [flags]</code>
+            </div>
+            <h4 class="text-sm font-semibold text-gray-300 mb-2">Flags</h4>
+            <table class="w-full text-sm">
+              <tr class="border-b border-white/10">
+                <td class="py-2 text-violet-300 mono">--days</td>
+                <td class="py-2 text-gray-400">Number of days to look back (default 30)</td>
+              </tr>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Billing & Cost Commands -->
+      <section id="billing-commands" class="mb-16">
+        <h2 class="text-2xl font-bold text-white mb-6 flex items-center">
+          <i data-lucide="receipt" class="w-6 h-6 mr-3 text-emerald-400"></i>
+          Billing & Cost Commands
+        </h2>
+        <p class="text-gray-400 mb-6">Define billing rates, log time, and generate cost reports with variance analysis.</p>
+
+        <div class="space-y-6">
+          <div class="glass rounded-xl p-6">
+            <h3 class="text-lg font-semibold text-white mb-2">roady rate add</h3>
+            <p class="text-gray-400 mb-4">Add a new billing rate with optional currency, tax, and default flag.</p>
+            <div class="bg-black/40 rounded-lg p-4 mb-4">
+              <code class="text-sm text-gray-300">roady rate add [flags]</code>
+            </div>
+            <h4 class="text-sm font-semibold text-gray-300 mb-2">Flags</h4>
+            <table class="w-full text-sm">
+              <tr class="border-b border-white/10">
+                <td class="py-2 text-violet-300 mono">--id</td>
+                <td class="py-2 text-gray-400">Unique rate identifier</td>
+              </tr>
+              <tr class="border-b border-white/10">
+                <td class="py-2 text-violet-300 mono">--name</td>
+                <td class="py-2 text-gray-400">Human-readable rate name</td>
+              </tr>
+              <tr class="border-b border-white/10">
+                <td class="py-2 text-violet-300 mono">--rate</td>
+                <td class="py-2 text-gray-400">Hourly rate amount</td>
+              </tr>
+              <tr class="border-b border-white/10">
+                <td class="py-2 text-violet-300 mono">--default</td>
+                <td class="py-2 text-gray-400">Set as the default rate</td>
+              </tr>
+            </table>
+            <div class="mt-4 bg-black/40 rounded-lg p-4">
+              <p class="text-xs text-gray-500 mb-2"># Example</p>
+              <code class="text-sm text-emerald-300">roady rate add --id dev --name "Developer" --rate 120 --default</code>
+            </div>
+          </div>
+
+          <div class="glass rounded-xl p-6">
+            <h3 class="text-lg font-semibold text-white mb-2">roady rate list</h3>
+            <p class="text-gray-400 mb-4">List all configured rates with currency and tax information.</p>
+            <div class="bg-black/40 rounded-lg p-4">
+              <code class="text-sm text-gray-300">roady rate list</code>
+            </div>
+          </div>
+
+          <div class="glass rounded-xl p-6">
+            <h3 class="text-lg font-semibold text-white mb-2">roady rate rm</h3>
+            <p class="text-gray-400 mb-4">Remove a billing rate by ID.</p>
+            <div class="bg-black/40 rounded-lg p-4">
+              <code class="text-sm text-gray-300">roady rate rm [rate-id]</code>
+            </div>
+          </div>
+
+          <div class="glass rounded-xl p-6">
+            <h3 class="text-lg font-semibold text-white mb-2">roady rate default</h3>
+            <p class="text-gray-400 mb-4">Set a rate as the default for new time entries.</p>
+            <div class="bg-black/40 rounded-lg p-4">
+              <code class="text-sm text-gray-300">roady rate default [rate-id]</code>
+            </div>
+          </div>
+
+          <div class="glass rounded-xl p-6">
+            <h3 class="text-lg font-semibold text-white mb-2">roady rate tax set</h3>
+            <p class="text-gray-400 mb-4">Configure tax rules for billing rates.</p>
+            <div class="bg-black/40 rounded-lg p-4 mb-4">
+              <code class="text-sm text-gray-300">roady rate tax set [flags]</code>
+            </div>
+            <h4 class="text-sm font-semibold text-gray-300 mb-2">Flags</h4>
+            <table class="w-full text-sm">
+              <tr class="border-b border-white/10">
+                <td class="py-2 text-violet-300 mono">--name</td>
+                <td class="py-2 text-gray-400">Tax name (e.g., VAT, GST)</td>
+              </tr>
+              <tr class="border-b border-white/10">
+                <td class="py-2 text-violet-300 mono">--percent</td>
+                <td class="py-2 text-gray-400">Tax percentage</td>
+              </tr>
+              <tr class="border-b border-white/10">
+                <td class="py-2 text-violet-300 mono">--included</td>
+                <td class="py-2 text-gray-400">Whether tax is included in the rate</td>
+              </tr>
+            </table>
+          </div>
+
+          <div class="glass rounded-xl p-6">
+            <h3 class="text-lg font-semibold text-white mb-2">roady cost report</h3>
+            <p class="text-gray-400 mb-4">Generate a cost report with estimated-vs-actual variance analysis.</p>
+            <div class="bg-black/40 rounded-lg p-4 mb-4">
+              <code class="text-sm text-gray-300">roady cost report [flags]</code>
+            </div>
+            <h4 class="text-sm font-semibold text-gray-300 mb-2">Flags</h4>
+            <table class="w-full text-sm">
+              <tr class="border-b border-white/10">
+                <td class="py-2 text-violet-300 mono">--task</td>
+                <td class="py-2 text-gray-400">Filter by task ID</td>
+              </tr>
+              <tr class="border-b border-white/10">
+                <td class="py-2 text-violet-300 mono">--period</td>
+                <td class="py-2 text-gray-400">Time period filter (e.g., 7d, 30d, 90d)</td>
+              </tr>
+              <tr class="border-b border-white/10">
+                <td class="py-2 text-violet-300 mono">--format</td>
+                <td class="py-2 text-gray-400">Output format: text, csv, json, markdown</td>
+              </tr>
+              <tr class="border-b border-white/10">
+                <td class="py-2 text-violet-300 mono">--output</td>
+                <td class="py-2 text-gray-400">Write report to file</td>
+              </tr>
+            </table>
+            <div class="mt-4 bg-black/40 rounded-lg p-4">
+              <p class="text-xs text-gray-500 mb-2"># Examples</p>
+              <code class="text-sm text-emerald-300 block">roady cost report</code>
+              <code class="text-sm text-emerald-300 block mt-1">roady cost report --period 30d --format markdown</code>
+            </div>
+          </div>
+
+          <div class="glass rounded-xl p-6">
+            <h3 class="text-lg font-semibold text-white mb-2">roady cost budget</h3>
+            <p class="text-gray-400 mb-4">Show budget status with consumption tracking and variance against policy limits.</p>
+            <div class="bg-black/40 rounded-lg p-4">
+              <code class="text-sm text-gray-300">roady cost budget</code>
             </div>
           </div>
         </div>
@@ -1042,9 +1203,17 @@ import Footer from '../components/Footer.astro';
                 <td class="py-3 text-violet-300 mono">usage.json</td>
                 <td class="py-3 text-gray-400">AI token consumption telemetry</td>
               </tr>
-              <tr>
+              <tr class="border-b border-white/10">
                 <td class="py-3 text-violet-300 mono">plugins.yaml</td>
                 <td class="py-3 text-gray-400">Named plugin configurations (credentials, binaries)</td>
+              </tr>
+              <tr class="border-b border-white/10">
+                <td class="py-3 text-violet-300 mono">rates.yaml</td>
+                <td class="py-3 text-gray-400">Billing rates, currency, and tax configuration</td>
+              </tr>
+              <tr>
+                <td class="py-3 text-violet-300 mono">time_entries.yaml</td>
+                <td class="py-3 text-gray-400">Logged time entries for cost tracking</td>
               </tr>
             </tbody>
           </table>
