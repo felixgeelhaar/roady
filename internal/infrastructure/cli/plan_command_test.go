@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"os"
 	"strings"
 	"testing"
 
@@ -12,9 +11,11 @@ import (
 )
 
 func TestPlanGenerateCommandSuccess(t *testing.T) {
-	tempDir := t.TempDir()
-	workspace := storage.NewFilesystemRepository(tempDir)
-	if err := workspace.Initialize(); err != nil {
+	_, cleanup := withTempDir(t)
+	defer cleanup()
+
+	repo := storage.NewFilesystemRepository(".")
+	if err := repo.Initialize(); err != nil {
 		t.Fatalf("init repo: %v", err)
 	}
 
@@ -32,17 +33,9 @@ func TestPlanGenerateCommandSuccess(t *testing.T) {
 			},
 		},
 	}
-	if err := workspace.SaveSpec(spec); err != nil {
+	if err := repo.SaveSpec(spec); err != nil {
 		t.Fatalf("save spec: %v", err)
 	}
-
-	oldWd, _ := os.Getwd()
-	if err := os.Chdir(tempDir); err != nil {
-		t.Fatalf("chdir temp: %v", err)
-	}
-	t.Cleanup(func() {
-		_ = os.Chdir(oldWd)
-	})
 
 	output := captureStdout(t, func() {
 		if err := planGenerateCmd.RunE(planGenerateCmd, []string{}); err != nil {
@@ -56,19 +49,13 @@ func TestPlanGenerateCommandSuccess(t *testing.T) {
 }
 
 func TestPlanGenerateCommandMissingSpec(t *testing.T) {
-	tempDir := t.TempDir()
-	workspace := storage.NewFilesystemRepository(tempDir)
-	if err := workspace.Initialize(); err != nil {
+	_, cleanup := withTempDir(t)
+	defer cleanup()
+
+	repo := storage.NewFilesystemRepository(".")
+	if err := repo.Initialize(); err != nil {
 		t.Fatalf("init repo: %v", err)
 	}
-
-	oldWd, _ := os.Getwd()
-	if err := os.Chdir(tempDir); err != nil {
-		t.Fatalf("chdir temp: %v", err)
-	}
-	t.Cleanup(func() {
-		_ = os.Chdir(oldWd)
-	})
 
 	err := planGenerateCmd.RunE(planGenerateCmd, []string{})
 	if err == nil {
@@ -80,8 +67,10 @@ func TestPlanGenerateCommandMissingSpec(t *testing.T) {
 }
 
 func TestPlanCommandsAuditTrail(t *testing.T) {
-	tempDir := t.TempDir()
-	repo := storage.NewFilesystemRepository(tempDir)
+	_, cleanup := withTempDir(t)
+	defer cleanup()
+
+	repo := storage.NewFilesystemRepository(".")
 	if err := repo.Initialize(); err != nil {
 		t.Fatalf("init repo: %v", err)
 	}
@@ -115,14 +104,6 @@ func TestPlanCommandsAuditTrail(t *testing.T) {
 	if err := repo.SavePolicy(&domain.PolicyConfig{MaxWIP: 3, AllowAI: true}); err != nil {
 		t.Fatalf("save policy: %v", err)
 	}
-
-	oldWd, _ := os.Getwd()
-	if err := os.Chdir(tempDir); err != nil {
-		t.Fatalf("chdir temp: %v", err)
-	}
-	t.Cleanup(func() {
-		_ = os.Chdir(oldWd)
-	})
 
 	commands := []struct {
 		name string

@@ -1,6 +1,8 @@
 package wiring
 
 import (
+	"fmt"
+	"os"
 	"time"
 
 	"github.com/felixgeelhaar/roady/internal/infrastructure/config"
@@ -14,15 +16,24 @@ func LoadAIProvider(root string) (domainai.Provider, error) {
 		return nil, err
 	}
 
-	providerName := "ollama"
-	modelName := "llama3"
-	resilienceConfig := infraai.DefaultResilienceConfig()
+	envProvider := os.Getenv("ROADY_AI_PROVIDER")
+	envModel := os.Getenv("ROADY_AI_MODEL")
 
+	var providerName, modelName string
+	switch {
+	case envProvider != "":
+		providerName = envProvider
+		modelName = envModel
+	case cfg != nil && cfg.Provider != "":
+		providerName = cfg.Provider
+		modelName = cfg.Model
+	default:
+		return nil, fmt.Errorf("no AI provider configured. Please run 'roady ai configure' or set ROADY_AI_PROVIDER environment variable")
+	}
+
+	resilienceConfig := infraai.DefaultResilienceConfig()
 	if cfg != nil {
-		if cfg.Provider != "" {
-			providerName = cfg.Provider
-		}
-		if cfg.Model != "" {
+		if modelName == "" {
 			modelName = cfg.Model
 		}
 		if cfg.MaxRetries > 0 {

@@ -1,0 +1,9 @@
+# Nox configuration for roady
+
+# Exclude the .nox directory from scanning to avoid:
+# 1. False positives from baseline.json fingerprints matching secret patterns
+# 2. Scanning generated/derivative files
+exclude_paths:
+  - .nox/
+  - node_modules/
+  - vendor/

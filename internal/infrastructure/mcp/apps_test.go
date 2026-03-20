@@ -9,6 +9,9 @@ import (
 
 func TestServer_ReadSchemaResource(t *testing.T) {
 	root := t.TempDir()
+	if err := initMockAIConfig(root); err != nil {
+		t.Fatalf("init mock AI config: %v", err)
+	}
 	server, err := NewServer(root)
 	if err != nil {
 		t.Fatalf("create server: %v", err)
@@ -28,6 +31,9 @@ func TestServer_ReadSchemaResource(t *testing.T) {
 
 func TestServer_ReadAppResource(t *testing.T) {
 	root := t.TempDir()
+	if err := initMockAIConfig(root); err != nil {
+		t.Fatalf("init mock AI config: %v", err)
+	}
 	server, err := NewServer(root)
 	if err != nil {
 		t.Fatalf("create server: %v", err)

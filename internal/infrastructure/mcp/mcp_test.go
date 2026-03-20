@@ -15,6 +15,11 @@ func TestServer_Handlers(t *testing.T) {
 	tempDir, _ := os.MkdirTemp("", "roady-mcp-handlers-*")
 	defer func() { _ = os.RemoveAll(tempDir) }()
 
+	// Set env vars for AI config instead of creating .roady directory
+	// so handleInit can still create the project
+	t.Setenv("ROADY_AI_PROVIDER", "mock")
+	t.Setenv("ROADY_AI_MODEL", "test")
+
 	s, err := NewServer(tempDir)
 	if err != nil {
 		t.Fatalf("create server: %v", err)

@@ -203,7 +203,7 @@ func TestOrgPolicyCmd_NoOrg(t *testing.T) {
 }
 
 func TestOrgDriftCmd_NoProjects(t *testing.T) {
-	_, cleanup := withTempDir(t)
+	_, cleanup := withPlainTempDir(t)
 	defer cleanup()
 
 	output := captureStdout(t, func() {
@@ -253,7 +253,7 @@ func TestOrgDriftCmd_WithProject(t *testing.T) {
 }
 
 func TestOrgStatusCmd_NoProjects(t *testing.T) {
-	_, cleanup := withTempDir(t)
+	_, cleanup := withPlainTempDir(t)
 	defer cleanup()
 
 	output := captureStdout(t, func() {

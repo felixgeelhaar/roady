@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/felixgeelhaar/roady/pkg/ai"
 	"github.com/felixgeelhaar/roady/pkg/application"
 	domainai "github.com/felixgeelhaar/roady/pkg/domain/ai"
 	"github.com/felixgeelhaar/roady/pkg/domain/events"
@@ -40,34 +39,22 @@ type AppServices struct {
 func BuildAppServices(root string) (*AppServices, error) {
 	workspace := NewWorkspace(root)
 	provider, err := LoadAIProvider(root)
-	var loadErr error
 	if err != nil {
-		loadErr = fmt.Errorf("AI provider config fallback: %w", err)
-		fallback, fallbackErr := ai.GetDefaultProvider("ollama", "llama3")
-		if fallbackErr != nil {
-			return nil, fmt.Errorf("fallback AI provider failed: %w", fallbackErr)
-		}
-		provider = ai.NewResilientProvider(fallback)
+		return nil, fmt.Errorf("AI provider initialization failed: %w", err)
 	}
 
-	return buildServicesWithProvider(workspace, root, provider, loadErr)
+	return buildServicesWithProvider(workspace, root, provider, nil)
 }
 
 // BuildAppServicesWithProvider allows callers to supply a custom AI provider resolver.
 func BuildAppServicesWithProvider(root string, resolver func(string) (domainai.Provider, error)) (*AppServices, error) {
 	workspace := NewWorkspace(root)
 	provider, err := resolver(root)
-	var loadErr error
 	if err != nil {
-		loadErr = fmt.Errorf("AI provider config fallback: %w", err)
-		fallback, fallbackErr := ai.GetDefaultProvider("ollama", "llama3")
-		if fallbackErr != nil {
-			return nil, fmt.Errorf("fallback AI provider failed: %w", fallbackErr)
-		}
-		provider = ai.NewResilientProvider(fallback)
+		return nil, fmt.Errorf("AI provider resolver failed: %w", err)
 	}
 
-	return buildServicesWithProvider(workspace, root, provider, loadErr)
+	return buildServicesWithProvider(workspace, root, provider, nil)
 }
 
 // buildServicesWithProvider is the shared implementation for building app services.

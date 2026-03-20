@@ -13,6 +13,11 @@ func TestHappyPath(t *testing.T) {
 	distDir, _ := filepath.Abs("../../dist")
 	roadyBin := filepath.Join(distDir, "roady")
 
+	// Skip if binary doesn't exist (needs to be built separately)
+	if _, err := os.Stat(roadyBin); os.IsNotExist(err) {
+		t.Skip("dist/roady binary not found - run 'go build -o dist/roady ./cmd/roady' first")
+	}
+
 	tempDir, err := os.MkdirTemp("", "roady-e2e-*")
 	if err != nil {
 		t.Fatal(err)

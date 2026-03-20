@@ -14,6 +14,9 @@ func TestServerServeHTTPReturnsCanceled(t *testing.T) {
 	if err := repo.Initialize(); err != nil {
 		t.Fatalf("initialize repo: %v", err)
 	}
+	if err := initMockAIConfig(root); err != nil {
+		t.Fatalf("init mock AI config: %v", err)
+	}
 
 	server, err := NewServer(root)
 	if err != nil {

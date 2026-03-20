@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/felixgeelhaar/roady/internal/infrastructure/config"
 	"github.com/felixgeelhaar/roady/pkg/storage"
 )
 
@@ -15,6 +16,8 @@ func TestLoadServicesSucceeds(t *testing.T) {
 	if err := repo.Initialize(); err != nil {
 		t.Fatalf("initialize repo: %v", err)
 	}
+
+	_ = config.SaveAIConfig(tempDir, &config.AIConfig{Provider: "mock", Model: "test"})
 
 	services, err := loadServices(tempDir)
 	if err != nil {
@@ -31,6 +34,8 @@ func TestLoadServicesForCurrentDir(t *testing.T) {
 	if err := repo.Initialize(); err != nil {
 		t.Fatalf("initialize repo: %v", err)
 	}
+
+	_ = config.SaveAIConfig(tempDir, &config.AIConfig{Provider: "mock", Model: "test"})
 
 	original, err := os.Getwd()
 	if err != nil {

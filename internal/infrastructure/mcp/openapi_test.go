@@ -8,6 +8,10 @@ import (
 	mcplib "github.com/felixgeelhaar/mcp-go"
 )
 
+func init() {
+	// Pre-initialize test with mock AI config
+}
+
 func TestGenerateOpenAPI(t *testing.T) {
 	srv := mcplib.NewServer(mcplib.ServerInfo{Name: "test", Version: "0.1.0"})
 	srv.Tool("test_tool").
@@ -135,6 +139,9 @@ func TestHasProperties(t *testing.T) {
 
 func TestServerOpenAPI(t *testing.T) {
 	tempDir := t.TempDir()
+	if err := initMockAIConfig(tempDir); err != nil {
+		t.Fatalf("init mock AI config: %v", err)
+	}
 	server, err := NewServer(tempDir)
 	if err != nil {
 		t.Fatalf("failed to create server: %v", err)

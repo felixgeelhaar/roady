@@ -24,8 +24,10 @@ func TestMCPServicesHappyPath(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	// Test 1: Initialize project
+	// Test 1: Initialize project with env vars for AI config
 	t.Log("Testing initialization...")
+	t.Setenv("ROADY_AI_PROVIDER", "mock")
+	t.Setenv("ROADY_AI_MODEL", "test")
 	services, err := wiring.BuildAppServices(tempDir)
 	if err != nil {
 		t.Fatalf("BuildAppServices failed: %v", err)

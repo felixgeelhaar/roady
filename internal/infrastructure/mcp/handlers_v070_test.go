@@ -2,19 +2,32 @@ package mcp
 
 import (
 	"context"
+	"os"
 	"testing"
 
+	"github.com/felixgeelhaar/roady/internal/infrastructure/config"
 	"github.com/felixgeelhaar/roady/pkg/domain"
 	"github.com/felixgeelhaar/roady/pkg/domain/planning"
 	"github.com/felixgeelhaar/roady/pkg/domain/spec"
 	"github.com/felixgeelhaar/roady/pkg/storage"
 )
 
+func initMockAIConfig(root string) error {
+	roadyDir := root + "/.roady"
+	if err := os.MkdirAll(roadyDir, 0755); err != nil {
+		return err
+	}
+	return config.SaveAIConfig(root, &config.AIConfig{Provider: "mock", Model: "test"})
+}
+
 func TestServer_HandleOrgPolicy(t *testing.T) {
 	root := t.TempDir()
 	repo := storage.NewFilesystemRepository(root)
 	if err := repo.Initialize(); err != nil {
 		t.Fatalf("initialize repo: %v", err)
+	}
+	if err := initMockAIConfig(root); err != nil {
+		t.Fatalf("init mock AI config: %v", err)
 	}
 
 	if err := repo.SavePolicy(&domain.PolicyConfig{MaxWIP: 2, AllowAI: true}); err != nil {
@@ -42,6 +55,9 @@ func TestServer_HandleOrgPolicyWithPath(t *testing.T) {
 	if err := repo.Initialize(); err != nil {
 		t.Fatalf("initialize repo: %v", err)
 	}
+	if err := initMockAIConfig(root); err != nil {
+		t.Fatalf("init mock AI config: %v", err)
+	}
 
 	if err := repo.SavePolicy(&domain.PolicyConfig{MaxWIP: 3, AllowAI: true}); err != nil {
 		t.Fatalf("save policy: %v", err)
@@ -68,6 +84,9 @@ func TestServer_HandleOrgDetectDrift(t *testing.T) {
 	if err := repo.Initialize(); err != nil {
 		t.Fatalf("initialize repo: %v", err)
 	}
+	if err := initMockAIConfig(root); err != nil {
+		t.Fatalf("init mock AI config: %v", err)
+	}
 
 	if err := repo.SavePolicy(&domain.PolicyConfig{MaxWIP: 2, AllowAI: true}); err != nil {
 		t.Fatalf("save policy: %v", err)
@@ -91,6 +110,9 @@ func TestServer_HandlePluginList(t *testing.T) {
 	repo := storage.NewFilesystemRepository(root)
 	if err := repo.Initialize(); err != nil {
 		t.Fatalf("initialize repo: %v", err)
+	}
+	if err := initMockAIConfig(root); err != nil {
+		t.Fatalf("init mock AI config: %v", err)
 	}
 
 	if err := repo.SavePolicy(&domain.PolicyConfig{MaxWIP: 2, AllowAI: true}); err != nil {
@@ -116,6 +138,9 @@ func TestServer_HandlePluginValidate(t *testing.T) {
 	if err := repo.Initialize(); err != nil {
 		t.Fatalf("initialize repo: %v", err)
 	}
+	if err := initMockAIConfig(root); err != nil {
+		t.Fatalf("init mock AI config: %v", err)
+	}
 
 	if err := repo.SavePolicy(&domain.PolicyConfig{MaxWIP: 2, AllowAI: true}); err != nil {
 		t.Fatalf("save policy: %v", err)
@@ -134,6 +159,9 @@ func TestServer_HandlePluginStatus(t *testing.T) {
 	repo := storage.NewFilesystemRepository(root)
 	if err := repo.Initialize(); err != nil {
 		t.Fatalf("initialize repo: %v", err)
+	}
+	if err := initMockAIConfig(root); err != nil {
+		t.Fatalf("init mock AI config: %v", err)
 	}
 
 	if err := repo.SavePolicy(&domain.PolicyConfig{MaxWIP: 2, AllowAI: true}); err != nil {
@@ -164,6 +192,9 @@ func TestServer_HandleMessagingList(t *testing.T) {
 	if err := repo.Initialize(); err != nil {
 		t.Fatalf("initialize repo: %v", err)
 	}
+	if err := initMockAIConfig(root); err != nil {
+		t.Fatalf("init mock AI config: %v", err)
+	}
 
 	if err := repo.SavePolicy(&domain.PolicyConfig{MaxWIP: 2, AllowAI: true}); err != nil {
 		t.Fatalf("save policy: %v", err)
@@ -188,6 +219,9 @@ func TestServer_HandleTeamList(t *testing.T) {
 	if err := repo.Initialize(); err != nil {
 		t.Fatalf("initialize repo: %v", err)
 	}
+	if err := initMockAIConfig(root); err != nil {
+		t.Fatalf("init mock AI config: %v", err)
+	}
 
 	if err := repo.SavePolicy(&domain.PolicyConfig{MaxWIP: 2, AllowAI: true}); err != nil {
 		t.Fatalf("save policy: %v", err)
@@ -211,6 +245,9 @@ func TestServer_HandleTeamAdd(t *testing.T) {
 	repo := storage.NewFilesystemRepository(root)
 	if err := repo.Initialize(); err != nil {
 		t.Fatalf("initialize repo: %v", err)
+	}
+	if err := initMockAIConfig(root); err != nil {
+		t.Fatalf("init mock AI config: %v", err)
 	}
 
 	if err := repo.SavePolicy(&domain.PolicyConfig{MaxWIP: 2, AllowAI: true}); err != nil {
@@ -237,6 +274,9 @@ func TestServer_HandleTeamAdd_Validation(t *testing.T) {
 	repo := storage.NewFilesystemRepository(root)
 	if err := repo.Initialize(); err != nil {
 		t.Fatalf("initialize repo: %v", err)
+	}
+	if err := initMockAIConfig(root); err != nil {
+		t.Fatalf("init mock AI config: %v", err)
 	}
 
 	if err := repo.SavePolicy(&domain.PolicyConfig{MaxWIP: 2, AllowAI: true}); err != nil {
@@ -269,6 +309,9 @@ func TestServer_HandleTeamRemove(t *testing.T) {
 	if err := repo.Initialize(); err != nil {
 		t.Fatalf("initialize repo: %v", err)
 	}
+	if err := initMockAIConfig(root); err != nil {
+		t.Fatalf("init mock AI config: %v", err)
+	}
 
 	if err := repo.SavePolicy(&domain.PolicyConfig{MaxWIP: 2, AllowAI: true}); err != nil {
 		t.Fatalf("save policy: %v", err)
@@ -299,6 +342,9 @@ func TestServer_HandleTeamRemove_Validation(t *testing.T) {
 	if err := repo.Initialize(); err != nil {
 		t.Fatalf("initialize repo: %v", err)
 	}
+	if err := initMockAIConfig(root); err != nil {
+		t.Fatalf("init mock AI config: %v", err)
+	}
 
 	if err := repo.SavePolicy(&domain.PolicyConfig{MaxWIP: 2, AllowAI: true}); err != nil {
 		t.Fatalf("save policy: %v", err)
@@ -320,6 +366,9 @@ func TestServer_HandleRateList(t *testing.T) {
 	repo := storage.NewFilesystemRepository(root)
 	if err := repo.Initialize(); err != nil {
 		t.Fatalf("initialize repo: %v", err)
+	}
+	if err := initMockAIConfig(root); err != nil {
+		t.Fatalf("init mock AI config: %v", err)
 	}
 
 	if err := repo.SavePolicy(&domain.PolicyConfig{MaxWIP: 2, AllowAI: true}); err != nil {
@@ -344,6 +393,9 @@ func TestServer_HandleRateAdd(t *testing.T) {
 	repo := storage.NewFilesystemRepository(root)
 	if err := repo.Initialize(); err != nil {
 		t.Fatalf("initialize repo: %v", err)
+	}
+	if err := initMockAIConfig(root); err != nil {
+		t.Fatalf("init mock AI config: %v", err)
 	}
 
 	if err := repo.SavePolicy(&domain.PolicyConfig{MaxWIP: 2, AllowAI: true}); err != nil {
@@ -375,6 +427,9 @@ func TestServer_HandleRateAdd_Validation(t *testing.T) {
 	repo := storage.NewFilesystemRepository(root)
 	if err := repo.Initialize(); err != nil {
 		t.Fatalf("initialize repo: %v", err)
+	}
+	if err := initMockAIConfig(root); err != nil {
+		t.Fatalf("init mock AI config: %v", err)
 	}
 
 	if err := repo.SavePolicy(&domain.PolicyConfig{MaxWIP: 2, AllowAI: true}); err != nil {
@@ -413,6 +468,9 @@ func TestServer_HandleRateRemove(t *testing.T) {
 	if err := repo.Initialize(); err != nil {
 		t.Fatalf("initialize repo: %v", err)
 	}
+	if err := initMockAIConfig(root); err != nil {
+		t.Fatalf("init mock AI config: %v", err)
+	}
 
 	if err := repo.SavePolicy(&domain.PolicyConfig{MaxWIP: 2, AllowAI: true}); err != nil {
 		t.Fatalf("save policy: %v", err)
@@ -447,6 +505,9 @@ func TestServer_HandleRateRemove_Validation(t *testing.T) {
 	if err := repo.Initialize(); err != nil {
 		t.Fatalf("initialize repo: %v", err)
 	}
+	if err := initMockAIConfig(root); err != nil {
+		t.Fatalf("init mock AI config: %v", err)
+	}
 
 	if err := repo.SavePolicy(&domain.PolicyConfig{MaxWIP: 2, AllowAI: true}); err != nil {
 		t.Fatalf("save policy: %v", err)
@@ -468,6 +529,9 @@ func TestServer_HandleRateSetDefault(t *testing.T) {
 	repo := storage.NewFilesystemRepository(root)
 	if err := repo.Initialize(); err != nil {
 		t.Fatalf("initialize repo: %v", err)
+	}
+	if err := initMockAIConfig(root); err != nil {
+		t.Fatalf("init mock AI config: %v", err)
 	}
 
 	if err := repo.SavePolicy(&domain.PolicyConfig{MaxWIP: 2, AllowAI: true}); err != nil {
@@ -503,6 +567,9 @@ func TestServer_HandleRateSetDefault_Validation(t *testing.T) {
 	if err := repo.Initialize(); err != nil {
 		t.Fatalf("initialize repo: %v", err)
 	}
+	if err := initMockAIConfig(root); err != nil {
+		t.Fatalf("init mock AI config: %v", err)
+	}
 
 	if err := repo.SavePolicy(&domain.PolicyConfig{MaxWIP: 2, AllowAI: true}); err != nil {
 		t.Fatalf("save policy: %v", err)
@@ -524,6 +591,9 @@ func TestServer_HandleRateTax(t *testing.T) {
 	repo := storage.NewFilesystemRepository(root)
 	if err := repo.Initialize(); err != nil {
 		t.Fatalf("initialize repo: %v", err)
+	}
+	if err := initMockAIConfig(root); err != nil {
+		t.Fatalf("init mock AI config: %v", err)
 	}
 
 	if err := repo.SavePolicy(&domain.PolicyConfig{MaxWIP: 2, AllowAI: true}); err != nil {
@@ -554,6 +624,9 @@ func TestServer_HandleRateTax_Validation(t *testing.T) {
 	repo := storage.NewFilesystemRepository(root)
 	if err := repo.Initialize(); err != nil {
 		t.Fatalf("initialize repo: %v", err)
+	}
+	if err := initMockAIConfig(root); err != nil {
+		t.Fatalf("init mock AI config: %v", err)
 	}
 
 	if err := repo.SavePolicy(&domain.PolicyConfig{MaxWIP: 2, AllowAI: true}); err != nil {
@@ -602,6 +675,9 @@ func TestServer_HandleTaskLogTime(t *testing.T) {
 	if err := repo.Initialize(); err != nil {
 		t.Fatalf("initialize repo: %v", err)
 	}
+	if err := initMockAIConfig(root); err != nil {
+		t.Fatalf("init mock AI config: %v", err)
+	}
 
 	if err := repo.SavePolicy(&domain.PolicyConfig{MaxWIP: 2, AllowAI: true}); err != nil {
 		t.Fatalf("save policy: %v", err)
@@ -640,6 +716,9 @@ func TestServer_HandleTaskLogTime_Validation(t *testing.T) {
 	repo := storage.NewFilesystemRepository(root)
 	if err := repo.Initialize(); err != nil {
 		t.Fatalf("initialize repo: %v", err)
+	}
+	if err := initMockAIConfig(root); err != nil {
+		t.Fatalf("init mock AI config: %v", err)
 	}
 
 	if err := repo.SavePolicy(&domain.PolicyConfig{MaxWIP: 2, AllowAI: true}); err != nil {
@@ -688,6 +767,9 @@ func TestServer_HandleCostReport(t *testing.T) {
 	if err := repo.Initialize(); err != nil {
 		t.Fatalf("initialize repo: %v", err)
 	}
+	if err := initMockAIConfig(root); err != nil {
+		t.Fatalf("init mock AI config: %v", err)
+	}
 
 	if err := repo.SavePolicy(&domain.PolicyConfig{MaxWIP: 2, AllowAI: true}); err != nil {
 		t.Fatalf("save policy: %v", err)
@@ -716,6 +798,9 @@ func TestServer_HandleCostBudget(t *testing.T) {
 	if err := repo.Initialize(); err != nil {
 		t.Fatalf("initialize repo: %v", err)
 	}
+	if err := initMockAIConfig(root); err != nil {
+		t.Fatalf("init mock AI config: %v", err)
+	}
 
 	if err := repo.SavePolicy(&domain.PolicyConfig{MaxWIP: 2, AllowAI: true}); err != nil {
 		t.Fatalf("save policy: %v", err)
@@ -739,6 +824,9 @@ func TestServer_HandleAssignTask(t *testing.T) {
 	repo := storage.NewFilesystemRepository(root)
 	if err := repo.Initialize(); err != nil {
 		t.Fatalf("initialize repo: %v", err)
+	}
+	if err := initMockAIConfig(root); err != nil {
+		t.Fatalf("init mock AI config: %v", err)
 	}
 
 	spec := &spec.ProductSpec{
@@ -794,6 +882,9 @@ func TestServer_HandleSync_Error(t *testing.T) {
 	if err := repo.Initialize(); err != nil {
 		t.Fatalf("initialize repo: %v", err)
 	}
+	if err := initMockAIConfig(root); err != nil {
+		t.Fatalf("init mock AI config: %v", err)
+	}
 
 	if err := repo.SavePolicy(&domain.PolicyConfig{MaxWIP: 2, AllowAI: true}); err != nil {
 		t.Fatalf("save policy: %v", err)
@@ -815,6 +906,9 @@ func TestServer_HandleWorkspacePushPull_Error(t *testing.T) {
 	repo := storage.NewFilesystemRepository(root)
 	if err := repo.Initialize(); err != nil {
 		t.Fatalf("initialize repo: %v", err)
+	}
+	if err := initMockAIConfig(root); err != nil {
+		t.Fatalf("init mock AI config: %v", err)
 	}
 
 	if err := repo.SavePolicy(&domain.PolicyConfig{MaxWIP: 2, AllowAI: true}); err != nil {

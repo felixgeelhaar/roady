@@ -574,8 +574,8 @@ func TestCov_UsageCmd_WithProviderStats(t *testing.T) {
 	}{
 		TotalCommands: 5,
 		ProviderStats: map[string]int{
-			"openai/gpt-4":   100,
-			"ollama/llama3":  50,
+			"openai/gpt-4":  100,
+			"ollama/llama3": 50,
 		},
 	}
 	_ = usage
@@ -5521,7 +5521,7 @@ func TestCov_TeamListCmd_JSON(t *testing.T) {
 // ---------------------------------------------------------------------------
 
 func TestCov_DiscoverCmd_WithProject(t *testing.T) {
-	root, cleanup := withTempDir(t)
+	root, cleanup := withPlainTempDir(t)
 	defer cleanup()
 
 	// Create a project in a subdirectory

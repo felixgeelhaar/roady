@@ -193,7 +193,7 @@ func TestUsageCmd_NoStats(t *testing.T) {
 }
 
 func TestDiscoverCmd_FindsProjects(t *testing.T) {
-	root, cleanup := withTempDir(t)
+	root, cleanup := withPlainTempDir(t)
 	defer cleanup()
 
 	project := root + "/project-a"
@@ -213,7 +213,7 @@ func TestDiscoverCmd_FindsProjects(t *testing.T) {
 }
 
 func TestOrgStatusCmd_PrintsTable(t *testing.T) {
-	root, cleanup := withTempDir(t)
+	root, cleanup := withPlainTempDir(t)
 	defer cleanup()
 
 	project := root + "/project-a"

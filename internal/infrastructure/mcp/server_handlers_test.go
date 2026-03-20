@@ -18,6 +18,9 @@ func TestServer_HandleTransitionalTools(t *testing.T) {
 	if err := repo.Initialize(); err != nil {
 		t.Fatalf("initialize repo: %v", err)
 	}
+	if err := initMockAIConfig(tempDir); err != nil {
+		t.Fatalf("init mock AI config: %v", err)
+	}
 
 	spec := &spec.ProductSpec{
 		ID:    "mcp",
@@ -92,6 +95,9 @@ func TestServerHandleStatusCounts(t *testing.T) {
 	if err := repo.Initialize(); err != nil {
 		t.Fatalf("initialize repo: %v", err)
 	}
+	if err := initMockAIConfig(root); err != nil {
+		t.Fatalf("init mock AI config: %v", err)
+	}
 
 	spec := &spec.ProductSpec{
 		ID:    "status-spec",
@@ -158,6 +164,9 @@ func TestServerHandleStatusFiltering(t *testing.T) {
 	repo := storage.NewFilesystemRepository(root)
 	if err := repo.Initialize(); err != nil {
 		t.Fatalf("initialize repo: %v", err)
+	}
+	if err := initMockAIConfig(root); err != nil {
+		t.Fatalf("init mock AI config: %v", err)
 	}
 
 	spec := &spec.ProductSpec{
@@ -295,6 +304,9 @@ func TestServerHandleCheckPolicyViolations(t *testing.T) {
 	if err := repo.Initialize(); err != nil {
 		t.Fatalf("initialize repo: %v", err)
 	}
+	if err := initMockAIConfig(root); err != nil {
+		t.Fatalf("init mock AI config: %v", err)
+	}
 
 	spec := &spec.ProductSpec{
 		ID:    "policy-spec",
@@ -361,6 +373,9 @@ func TestServerHandleDepsList(t *testing.T) {
 	if err := repo.Initialize(); err != nil {
 		t.Fatalf("initialize repo: %v", err)
 	}
+	if err := initMockAIConfig(root); err != nil {
+		t.Fatalf("init mock AI config: %v", err)
+	}
 
 	specData := &spec.ProductSpec{
 		ID:    "deps-spec",
@@ -398,6 +413,9 @@ func TestServerHandleDepsScan(t *testing.T) {
 	if err := repo.Initialize(); err != nil {
 		t.Fatalf("initialize repo: %v", err)
 	}
+	if err := initMockAIConfig(root); err != nil {
+		t.Fatalf("init mock AI config: %v", err)
+	}
 
 	specData := &spec.ProductSpec{
 		ID:    "scan-spec",
@@ -434,6 +452,9 @@ func TestServerHandleDepsGraph(t *testing.T) {
 	repo := storage.NewFilesystemRepository(root)
 	if err := repo.Initialize(); err != nil {
 		t.Fatalf("initialize repo: %v", err)
+	}
+	if err := initMockAIConfig(root); err != nil {
+		t.Fatalf("init mock AI config: %v", err)
 	}
 
 	specData := &spec.ProductSpec{
@@ -486,6 +507,9 @@ func TestServerHandleDebtReport(t *testing.T) {
 	if err := repo.Initialize(); err != nil {
 		t.Fatalf("initialize repo: %v", err)
 	}
+	if err := initMockAIConfig(root); err != nil {
+		t.Fatalf("init mock AI config: %v", err)
+	}
 
 	specData := &spec.ProductSpec{
 		ID:    "debt-spec",
@@ -522,6 +546,9 @@ func TestServerHandleDebtSummary(t *testing.T) {
 	repo := storage.NewFilesystemRepository(root)
 	if err := repo.Initialize(); err != nil {
 		t.Fatalf("initialize repo: %v", err)
+	}
+	if err := initMockAIConfig(root); err != nil {
+		t.Fatalf("init mock AI config: %v", err)
 	}
 
 	specData := &spec.ProductSpec{
@@ -560,6 +587,9 @@ func TestServerHandleStickyDrift(t *testing.T) {
 	if err := repo.Initialize(); err != nil {
 		t.Fatalf("initialize repo: %v", err)
 	}
+	if err := initMockAIConfig(root); err != nil {
+		t.Fatalf("init mock AI config: %v", err)
+	}
 
 	specData := &spec.ProductSpec{
 		ID:    "sticky-spec",
@@ -595,6 +625,9 @@ func TestServerHandleDebtTrend(t *testing.T) {
 	repo := storage.NewFilesystemRepository(root)
 	if err := repo.Initialize(); err != nil {
 		t.Fatalf("initialize repo: %v", err)
+	}
+	if err := initMockAIConfig(root); err != nil {
+		t.Fatalf("init mock AI config: %v", err)
 	}
 
 	specData := &spec.ProductSpec{

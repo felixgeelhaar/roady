@@ -19,14 +19,11 @@ func TestBuildAppServicesDefaults(t *testing.T) {
 	}
 
 	services, err := BuildAppServices(tempDir)
-	if err != nil {
-		t.Fatalf("build services failed: %v", err)
+	if err == nil {
+		t.Fatal("expected error when no AI provider is configured")
 	}
-	if services.Workspace == nil || services.Init == nil || services.Plan == nil || services.AI == nil {
-		t.Fatalf("expected non-nil services, got %+v", services)
-	}
-	if services.Provider.ID() != "ollama:llama3" {
-		t.Fatalf("expected default provider id, got %s", services.Provider.ID())
+	if services != nil {
+		t.Fatalf("expected nil services, got %+v", services)
 	}
 }
 
@@ -43,13 +40,10 @@ func TestBuildAppServicesFallbackOnInvalidProvider(t *testing.T) {
 
 	services, err := BuildAppServices(tempDir)
 	if err == nil {
-		t.Fatalf("expected error when provider is invalid")
+		t.Fatal("expected error when provider is invalid")
 	}
-	if services == nil {
-		t.Fatal("expected services even when fallback error occurs")
-	}
-	if services.Provider.ID() != "ollama:llama3" {
-		t.Fatalf("expected fallback provider id, got %s", services.Provider.ID())
+	if services != nil {
+		t.Fatalf("expected nil services on invalid provider, got %+v", services)
 	}
 }
 
@@ -94,11 +88,8 @@ func TestBuildAppServicesWithResolverError(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected error when resolver fails")
 	}
-	if services == nil {
-		t.Fatal("expected services even when resolver fails")
-	}
-	if services.Provider.ID() != "ollama:llama3" {
-		t.Fatalf("expected fallback provider, got %s", services.Provider.ID())
+	if services != nil {
+		t.Fatalf("expected nil services on resolver error, got %+v", services)
 	}
 }
 
@@ -108,7 +99,11 @@ func TestBuildAppServices_PlanEvents(t *testing.T) {
 		t.Fatalf("mkdir roady: %v", err)
 	}
 
-	services, err := BuildAppServices(tempDir)
+	resolver := func(root string) (domainai.Provider, error) {
+		return stubProvider{}, nil
+	}
+
+	services, err := BuildAppServicesWithProvider(tempDir, resolver)
 	if err != nil {
 		t.Fatalf("build services: %v", err)
 	}

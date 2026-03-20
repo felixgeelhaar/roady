@@ -18,6 +18,9 @@ func setupCoordinatorTestServer(t *testing.T) *Server {
 	if err := repo.Initialize(); err != nil {
 		t.Fatalf("init: %v", err)
 	}
+	if err := initMockAIConfig(root); err != nil {
+		t.Fatalf("init mock AI config: %v", err)
+	}
 
 	sp := &spec.ProductSpec{
 		ID:    "coord-spec",

@@ -36,11 +36,11 @@ func TestLoadAIProviderDefaults(t *testing.T) {
 	})
 
 	provider, err := LoadAIProvider(tempDir)
-	if err != nil {
-		t.Fatalf("load provider: %v", err)
+	if err == nil {
+		t.Fatal("expected error when no AI provider is configured")
 	}
-	if provider.ID() != "ollama:llama3" {
-		t.Fatalf("unexpected provider id: %s", provider.ID())
+	if provider != nil {
+		t.Fatalf("expected nil provider, got %s", provider.ID())
 	}
 }
 

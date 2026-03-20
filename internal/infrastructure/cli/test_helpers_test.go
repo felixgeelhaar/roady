@@ -5,6 +5,8 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/felixgeelhaar/roady/internal/infrastructure/config"
 )
 
 func captureStdout(t *testing.T, fn func()) string {
@@ -30,6 +32,36 @@ func captureStdout(t *testing.T, fn func()) string {
 }
 
 func withTempDir(t *testing.T) (string, func()) {
+	t.Helper()
+
+	dir, err := os.MkdirTemp("", "roady-cli-test-*")
+	if err != nil {
+		t.Fatalf("temp dir: %v", err)
+	}
+	old, _ := os.Getwd()
+	if err := os.Chdir(dir); err != nil {
+		t.Fatalf("chdir: %v", err)
+	}
+
+	if err := os.MkdirAll(filepath.Join(".", ".roady"), 0755); err != nil {
+		_ = os.Chdir(old)
+		_ = os.RemoveAll(dir)
+		t.Fatalf("mkdir .roady: %v", err)
+	}
+
+	if err := config.SaveAIConfig(".", &config.AIConfig{Provider: "mock", Model: "test"}); err != nil {
+		_ = os.Chdir(old)
+		_ = os.RemoveAll(dir)
+		t.Fatalf("save mock AI config: %v", err)
+	}
+
+	return dir, func() {
+		_ = os.Chdir(old)
+		_ = os.RemoveAll(dir)
+	}
+}
+
+func withPlainTempDir(t *testing.T) (string, func()) {
 	t.Helper()
 
 	dir, err := os.MkdirTemp("", "roady-cli-test-*")

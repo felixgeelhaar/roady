@@ -38,6 +38,10 @@ type jsonRPCResponse struct {
 func TestMCPHTTPTransport(t *testing.T) {
 	tempDir := t.TempDir()
 
+	if err := initMockAIConfig(tempDir); err != nil {
+		t.Fatalf("init mock AI config: %v", err)
+	}
+
 	prevVersion, prevCommit, prevDate := Version, BuildCommit, BuildDate
 	Version, BuildCommit, BuildDate = "test", "commit123", "2026-01-01"
 	t.Cleanup(func() {
@@ -114,7 +118,7 @@ func TestMCPStdioTransport(t *testing.T) {
 		t.Fatalf("build roady: %v\n%s", err, out)
 	}
 
-	cmd := fmt.Sprintf("cd %s && %s mcp --transport stdio", shellEscape(tempDir), shellEscape(binPath))
+	cmd := fmt.Sprintf("cd %s && ROADY_AI_PROVIDER=mock ROADY_AI_MODEL=test %s mcp --transport stdio", shellEscape(tempDir), shellEscape(binPath))
 	transport, err := client.NewStdioTransport("bash", "-lc", cmd)
 	if err != nil {
 		t.Fatalf("stdio transport: %v", err)
@@ -159,6 +163,10 @@ func TestMCPStdioTransport(t *testing.T) {
 
 func TestMCPWebSocketTransport(t *testing.T) {
 	tempDir := t.TempDir()
+
+	if err := initMockAIConfig(tempDir); err != nil {
+		t.Fatalf("init mock AI config: %v", err)
+	}
 
 	prevVersion, prevCommit, prevDate := Version, BuildCommit, BuildDate
 	Version, BuildCommit, BuildDate = "test", "commit123", "2026-01-01"

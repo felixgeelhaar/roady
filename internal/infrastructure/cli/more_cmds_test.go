@@ -524,7 +524,7 @@ func TestStatusCmd_NoPlan(t *testing.T) {
 }
 
 func TestDiscoverCmd_NoProjects(t *testing.T) {
-	_, cleanup := withTempDir(t)
+	_, cleanup := withPlainTempDir(t)
 	defer cleanup()
 
 	output := captureStdout(t, func() {

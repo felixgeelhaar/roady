@@ -130,7 +130,8 @@ func TestIntegrationInitGetSpec(t *testing.T) {
 		t.Fatalf("build roady: %v\n%s", err, out)
 	}
 
-	cmd := fmt.Sprintf("cd '%s' && '%s' mcp --transport stdio", tempDir, binPath)
+	// Use environment variables for AI config so project can be initialized
+	cmd := fmt.Sprintf("cd '%s' && ROADY_AI_PROVIDER=mock ROADY_AI_MODEL=test '%s' mcp --transport stdio", tempDir, binPath)
 	transport, err := client.NewStdioTransport("bash", "-lc", cmd)
 	if err != nil {
 		t.Fatalf("stdio transport: %v", err)
@@ -163,6 +164,15 @@ func TestIntegrationInitGetSpec(t *testing.T) {
 	}
 	if spec.Title != "test-sdk" {
 		t.Fatalf("unexpected spec title: %s", spec.Title)
+	}
+
+	// Verify spec is persisted
+	spec2, err := c.GetSpec(ctx)
+	if err != nil {
+		t.Fatalf("get spec again: %v", err)
+	}
+	if spec2.Title != "test-sdk" {
+		t.Fatalf("spec not persisted: %s", spec2.Title)
 	}
 
 	// GetSchema should return valid schema info
