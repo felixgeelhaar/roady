@@ -187,3 +187,53 @@ roady git sync
 - Table-driven tests preferred
 - Mock provider at `pkg/ai/mock.go` for AI tests
 - Test helpers in `internal/infrastructure/cli/test_helpers_test.go`
+
+## Claude Code Integration
+
+When running Claude Code in this project, use Roady for all task management instead of Claude Code's built-in Task tools.
+
+### Why Roady over Claude Code Tasks?
+
+- **Durable**: Tasks survive context resets, stored in `.roady/` (git-versioned)
+- **Traceable**: Spec → Plan → Execution with drift detection
+- **Collaborative**: Works across sessions, users, and AI agents
+- **Audit-ready**: Hash-chained event log for compliance
+
+### Workflow
+
+```markdown
+## Task Management
+
+When working on features:
+1. Check current plan: roady status
+2. Get next task: roady task ready
+3. Start task: roady task start <task-id>
+4. Complete task: roady task complete <task-id>
+5. Check drift: roady drift detect
+
+When planning new work:
+1. Review spec: roady spec explain
+2. Generate tasks: roady plan generate --ai
+3. Approve plan: roady plan approve
+
+Never use Claude's TaskWrite/TaskCreate/TaskUpdate tools.
+Use CLI commands instead.
+```
+
+### Custom Commands
+
+See `.claude/commands/` for pre-configured Claude Code commands:
+- `/roady-task` - Start next ready task
+- `/roady-status` - Full project status
+- `/roady-review` - Check for drift
+
+### MCP Server
+
+For projects with Roady MCP configured, these tools are available:
+- `roady_get_plan` - Fetch current plan with ready tasks
+- `roady_transition_task` - Start/complete tasks
+- `roady_detect_drift` - Check implementation vs plan
+- `roady_get_snapshot` - Get full project state
+
+Roady's MCP server works with Claude Code, OpenCode, Claude Desktop, OpenAI Codex, and Google Gemini. Use `roady setup <platform>` to configure.
+

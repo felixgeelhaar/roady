@@ -36,7 +36,7 @@ Designed for individuals, teams, and AI agents, Roady ensures that your developm
 *   **Team & Workspace Sync:** Manage team members with role-based access (admin/member/viewer) and synchronize `.roady/` state across collaborators via Git with conflict detection (`roady team add`, `roady workspace push/pull`).
 *   **Cross-Repo Dependencies:** Declare runtime, build, and data dependencies between repositories, visualize the graph, detect cycles, and scan health (`roady deps add`, `roady deps graph`, `roady deps scan`).
 *   **Smart AI Workflows:** Codebase-aware task decomposition, AI-suggested priority rebalancing, and natural language queries about project state (`roady plan smart-decompose`, `roady plan prioritize`, `roady query`).
-*   **MCP First:** Seamlessly expose planning capabilities to AI agents via the Model Context Protocol.
+* **MCP First:** Seamlessly expose planning capabilities to AI agents via the Model Context Protocol. Works with Claude Code, OpenCode, Claude Desktop, OpenAI Codex, and Google Gemini.
 
 ## Quick Start
 
@@ -51,38 +51,80 @@ brew install felixgeelhaar/tap/roady
 go install github.com/felixgeelhaar/roady/cmd/roady@latest
 ```
 
-### 2. Initialize
+### 2. One-Command AI Setup
+Connect Roady to Claude Code or Claude Desktop:
+```bash
+roady setup claude-code   # For CLI
+roady setup claude-desktop # For Desktop
+```
+
+### 3. Initialize
 ```bash
 roady init my-awesome-project
 ```
 
-### 3. Plan your Intent
+### 4. Plan your Intent
 Put your PRDs or feature docs in `docs/`, then:
 ```bash
 roady spec analyze docs/ --reconcile
 roady plan generate --ai
 ```
 
-### 4. Drive Execution
+### 5. Drive Execution
 ```bash
+# With Claude Code commands:
+/roady-task        # Start next ready task
+/roady-status     # Check project status
+/roady-review     # Detect drift
+
+# Or via CLI:
 roady task start <task-id>
-# Or automate via Git:
-git commit -m "Implement core engine [roady:task-core-engine]"
+git commit -m "Implement [roady:task-id]"
 roady git sync
 ```
 
-### 5. Check Health & Forecast
+### 6. Check Health & Forecast
 ```bash
 roady status
 roady drift detect
 roady forecast
 ```
 
-### 6. Track Costs
+### 7. Track Costs
 ```bash
 roady rate add --id dev --name "Developer" --rate 120
 roady cost report
 roady cost budget
+```
+
+## MCP Integration
+
+Roady exposes 40+ MCP tools for AI agents. Works with any MCP-compatible AI tool:
+
+```bash
+# Start MCP server
+roady mcp                    # stdio (Claude Code, OpenCode)
+roady mcp --transport http   # HTTP (web apps)
+roady mcp --transport ws    # WebSocket (real-time)
+```
+
+**Supported AI Tools:**
+- **Claude Code** - `roady setup claude-code`
+- **OpenCode** - `roady setup opencode`
+- **Claude Desktop** - `roady setup claude-desktop`
+- **OpenAI Codex** - `roady setup openai`
+- **Google Gemini** - `roady setup gemini`
+
+**One-Command Setup:**
+```bash
+roady setup claude-code   # Configure for your AI tool
+```
+
+**Example Claude Code usage:**
+```
+/roady-task              # Get next task
+# Claude implements the task
+/roady-review            # Check for drift
 ```
 
 ## Governance & Policy

@@ -84,3 +84,39 @@ func TestLoadAIProviderFromConfig(t *testing.T) {
 		t.Fatalf("unexpected provider id: %s", provider.ID())
 	}
 }
+
+func TestLoadAIProviderFromEnv(t *testing.T) {
+	tempDir := t.TempDir()
+	if err := os.MkdirAll(filepath.Join(tempDir, ".roady"), 0700); err != nil {
+		t.Fatalf("mkdir .roady: %v", err)
+	}
+
+	prevProvider := os.Getenv("ROADY_AI_PROVIDER")
+	prevModel := os.Getenv("ROADY_AI_MODEL")
+	if err := os.Setenv("ROADY_AI_PROVIDER", "mock"); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Setenv("ROADY_AI_MODEL", "env-model"); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		if prevProvider == "" {
+			_ = os.Unsetenv("ROADY_AI_PROVIDER")
+		} else {
+			_ = os.Setenv("ROADY_AI_PROVIDER", prevProvider)
+		}
+		if prevModel == "" {
+			_ = os.Unsetenv("ROADY_AI_MODEL")
+		} else {
+			_ = os.Setenv("ROADY_AI_MODEL", prevModel)
+		}
+	})
+
+	provider, err := LoadAIProvider(tempDir)
+	if err != nil {
+		t.Fatalf("load provider: %v", err)
+	}
+	if provider.ID() != "mock:env-model" {
+		t.Fatalf("unexpected provider id: %s", provider.ID())
+	}
+}

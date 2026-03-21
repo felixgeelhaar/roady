@@ -7,6 +7,8 @@ import (
 	"sync/atomic"
 	"testing"
 	"time"
+
+	"github.com/fsnotify/fsnotify"
 )
 
 func TestFSWatcher_DetectsFileWrite(t *testing.T) {
@@ -127,5 +129,42 @@ func TestFSWatcher_ContextCancellation(t *testing.T) {
 		}
 	case <-time.After(2 * time.Second):
 		t.Error("watcher did not stop after context cancellation")
+	}
+}
+
+func TestFSWatcher_SetFilter(t *testing.T) {
+	w, err := NewFSWatcher(50*time.Millisecond, func(e ChangeEvent) {})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	filter := NewPatternFilter([]string{"*.md"}, nil)
+	w.SetFilter(filter)
+
+	if w.filter == nil {
+		t.Error("expected filter to be set")
+	}
+}
+
+func TestOpToChangeType(t *testing.T) {
+	tests := []struct {
+		name     string
+		op       fsnotify.Op
+		expected string
+	}{
+		{"create", fsnotify.Create, "create"},
+		{"write", fsnotify.Write, "write"},
+		{"remove", fsnotify.Remove, "remove"},
+		{"rename", fsnotify.Rename, "rename"},
+		{"unknown", fsnotify.Op(0), ""},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := opToChangeType(tt.op)
+			if result != tt.expected {
+				t.Errorf("expected %q, got %q", tt.expected, result)
+			}
+		})
 	}
 }

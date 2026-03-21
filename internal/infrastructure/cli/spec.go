@@ -1,7 +1,10 @@
 package cli
 
 import (
+	"bufio"
 	"fmt"
+	"io"
+	"os"
 
 	"github.com/felixgeelhaar/roady/internal/infrastructure/wiring"
 	"github.com/felixgeelhaar/roady/pkg/application"
@@ -207,6 +210,85 @@ var specReviewCmd = &cobra.Command{
 	},
 }
 
+var specParseCmd = &cobra.Command{
+	Use:   "parse",
+	Short: "Parse raw LLM output into a structured spec and plan in one operation",
+	Long: `Parse unstructured LLM-generated content into a structured ProductSpec 
+and execution Plan in a single AI call. 
+
+This command accepts:
+  - Text from stdin: cat file.txt | roady spec parse
+  - A file path: roady spec parse path/to/llm-output.txt
+  - Direct input: roady spec parse "Feature: Login..."`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		cwd, err := getProjectRoot()
+		if err != nil {
+			return fmt.Errorf("resolve project path: %w", err)
+		}
+
+		var rawText string
+		switch {
+		case len(args) > 0:
+			rawText = args[0]
+		case hasStdin():
+			rawText = readStdin()
+		default:
+			return fmt.Errorf("no input provided: pipe text via stdin, provide a file path, or pass text directly as an argument")
+		}
+
+		if rawText == "" {
+			return fmt.Errorf("empty input")
+		}
+
+		workspace := wiring.NewWorkspace(cwd)
+		repo := workspace.Repo
+		audit := workspace.Audit
+
+		provider, err := wiring.LoadAIProvider(cwd)
+		if err != nil {
+			return err
+		}
+		planSvc := application.NewPlanService(repo, audit)
+		aiSvc := application.NewAIPlanningService(repo, provider, audit, planSvc)
+
+		fmt.Println("Parsing LLM output...")
+		spec, plan, err := aiSvc.ImportFromLLM(cmd.Context(), rawText)
+		if err != nil {
+			return MapError(fmt.Errorf("failed to parse LLM output: %w", err))
+		}
+
+		fmt.Printf("\nSuccessfully created spec '%s' with %d features.\n", spec.Title, len(spec.Features))
+		if plan != nil {
+			fmt.Printf("Created plan with %d tasks.\n", len(plan.Tasks))
+		}
+		return nil
+	},
+}
+
+func hasStdin() bool {
+	stat, err := os.Stdin.Stat()
+	if err != nil {
+		return false
+	}
+	return (stat.Mode() & os.ModeCharDevice) == 0
+}
+
+func readStdin() string {
+	reader := bufio.NewReader(os.Stdin)
+	var lines []string
+	for {
+		line, err := reader.ReadString('\n')
+		if err != nil && err != io.EOF {
+			break
+		}
+		lines = append(lines, line)
+		if err == io.EOF {
+			break
+		}
+	}
+	return ""
+}
+
 func init() {
 	specCmd.AddCommand(specAddCmd)
 	specAnalyzeCmd.Flags().BoolVar(&reconcileSpec, "reconcile", false, "Use AI to semanticly deduplicate and reconcile the spec")
@@ -215,5 +297,6 @@ func init() {
 	specCmd.AddCommand(specExplainCmd)
 	specCmd.AddCommand(specReviewCmd)
 	specCmd.AddCommand(specAnalyzeCmd)
+	specCmd.AddCommand(specParseCmd)
 	RootCmd.AddCommand(specCmd)
 }

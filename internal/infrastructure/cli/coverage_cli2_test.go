@@ -606,6 +606,40 @@ func TestCov2_SpecExplainCmd(t *testing.T) {
 }
 
 // ============================================================================
+// spec.go - specParseCmd - No input (lines 209-233)
+// ============================================================================
+
+func TestCov2_SpecParseCmd_NoInput(t *testing.T) {
+	_, cleanup := withTempDir(t)
+	defer cleanup()
+	setupBasicRepo2(t)
+
+	specParseCmd.SetContext(context.Background())
+	err := specParseCmd.RunE(specParseCmd, []string{})
+	if err == nil {
+		t.Error("expected error for no input")
+	}
+	if !strings.Contains(err.Error(), "no input") {
+		t.Errorf("unexpected error: %v", err)
+	}
+}
+
+func TestCov2_SpecParseCmd_EmptyInput(t *testing.T) {
+	_, cleanup := withTempDir(t)
+	defer cleanup()
+	setupBasicRepo2(t)
+
+	specParseCmd.SetContext(context.Background())
+	err := specParseCmd.RunE(specParseCmd, []string{""})
+	if err == nil {
+		t.Error("expected error for empty input")
+	}
+	if !strings.Contains(err.Error(), "empty") {
+		t.Errorf("unexpected error: %v", err)
+	}
+}
+
+// ============================================================================
 // deps.go - Add success with description (lines 88-95)
 // ============================================================================
 
@@ -3069,14 +3103,14 @@ func TestCov2_ConfigWizardCmd(t *testing.T) {
 	defer func() { os.Stdin = oldStdin }()
 
 	go func() {
-		_, _ = w.WriteString("ollama\n")  // AI Provider
-		_, _ = w.WriteString("llama3\n")  // Model name
-		_, _ = w.WriteString("3\n")       // Max retries
-		_, _ = w.WriteString("2000\n")    // Retry delay
-		_, _ = w.WriteString("600\n")     // Timeout
-		_, _ = w.WriteString("5\n")       // Max WIP
-		_, _ = w.WriteString("true\n")    // Allow AI
-		_, _ = w.WriteString("10000\n")   // Token limit
+		_, _ = w.WriteString("ollama\n") // AI Provider
+		_, _ = w.WriteString("llama3\n") // Model name
+		_, _ = w.WriteString("3\n")      // Max retries
+		_, _ = w.WriteString("2000\n")   // Retry delay
+		_, _ = w.WriteString("600\n")    // Timeout
+		_, _ = w.WriteString("5\n")      // Max WIP
+		_, _ = w.WriteString("true\n")   // Allow AI
+		_, _ = w.WriteString("10000\n")  // Token limit
 		_ = w.Close()
 	}()
 

@@ -151,3 +151,19 @@ func TestGetProjectRoot_NotADirectory(t *testing.T) {
 		t.Fatalf("expected 'not a directory' in error, got: %v", err)
 	}
 }
+
+func TestLoadServices_AIProviderFails(t *testing.T) {
+	tempDir := t.TempDir()
+	repo := storage.NewFilesystemRepository(tempDir)
+	if err := repo.Initialize(); err != nil {
+		t.Fatalf("initialize repo: %v", err)
+	}
+
+	_, err := loadServices(tempDir)
+	if err == nil {
+		t.Fatal("expected error when AI provider fails to load")
+	}
+	if !strings.Contains(err.Error(), "AI provider initialization failed") {
+		t.Fatalf("expected AI provider error, got: %v", err)
+	}
+}

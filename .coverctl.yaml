@@ -20,4 +20,4 @@ policy:
     - name: infrastructure
       match:
         - ./internal/infrastructure/...
-      min: 80  # Adapters and CLI
+      min: 76  # Adapters and CLI

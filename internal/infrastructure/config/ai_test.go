@@ -61,3 +61,15 @@ func TestLoadAIConfigInvalid(t *testing.T) {
 		t.Fatalf("expected error for invalid yaml")
 	}
 }
+
+func TestSaveAIConfigNil(t *testing.T) {
+	tempDir := t.TempDir()
+	if err := os.MkdirAll(filepath.Join(tempDir, ".roady"), 0700); err != nil {
+		t.Fatalf("mkdir .roady: %v", err)
+	}
+
+	err := SaveAIConfig(tempDir, nil)
+	if err == nil {
+		t.Fatal("expected error for nil config")
+	}
+}

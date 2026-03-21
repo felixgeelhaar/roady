@@ -1,0 +1,328 @@
+package cli
+
+import (
+	"fmt"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"strings"
+
+	"github.com/spf13/cobra"
+)
+
+var setupCmd = &cobra.Command{
+	Use:   "setup [target]",
+	Short: "Setup Roady for various platforms (claude-code, claude-desktop, opencode, openai, gemini)",
+	Long: `Configure Roady for use with AI coding tools.
+
+Supported targets:
+  claude-code    - Configure Claude Code with Roady commands and MCP
+  claude-desktop - Configure Claude Desktop with Roady MCP server
+  opencode       - Configure OpenCode with Roady MCP server
+  openai         - Setup for OpenAI Codex (via MCP)
+  gemini         - Setup for Google Gemini (via MCP bridge)
+  global         - Install commands globally and setup MCP
+
+Examples:
+  roady setup claude-code
+  roady setup opencode
+  roady setup openai
+  roady setup claude-desktop
+  roady setup global`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		target := "claude-code"
+		if len(args) > 0 {
+			target = strings.ToLower(args[0])
+		}
+
+		switch target {
+		case "claude-code":
+			return setupClaudeCode()
+		case "claude-desktop":
+			return setupClaudeDesktop()
+		case "opencode":
+			return setupOpenCode()
+		case "openai":
+			return setupOpenAI()
+		case "gemini":
+			return setupGemini()
+		case "global":
+			return setupGlobal()
+		default:
+			return fmt.Errorf("unknown target: %s (supported: claude-code, claude-desktop, opencode, openai, gemini, global)", target)
+		}
+	},
+}
+
+func setupClaudeCode() error {
+	fmt.Println("🚀 Setting up Roady for Claude Code...")
+
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return fmt.Errorf("get home directory: %w", err)
+	}
+
+	claudeDir := filepath.Join(homeDir, ".claude")
+	commandsDir := filepath.Join(claudeDir, "commands")
+
+	if err := os.MkdirAll(commandsDir, 0755); err != nil {
+		return fmt.Errorf("create .claude/commands: %w", err)
+	}
+
+	cmd := exec.Command("roady")
+	cmd.Dir, _ = os.Getwd()
+	if err := cmd.Run(); err != nil {
+		fmt.Println("Warning: roady command not in PATH - commands may not work")
+	}
+
+	roadyCommands := map[string]string{
+		"roady-task.md":   roadyTaskCommand,
+		"roady-status.md": roadyStatusCommand,
+		"roady-review.md": roadyReviewCommand,
+	}
+
+	for name, content := range roadyCommands {
+		path := filepath.Join(commandsDir, name)
+		if _, err := os.Stat(path); os.IsNotExist(err) {
+			if err := os.WriteFile(path, []byte(content), 0644); err != nil {
+				return fmt.Errorf("write command %s: %w", name, err)
+			}
+			fmt.Printf("  ✓ Created %s\n", path)
+		} else {
+			fmt.Printf("  ✓ %s already exists\n", name)
+		}
+	}
+
+	settingsPath := filepath.Join(claudeDir, "settings.local.json")
+	mcpConfig := `{
+  "mcpServers": {
+    "roady": {
+      "command": "roady",
+      "args": ["mcp"]
+    }
+  }
+}`
+
+	if _, err := os.Stat(settingsPath); os.IsNotExist(err) {
+		if err := os.WriteFile(settingsPath, []byte(mcpConfig), 0644); err != nil {
+			return fmt.Errorf("write settings: %w", err)
+		}
+		fmt.Printf("  ✓ Created %s\n", settingsPath)
+	} else {
+		fmt.Printf("  ✓ %s already exists (MCP may already be configured)\n", settingsPath)
+	}
+
+	fmt.Println("\n✅ Claude Code setup complete!")
+	fmt.Println("\nNext steps:")
+	fmt.Println("  1. Restart Claude Code")
+	fmt.Println("  2. Run /roady-task to start a task")
+	fmt.Println("  3. Run /roady-status for project overview")
+
+	return nil
+}
+
+func setupClaudeDesktop() error {
+	fmt.Println("🚀 Setting up Roady for Claude Desktop...")
+
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return fmt.Errorf("get home directory: %w", err)
+	}
+
+	configPath := filepath.Join(homeDir, "Library", "Application Support", "Claude", "claude_desktop_config.json")
+
+	roadyConfig := `,
+    "mcpServers": {
+      "roady": {
+        "command": "roady",
+        "args": ["mcp"],
+        "env": {}
+      }
+    }`
+
+	fmt.Printf("  📝 Edit %s and add:\n", configPath)
+	fmt.Println(roadyConfig)
+
+	return nil
+}
+
+func setupGlobal() error {
+	fmt.Println("🚀 Setting up Roady globally...")
+
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return fmt.Errorf("get home directory: %w", err)
+	}
+
+	claudeDir := filepath.Join(homeDir, ".claude")
+	commandsDir := filepath.Join(claudeDir, "commands")
+
+	if err := os.MkdirAll(commandsDir, 0755); err != nil {
+		return fmt.Errorf("create .claude/commands: %w", err)
+	}
+
+	roadyCommands := map[string]string{
+		"roady-task.md":   roadyTaskCommand,
+		"roady-status.md": roadyStatusCommand,
+		"roady-review.md": roadyReviewCommand,
+	}
+
+	for name, content := range roadyCommands {
+		path := filepath.Join(commandsDir, name)
+		if err := os.WriteFile(path, []byte(content), 0644); err != nil {
+			return fmt.Errorf("write command %s: %w", name, err)
+		}
+		fmt.Printf("  ✓ Installed %s\n", path)
+	}
+
+	fmt.Println("\n✅ Global setup complete!")
+	return nil
+}
+
+func setupOpenCode() error {
+	fmt.Println("🚀 Setting up Roady for OpenCode...")
+
+	fmt.Println("\n📝 Add this to your OpenCode config (~/.opencode/config.json):")
+	fmt.Println()
+	fmt.Println(`{
+  "mcpServers": {
+    "roady": {
+      "command": "roady",
+      "args": ["mcp"]
+    }
+  }
+}`)
+
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return fmt.Errorf("get home directory: %w", err)
+	}
+
+	configPath := filepath.Join(homeDir, ".opencode", "config.json")
+	if _, err := os.Stat(filepath.Dir(configPath)); os.IsNotExist(err) {
+		fmt.Printf("\n  ✓ Config directory will be created at first launch\n")
+	} else {
+		fmt.Printf("\n  📁 Config path: %s\n", configPath)
+	}
+
+	fmt.Println("\n✅ OpenCode setup ready!")
+	fmt.Println("\nNext steps:")
+	fmt.Println("  1. Restart OpenCode")
+	fmt.Println("  2. Roady MCP tools will be available")
+
+	return nil
+}
+
+func setupOpenAI() error {
+	fmt.Println("🚀 Setting up Roady for OpenAI Codex...")
+
+	fmt.Println()
+	fmt.Println("📝 In your Codex agent code, use the MCP server:")
+	fmt.Println()
+	fmt.Println(`from agents import Agent
+from openai import OpenAI
+
+client = OpenAI()
+
+# Start Roady MCP server as subprocess
+import subprocess
+roady_process = subprocess.Popen(
+    ["roady", "mcp", "--transport", "stdio"],
+    stdout=subprocess.PIPE,
+    stdin=subprocess.PIPE,
+)
+
+# Use with Codex agent
+agent = Agent(
+    name="Developer",
+    mcp_servers=[roady_process],  # Roady MCP
+)`)
+	fmt.Println("\nOr use with OpenAI SDK directly:")
+	fmt.Println()
+	fmt.Println(`from openai.mcp import MCPServer
+
+server = MCPServer(command="roady", args=["mcp"])`)
+
+	fmt.Println("\n✅ OpenAI Codex setup ready!")
+	fmt.Println("\nNote: OpenAI Codex MCP support requires the latest OpenAI SDK.")
+
+	return nil
+}
+
+func setupGemini() error {
+	fmt.Println("🚀 Setting up Roady for Google Gemini...")
+
+	fmt.Println()
+	fmt.Println("📝 Add Roady to Gemini MCP configuration:")
+	fmt.Println()
+	fmt.Print(`Via Google AI Studio or gcloud:
+
+{
+  "mcpServers": {
+    "roady": {
+      "command": "roady",
+      "args": ["mcp"]
+    }
+  }
+}
+
+Note: Gemini MCP support varies by platform.
+  - Google AI Studio: Use MCP servers extension
+  - Vertex AI: Configure via Agent Builder
+`)
+
+	fmt.Println()
+	fmt.Println("✅ Gemini setup ready!")
+
+	return nil
+}
+
+func init() {
+	RootCmd.AddCommand(setupCmd)
+}
+
+const (
+	roadyTaskCommand = `# Start Next Ready Task
+
+Start the next task that is ready to begin (unlocked and pending).
+
+## Usage
+/roady-task
+
+## What it does
+1. Runs roady task ready to find the next pending task
+2. Starts the task with roady task start <task-id>
+3. Reports the task details
+`
+
+	roadyStatusCommand = `# Full Project Status
+
+Get a comprehensive overview of the project status.
+
+## Usage
+/roady-status
+
+## What it does
+1. Runs roady status for task overview
+2. Checks for drift with roady drift detect
+3. Shows AI usage with roady usage
+`
+
+	roadyReviewCommand = `# Check for Drift
+
+Detect any discrepancies between the current implementation and the plan.
+
+## Usage
+/roady-review
+
+## What it does
+1. Runs roady drift detect to find implementation gaps
+2. Runs roady debt summary for planning debt overview
+3. Provides explanation of any drift found
+
+## When to use
+- Before starting new work
+- After completing significant features
+- During code review
+`
+)

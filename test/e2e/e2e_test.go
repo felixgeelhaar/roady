@@ -28,6 +28,7 @@ func TestHappyPath(t *testing.T) {
 	runRoady := func(args ...string) string {
 		cmd := exec.Command(roadyBin, args...)
 		cmd.Dir = tempDir
+		cmd.Env = append(os.Environ(), "ROADY_AI_PROVIDER=mock")
 		output, err := cmd.CombinedOutput()
 		if err != nil {
 			t.Fatalf("roady %v failed: %v\nOutput: %s", args, err, output)
@@ -39,6 +40,7 @@ func TestHappyPath(t *testing.T) {
 	runRoadyAllowFail := func(args ...string) string {
 		cmd := exec.Command(roadyBin, args...)
 		cmd.Dir = tempDir
+		cmd.Env = append(os.Environ(), "ROADY_AI_PROVIDER=mock")
 		output, _ := cmd.CombinedOutput()
 		return string(output)
 	}

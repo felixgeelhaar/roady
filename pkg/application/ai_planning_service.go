@@ -938,6 +938,137 @@ func (s *AIPlanningService) ExplainDrift(ctx context.Context, report *drift.Repo
 	return resp.Text, nil
 }
 
+// ImportFromLLM parses raw LLM output into a structured spec and plan in one operation.
+func (s *AIPlanningService) ImportFromLLM(ctx context.Context, rawText string) (*spec.ProductSpec, *planning.Plan, error) {
+	cfg, err := s.repo.LoadPolicy()
+	if err != nil {
+		return nil, nil, err
+	}
+	if !cfg.AllowAI {
+		return nil, nil, fmt.Errorf("AI usage is disabled by project policy")
+	}
+
+	if cfg.TokenLimit > 0 {
+		stats, _ := s.repo.LoadUsage()
+		if stats != nil {
+			totalTokens := 0
+			for _, count := range stats.ProviderStats {
+				totalTokens += count
+			}
+			if totalTokens >= cfg.TokenLimit {
+				return nil, nil, fmt.Errorf("AI token limit reached (%d/%d). Please increase limit in policy.yaml", totalTokens, cfg.TokenLimit)
+			}
+		}
+	}
+
+	prompt := `Parse the following LLM output and convert it into a structured ProductSpec AND a Plan.
+
+Requirements:
+1. Extract project title and description
+2. Identify features with their IDs, titles, and descriptions
+3. Identify requirements with their IDs, titles, priorities, and estimates
+4. Generate tasks from requirements with proper dependencies
+5. Return ONLY a JSON object with no surrounding text, no markdown, no code fences
+
+Return this exact JSON structure:
+{
+  "spec": {
+    "id": "project-id",
+    "title": "Project Title",
+    "description": "Project description",
+    "version": "0.1.0",
+    "features": [
+      {
+        "id": "feature-id",
+        "title": "Feature Title",
+        "description": "Feature description",
+        "requirements": [
+          {
+            "id": "req-id",
+            "title": "Requirement Title",
+            "description": "Requirement description",
+            "priority": "low|medium|high",
+            "estimate": "4h"
+          }
+        ]
+      }
+    ]
+  },
+  "tasks": [
+    {
+      "id": "task-req-id",
+      "title": "Task Title",
+      "description": "Task description",
+      "priority": "low|medium|high",
+      "estimate": "4h",
+      "depends_on": [],
+      "feature_id": "feature-id"
+    }
+  ]
+}
+
+LLM OUTPUT TO PARSE:
+` + rawText
+
+	resp, err := s.provider.Complete(ctx, ai.CompletionRequest{
+		Prompt:      prompt,
+		System:      "You are an expert technical lead. Parse unstructured LLM output into structured JSON. You ensure every requirement becomes a task. Return ONLY valid JSON.",
+		Temperature: 0.2,
+		MaxTokens:   4000,
+	})
+	if err != nil {
+		return nil, nil, fmt.Errorf("AI import failed: %w", err)
+	}
+
+	cleanJSON := extractJSONPayload(resp.Text)
+
+	var importResult struct {
+		Spec  spec.ProductSpec `json:"spec"`
+		Tasks []planning.Task  `json:"tasks"`
+	}
+	if err := json.Unmarshal([]byte(cleanJSON), &importResult); err != nil {
+		return nil, nil, fmt.Errorf("failed to parse AI response: %w (raw: %s)", err, resp.Text)
+	}
+
+	if importResult.Spec.ID == "" {
+		importResult.Spec.ID = "imported-project"
+	}
+	if importResult.Spec.Title == "" {
+		importResult.Spec.Title = "Imported Project"
+	}
+
+	for i := range importResult.Spec.Features {
+		if importResult.Spec.Features[i].ID == "" {
+			id := strings.ToLower(strings.ReplaceAll(importResult.Spec.Features[i].Title, " ", "-"))
+			importResult.Spec.Features[i].ID = id
+		}
+	}
+
+	if err := s.repo.SaveSpec(&importResult.Spec); err != nil {
+		return nil, nil, fmt.Errorf("save spec: %w", err)
+	}
+	if err := s.repo.SaveSpecLock(&importResult.Spec); err != nil {
+		return nil, nil, fmt.Errorf("save spec lock: %w", err)
+	}
+
+	plan, err := s.planSvc.UpdatePlan(importResult.Tasks)
+	if err != nil {
+		return nil, nil, fmt.Errorf("update plan: %w", err)
+	}
+
+	if err := s.audit.Log("spec.import_llm", "ai", map[string]interface{}{
+		"model":         resp.Model,
+		"input_tokens":  resp.Usage.InputTokens,
+		"output_tokens": resp.Usage.OutputTokens,
+		"features":      len(importResult.Spec.Features),
+		"tasks":         len(importResult.Tasks),
+	}); err != nil {
+		fmt.Fprintf(os.Stderr, "warning: failed to log audit event: %v\n", err)
+	}
+
+	return &importResult.Spec, plan, nil
+}
+
 // SmartDecompose performs context-aware task decomposition using codebase structure.
 func (s *AIPlanningService) SmartDecompose(ctx context.Context, codebaseRoot string) (*planning.SmartPlan, error) {
 	cfg, err := s.repo.LoadPolicy()
@@ -956,10 +1087,8 @@ func (s *AIPlanningService) SmartDecompose(ctx context.Context, codebaseRoot str
 		return nil, fmt.Errorf("spec is nil")
 	}
 
-	// Scan codebase for structure context
 	fileTree := ScanCodebaseTree(codebaseRoot, 200)
 
-	// Build prompt with codebase context
 	prompt := `Task: Decompose the following features into atomic engineering tasks, using the existing codebase structure to inform your task breakdown.
 
 For each task, suggest which existing files would need modification and estimate complexity (low, medium, high).
