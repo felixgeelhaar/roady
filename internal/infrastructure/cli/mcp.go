@@ -1,9 +1,12 @@
 package cli
 
 import (
+	"context"
 	"fmt"
 	"os"
+	"os/signal"
 	"strings"
+	"syscall"
 
 	inframcp "github.com/felixgeelhaar/roady/internal/infrastructure/mcp"
 	"github.com/spf13/cobra"
@@ -29,17 +32,45 @@ var mcpCmd = &cobra.Command{
 		if err != nil {
 			return fmt.Errorf("create MCP server: %w", err)
 		}
-		switch strings.ToLower(mcpTransport) {
+
+		transport := strings.ToLower(mcpTransport)
+
+		// For stdio transport, redirect stderr to a log file (or /dev/null)
+		// so that stray fmt.Println / panic tracebacks from dependencies
+		// don't corrupt the JSON-RPC stream on stdout.
+		if transport == "stdio" || transport == "" {
+			if f, err := redirectStderr(); err == nil && f != nil {
+				defer f.Close()
+			}
+		}
+
+		// Cancel the server context on SIGINT/SIGTERM so in-flight
+		// handlers can drain and connections close cleanly.
+		ctx, cancel := context.WithCancel(cmd.Context())
+		defer cancel()
+		sig := make(chan os.Signal, 1)
+		signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
+		go func() {
+			<-sig
+			cancel()
+		}()
+
+		switch transport {
 		case "stdio", "":
-			err = server.StartStdio()
+			err = server.ServeStdio(ctx)
 		case "http":
-			err = server.StartHTTP(mcpAddr)
+			err = server.ServeHTTP(ctx, mcpAddr)
 		case "ws", "websocket":
-			err = server.StartWebSocket(mcpAddr)
+			err = server.ServeWebSocket(ctx, mcpAddr)
 		case "grpc":
-			err = server.StartGRPC(mcpAddr)
+			err = server.ServeGRPC(ctx, mcpAddr)
 		default:
-			err = fmt.Errorf("unsupported transport: %s", mcpTransport)
+			err = fmt.Errorf("unsupported transport: %s", transport)
+		}
+
+		// context.Canceled is expected on signal-driven shutdown.
+		if err != nil && ctx.Err() == context.Canceled {
+			return nil
 		}
 		return err
 	},
