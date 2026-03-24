@@ -36,14 +36,14 @@ type AppServices struct {
 }
 
 // BuildAppServices constructs the workbench of services and AI provider wiring for a repo root.
+// If the AI provider cannot be loaded (e.g. not configured), the server still starts —
+// only AI-dependent tools will return errors.
 func BuildAppServices(root string) (*AppServices, error) {
 	workspace := NewWorkspace(root)
-	provider, err := LoadAIProvider(root)
-	if err != nil {
-		return nil, fmt.Errorf("AI provider initialization failed: %w", err)
-	}
+	provider, loadErr := LoadAIProvider(root)
+	// provider may be nil here — AI-dependent handlers must guard against this.
 
-	return buildServicesWithProvider(workspace, root, provider, nil)
+	return buildServicesWithProvider(workspace, root, provider, loadErr)
 }
 
 // BuildAppServicesWithProvider allows callers to supply a custom AI provider resolver.

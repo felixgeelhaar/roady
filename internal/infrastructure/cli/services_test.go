@@ -159,11 +159,16 @@ func TestLoadServices_AIProviderFails(t *testing.T) {
 		t.Fatalf("initialize repo: %v", err)
 	}
 
-	_, err := loadServices(tempDir)
-	if err == nil {
-		t.Fatal("expected error when AI provider fails to load")
+	// Without AI config, services should still load (soft failure).
+	// AI-dependent tools will fail at call time, not at startup.
+	svc, err := loadServices(tempDir)
+	if err != nil {
+		t.Fatalf("expected no error (soft failure), got: %v", err)
 	}
-	if !strings.Contains(err.Error(), "AI provider initialization failed") {
-		t.Fatalf("expected AI provider error, got: %v", err)
+	if svc == nil {
+		t.Fatal("expected non-nil services even without AI provider")
+	}
+	if svc.Provider != nil {
+		t.Fatal("expected nil Provider when AI is not configured")
 	}
 }

@@ -75,8 +75,20 @@ func mcpErr(friendly string) error {
 // requireAI is a nil-guard for AI-dependent handlers. Returns a clear
 // error instead of letting a nil-pointer dereference bubble up as a
 // cryptic panic (even though the recover middleware would catch it).
+// Checks both the AI service and the underlying provider — the service
+// is always constructed but the provider may be nil when not configured.
 func requireAI(svc *wiring.AppServices) error {
-	if svc.AI == nil {
+	if svc == nil || svc.AI == nil {
+		return mcpErr("AI provider not configured. Set ROADY_AI_PROVIDER or configure ai.yaml.")
+	}
+	// Provider is set when services are built via BuildAppServices.
+	// In the fallback path (tests), Provider may be nil even though
+	// the AI service has an injected provider — that's OK.
+	if svc.Provider == nil && svc.Workspace == nil {
+		// Fallback construction (no Workspace) — trust the AI service.
+		return nil
+	}
+	if svc.Provider == nil {
 		return mcpErr("AI provider not configured. Set ROADY_AI_PROVIDER or configure ai.yaml.")
 	}
 	return nil
@@ -126,7 +138,7 @@ func (s *Server) servicesForPath(override string) (*wiring.AppServices, error) {
 
 	// Build fresh services (expensive — involves event replay, AI config, etc.).
 	svc, err := wiring.BuildAppServices(override)
-	if err != nil {
+	if err != nil && svc == nil {
 		return nil, err
 	}
 
@@ -150,12 +162,12 @@ func (s *Server) servicesForPath(override string) (*wiring.AppServices, error) {
 
 func NewServer(root string) (*Server, error) {
 	services, err := wiring.BuildAppServices(root)
-	if err != nil {
+	if err != nil && services == nil {
+		// Hard failure — can't build any services at all.
 		return nil, fmt.Errorf("build services: %w", err)
 	}
-	if services == nil {
-		return nil, fmt.Errorf("services initialization returned nil")
-	}
+	// Soft failure (e.g. AI provider not configured) is tolerated —
+	// services is non-nil but AI-dependent tools will return errors.
 
 	info := mcp.ServerInfo{
 		Name:    "roady",

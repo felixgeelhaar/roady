@@ -18,12 +18,17 @@ func TestBuildAppServicesDefaults(t *testing.T) {
 		t.Fatalf("mkdir roady: %v", err)
 	}
 
+	// When no AI provider is configured, services should still be returned
+	// (soft failure) so non-AI tools work. The error is informational.
 	services, err := BuildAppServices(tempDir)
 	if err == nil {
 		t.Fatal("expected error when no AI provider is configured")
 	}
-	if services != nil {
-		t.Fatalf("expected nil services, got %+v", services)
+	if services == nil {
+		t.Fatal("expected non-nil services even without AI provider")
+	}
+	if services.Provider != nil {
+		t.Fatal("expected nil Provider when no AI is configured")
 	}
 }
 
@@ -38,12 +43,16 @@ func TestBuildAppServicesFallbackOnInvalidProvider(t *testing.T) {
 		t.Fatalf("save config: %v", err)
 	}
 
+	// Invalid provider is also a soft failure — services work, AI doesn't.
 	services, err := BuildAppServices(tempDir)
 	if err == nil {
 		t.Fatal("expected error when provider is invalid")
 	}
-	if services != nil {
-		t.Fatalf("expected nil services on invalid provider, got %+v", services)
+	if services == nil {
+		t.Fatal("expected non-nil services even with invalid provider")
+	}
+	if services.Provider != nil {
+		t.Fatal("expected nil Provider when provider is invalid")
 	}
 }
 
