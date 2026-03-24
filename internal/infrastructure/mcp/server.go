@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"sync"
+	"time"
 
 	"github.com/felixgeelhaar/mcp-go"
 	"github.com/felixgeelhaar/roady/internal/infrastructure/wiring"
@@ -13,6 +15,16 @@ import (
 	"github.com/felixgeelhaar/roady/pkg/domain/planning"
 	"github.com/felixgeelhaar/roady/pkg/domain/team"
 )
+
+// defaultHandlerTimeout is the maximum time a tool handler may run before
+// the request context is cancelled.  AI-backed handlers (explain, query,
+// decompose) are the main beneficiary — without this, a hung provider
+// blocks the MCP connection indefinitely.
+const defaultHandlerTimeout = 60 * time.Second
+
+// maxCachedServices caps the number of cross-project service sets kept in
+// memory.  When the cap is reached the oldest entry is evicted.
+const maxCachedServices = 8
 
 type Server struct {
 	mcpServer   *mcp.Server
@@ -35,6 +47,13 @@ type Server struct {
 	pluginSvc   *application.PluginService
 	teamSvc     *application.TeamService
 	root        string
+
+	// svcCache caches AppServices built for cross-project paths so that
+	// repeated requests don't rebuild the entire service stack (which
+	// involves replaying the event log, loading AI config, etc.).
+	svcCache   sync.Map // map[string]*wiring.AppServices
+	svcCacheMu sync.Mutex
+	svcKeys    []string // insertion-order keys for LRU eviction
 }
 
 var (
@@ -43,14 +62,38 @@ var (
 	BuildDate   = "unknown"
 )
 
+// maxResponseItems caps list-style responses to prevent unbounded JSON
+// serialization from exhausting memory or stalling the client.
+const maxResponseItems = 500
+
 // mcpErr returns a user-friendly error for MCP clients.
 // Internal details are omitted — only the friendly message is returned.
 func mcpErr(friendly string) error {
 	return fmt.Errorf("%s", friendly)
 }
 
+// requireAI is a nil-guard for AI-dependent handlers. Returns a clear
+// error instead of letting a nil-pointer dereference bubble up as a
+// cryptic panic (even though the recover middleware would catch it).
+func requireAI(svc *wiring.AppServices) error {
+	if svc.AI == nil {
+		return mcpErr("AI provider not configured. Set ROADY_AI_PROVIDER or configure ai.yaml.")
+	}
+	return nil
+}
+
+// capSlice returns at most maxResponseItems elements from a string slice.
+func capSlice(s []string) []string {
+	if len(s) > maxResponseItems {
+		return s[:maxResponseItems]
+	}
+	return s
+}
+
 // servicesForPath returns the default services for the server root,
 // or builds a fresh set of services for the given override path.
+// Cross-project services are cached to avoid rebuilding the full stack
+// (event replay, AI config loading, etc.) on every request.
 func (s *Server) servicesForPath(override string) (*wiring.AppServices, error) {
 	if override == "" || override == s.root {
 		if s.services != nil {
@@ -75,7 +118,34 @@ func (s *Server) servicesForPath(override string) (*wiring.AppServices, error) {
 			Team:       s.teamSvc,
 		}, nil
 	}
-	return wiring.BuildAppServices(override)
+
+	// Check cache first.
+	if cached, ok := s.svcCache.Load(override); ok {
+		return cached.(*wiring.AppServices), nil
+	}
+
+	// Build fresh services (expensive — involves event replay, AI config, etc.).
+	svc, err := wiring.BuildAppServices(override)
+	if err != nil {
+		return nil, err
+	}
+
+	// Atomically store; if another goroutine raced us, use theirs.
+	if existing, loaded := s.svcCache.LoadOrStore(override, svc); loaded {
+		return existing.(*wiring.AppServices), nil
+	}
+
+	// We won the race — track the key for LRU eviction.
+	s.svcCacheMu.Lock()
+	if len(s.svcKeys) >= maxCachedServices {
+		evict := s.svcKeys[0]
+		s.svcKeys = s.svcKeys[1:]
+		s.svcCache.Delete(evict)
+	}
+	s.svcKeys = append(s.svcKeys, override)
+	s.svcCacheMu.Unlock()
+
+	return svc, nil
 }
 
 func NewServer(root string) (*Server, error) {
@@ -683,6 +753,9 @@ func (s *Server) handleExplainDrift(ctx context.Context, args ExplainDriftArgs) 
 	if err != nil {
 		return "", mcpErr("Failed to load project at the given path.")
 	}
+	if err := requireAI(svc); err != nil {
+		return "", err
+	}
 	report, err := svc.Drift.DetectDrift(ctx)
 	if err != nil {
 		return "", mcpErr("Failed to detect drift. Ensure both spec and plan exist.")
@@ -752,6 +825,9 @@ func (s *Server) handleExplainSpec(ctx context.Context, args ExplainSpecArgs) (s
 	if err != nil {
 		return "", mcpErr("Failed to load project at the given path.")
 	}
+	if err := requireAI(svc); err != nil {
+		return "", err
+	}
 	result, err := svc.AI.ExplainSpec(ctx)
 	if err != nil {
 		return "", mcpErr("Failed to explain spec. Check your AI provider configuration.")
@@ -772,6 +848,9 @@ func (s *Server) handleQuery(ctx context.Context, args QueryArgs) (string, error
 	if err != nil {
 		return "", mcpErr("Failed to load project at the given path.")
 	}
+	if err := requireAI(svc); err != nil {
+		return "", err
+	}
 	answer, err := svc.AI.QueryProject(ctx, args.Question)
 	if err != nil {
 		return "", mcpErr("Failed to answer query. Check your AI provider configuration.")
@@ -784,6 +863,9 @@ func (s *Server) handleSuggestPriorities(ctx context.Context, args SuggestPriori
 	if err != nil {
 		return nil, mcpErr("Failed to load project at the given path.")
 	}
+	if err := requireAI(svc); err != nil {
+		return nil, err
+	}
 	suggestions, err := svc.AI.SuggestPriorities(ctx)
 	if err != nil {
 		return nil, mcpErr("Failed to suggest priorities. Check your AI provider configuration and ensure a plan exists.")
@@ -795,6 +877,9 @@ func (s *Server) handleReviewSpec(ctx context.Context, args ReviewSpecArgs) (any
 	svc, err := s.servicesForPath(args.ProjectPath)
 	if err != nil {
 		return nil, mcpErr("Failed to load project at the given path.")
+	}
+	if err := requireAI(svc); err != nil {
+		return nil, err
 	}
 	review, err := svc.AI.ReviewSpec(ctx)
 	if err != nil {
@@ -1055,9 +1140,13 @@ func (s *Server) handleStatus(ctx context.Context, args StatusArgs) (any, error)
 		filtered = append(filtered, t)
 	}
 
-	// Apply limit
-	if int(args.Limit) > 0 && len(filtered) > int(args.Limit) {
-		filtered = filtered[:int(args.Limit)]
+	// Apply limit (default to maxResponseItems to prevent unbounded responses).
+	limit := int(args.Limit)
+	if limit <= 0 {
+		limit = maxResponseItems
+	}
+	if len(filtered) > limit {
+		filtered = filtered[:limit]
 	}
 
 	// Count all tasks by status (for summary)
@@ -1183,6 +1272,17 @@ func (s *Server) handleCheckPolicy(ctx context.Context, args CheckPolicyArgs) (a
 	return vioations, nil
 }
 
+// serveMiddleware returns the standard middleware stack applied to every
+// transport.  Recover catches handler panics so a single buggy tool call
+// cannot crash the entire MCP process.  Timeout prevents hung AI/plugin
+// calls from blocking the connection indefinitely.
+func (s *Server) serveMiddleware() mcp.ServeOption {
+	return mcp.WithMiddleware(
+		mcp.Recover(),
+		mcp.Timeout(defaultHandlerTimeout),
+	)
+}
+
 func (s *Server) Start() error {
 	return s.StartStdio()
 }
@@ -1200,15 +1300,21 @@ func (s *Server) StartWebSocket(addr string) error {
 }
 
 func (s *Server) ServeStdio(ctx context.Context) error {
-	return mcp.ServeStdio(ctx, s.mcpServer)
+	return mcp.ServeStdio(ctx, s.mcpServer, s.serveMiddleware())
 }
 
 func (s *Server) ServeHTTP(ctx context.Context, addr string) error {
-	return mcp.ServeHTTP(ctx, s.mcpServer, addr, mcp.WithDefaultCORS())
+	return mcp.ServeHTTPWithMiddleware(ctx, s.mcpServer, addr,
+		[]mcp.HTTPOption{mcp.WithDefaultCORS()},
+		s.serveMiddleware(),
+	)
 }
 
 func (s *Server) ServeWebSocket(ctx context.Context, addr string) error {
-	return mcp.ServeWebSocket(ctx, s.mcpServer, addr)
+	return mcp.ServeWebSocketWithMiddleware(ctx, s.mcpServer, addr,
+		nil,
+		s.serveMiddleware(),
+	)
 }
 
 func (s *Server) StartGRPC(addr string) error {
@@ -1216,7 +1322,10 @@ func (s *Server) StartGRPC(addr string) error {
 }
 
 func (s *Server) ServeGRPC(ctx context.Context, addr string) error {
-	return mcp.ServeGRPC(ctx, s.mcpServer, addr)
+	return mcp.ServeGRPCWithMiddleware(ctx, s.mcpServer, addr,
+		nil,
+		s.serveMiddleware(),
+	)
 }
 
 // Dependency MCP handlers
@@ -1334,11 +1443,11 @@ func (s *Server) handleGetSnapshot(ctx context.Context, args GetSnapshotArgs) (a
 
 	return snapshotResp{
 		Progress:      snapshot.Progress,
-		UnlockedTasks: orEmpty(snapshot.UnlockedTasks),
-		BlockedTasks:  orEmpty(snapshot.BlockedTasks),
-		InProgress:    orEmpty(snapshot.InProgress),
-		Completed:     orEmpty(snapshot.Completed),
-		Verified:      orEmpty(snapshot.Verified),
+		UnlockedTasks: capSlice(orEmpty(snapshot.UnlockedTasks)),
+		BlockedTasks:  capSlice(orEmpty(snapshot.BlockedTasks)),
+		InProgress:    capSlice(orEmpty(snapshot.InProgress)),
+		Completed:     capSlice(orEmpty(snapshot.Completed)),
+		Verified:      capSlice(orEmpty(snapshot.Verified)),
 		TotalTasks:    totalTasks,
 		SnapshotTime:  snapshot.SnapshotTime.Format("2006-01-02T15:04:05Z07:00"),
 	}, nil
@@ -1427,8 +1536,8 @@ func (s *Server) handleSmartDecompose(ctx context.Context, args SmartDecomposeAr
 	if err != nil {
 		return nil, mcpErr("Failed to load project at the given path.")
 	}
-	if svc == nil || svc.AI == nil {
-		return nil, mcpErr("AI service not available")
+	if err := requireAI(svc); err != nil {
+		return nil, err
 	}
 	root := s.root
 	if args.ProjectPath != "" {
@@ -1444,16 +1553,22 @@ func (s *Server) handleSmartDecompose(ctx context.Context, args SmartDecomposeAr
 // --- Team Handlers ---
 
 type TeamAddArgs struct {
-	Name string `json:"name" jsonschema:"description=The name of the team member"`
-	Role string `json:"role" jsonschema:"description=The role: admin, member, or viewer"`
+	Name        string `json:"name" jsonschema:"description=The name of the team member"`
+	Role        string `json:"role" jsonschema:"description=The role: admin, member, or viewer"`
+	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
 }
 
 type TeamRemoveArgs struct {
-	Name string `json:"name" jsonschema:"description=The name of the team member to remove"`
+	Name        string `json:"name" jsonschema:"description=The name of the team member to remove"`
+	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
 }
 
 func (s *Server) handleTeamList(ctx context.Context, args GetSpecArgs) (any, error) {
-	cfg, err := s.teamSvc.ListMembers()
+	svc, err := s.servicesForPath(args.ProjectPath)
+	if err != nil {
+		return nil, mcpErr("Failed to load project at the given path.")
+	}
+	cfg, err := svc.Team.ListMembers()
 	if err != nil {
 		return nil, mcpErr("failed to list team members")
 	}
@@ -1467,7 +1582,11 @@ func (s *Server) handleTeamAdd(ctx context.Context, args TeamAddArgs) (string, e
 	if args.Role == "" {
 		return "", mcpErr("role is required")
 	}
-	if err := s.teamSvc.AddMember(args.Name, teamRole(args.Role)); err != nil {
+	svc, err := s.servicesForPath(args.ProjectPath)
+	if err != nil {
+		return "", mcpErr("Failed to load project at the given path.")
+	}
+	if err := svc.Team.AddMember(args.Name, teamRole(args.Role)); err != nil {
 		return "", mcpErr(fmt.Sprintf("failed to add member: %s", err))
 	}
 	return fmt.Sprintf("Member %s added with role %s", args.Name, args.Role), nil
@@ -1477,7 +1596,11 @@ func (s *Server) handleTeamRemove(ctx context.Context, args TeamRemoveArgs) (str
 	if args.Name == "" {
 		return "", mcpErr("name is required")
 	}
-	if err := s.teamSvc.RemoveMember(args.Name); err != nil {
+	svc, err := s.servicesForPath(args.ProjectPath)
+	if err != nil {
+		return "", mcpErr("Failed to load project at the given path.")
+	}
+	if err := svc.Team.RemoveMember(args.Name); err != nil {
 		return "", mcpErr(fmt.Sprintf("failed to remove member: %s", err))
 	}
 	return fmt.Sprintf("Member %s removed", args.Name), nil
@@ -1488,7 +1611,11 @@ type RateListArgs struct {
 }
 
 func (s *Server) handleRateList(ctx context.Context, args RateListArgs) (any, error) {
-	config, err := s.billingSvc.ListRates()
+	svc, err := s.servicesForPath(args.ProjectPath)
+	if err != nil {
+		return nil, mcpErr("Failed to load project at the given path.")
+	}
+	config, err := svc.Billing.ListRates()
 	if err != nil {
 		return nil, mcpErr(fmt.Sprintf("failed to list rates: %s", err))
 	}
@@ -1496,15 +1623,20 @@ func (s *Server) handleRateList(ctx context.Context, args RateListArgs) (any, er
 }
 
 type RateAddArgs struct {
-	ID         string  `json:"id" jsonschema:"description=Rate ID (e.g., senior, junior)"`
-	Name       string  `json:"name" jsonschema:"description=Rate name"`
-	HourlyRate float64 `json:"hourly_rate" jsonschema:"description=Hourly rate amount"`
-	IsDefault  bool    `json:"is_default" jsonschema:"description=Set as default rate"`
+	ID          string  `json:"id" jsonschema:"description=Rate ID (e.g., senior, junior)"`
+	Name        string  `json:"name" jsonschema:"description=Rate name"`
+	HourlyRate  float64 `json:"hourly_rate" jsonschema:"description=Hourly rate amount"`
+	IsDefault   bool    `json:"is_default" jsonschema:"description=Set as default rate"`
+	ProjectPath string  `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
 }
 
 func (s *Server) handleRateAdd(ctx context.Context, args RateAddArgs) (string, error) {
 	if args.ID == "" || args.Name == "" {
 		return "", mcpErr("id and name are required")
+	}
+	svc, err := s.servicesForPath(args.ProjectPath)
+	if err != nil {
+		return "", mcpErr("Failed to load project at the given path.")
 	}
 	rate := billing.Rate{
 		ID:         args.ID,
@@ -1512,7 +1644,7 @@ func (s *Server) handleRateAdd(ctx context.Context, args RateAddArgs) (string, e
 		HourlyRate: args.HourlyRate,
 		IsDefault:  args.IsDefault,
 	}
-	if err := s.billingSvc.AddRate(rate); err != nil {
+	if err := svc.Billing.AddRate(rate); err != nil {
 		return "", mcpErr(fmt.Sprintf("failed to add rate: %s", err))
 	}
 	return fmt.Sprintf("Rate %s added: %s - $%.2f/hr", args.ID, args.Name, args.HourlyRate), nil
@@ -1523,31 +1655,41 @@ type TaskLogTimeArgs struct {
 	Minutes     int    `json:"minutes" jsonschema:"description=Minutes to log"`
 	RateID      string `json:"rate_id" jsonschema:"description=Rate ID (optional)"`
 	Description string `json:"description" jsonschema:"description=Description (optional)"`
+	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
 }
 
 func (s *Server) handleTaskLogTime(ctx context.Context, args TaskLogTimeArgs) (string, error) {
 	if args.TaskID == "" || args.Minutes <= 0 {
 		return "", mcpErr("task_id and minutes are required")
 	}
-	if err := s.billingSvc.LogTime(args.TaskID, args.RateID, args.Minutes, args.Description); err != nil {
+	svc, err := s.servicesForPath(args.ProjectPath)
+	if err != nil {
+		return "", mcpErr("Failed to load project at the given path.")
+	}
+	if err := svc.Billing.LogTime(args.TaskID, args.RateID, args.Minutes, args.Description); err != nil {
 		return "", mcpErr(fmt.Sprintf("failed to log time: %s", err))
 	}
 	return fmt.Sprintf("Logged %d minutes to task %s", args.Minutes, args.TaskID), nil
 }
 
 type CostReportArgs struct {
-	TaskID string `json:"task_id" jsonschema:"description=Filter by task ID (optional)"`
-	Period string `json:"period" jsonschema:"description=Filter by period (optional)"`
-	Format string `json:"format" jsonschema:"description=Output format: text, json, csv, markdown"`
+	TaskID      string `json:"task_id" jsonschema:"description=Filter by task ID (optional)"`
+	Period      string `json:"period" jsonschema:"description=Filter by period (optional)"`
+	Format      string `json:"format" jsonschema:"description=Output format: text, json, csv, markdown"`
+	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
 }
 
 func (s *Server) handleCostReport(ctx context.Context, args CostReportArgs) (any, error) {
+	svc, err := s.servicesForPath(args.ProjectPath)
+	if err != nil {
+		return nil, mcpErr("Failed to load project at the given path.")
+	}
 	opts := application.CostReportOpts{
 		TaskID: args.TaskID,
 		Period: args.Period,
 		Format: args.Format,
 	}
-	report, err := s.billingSvc.GetCostReport(opts)
+	report, err := svc.Billing.GetCostReport(opts)
 	if err != nil {
 		return nil, mcpErr(fmt.Sprintf("failed to generate cost report: %s", err))
 	}
@@ -1562,7 +1704,11 @@ type CostBudgetArgs struct {
 }
 
 func (s *Server) handleCostBudget(ctx context.Context, args CostBudgetArgs) (any, error) {
-	status, err := s.billingSvc.GetBudgetStatus()
+	svc, err := s.servicesForPath(args.ProjectPath)
+	if err != nil {
+		return nil, mcpErr("Failed to load project at the given path.")
+	}
+	status, err := svc.Billing.GetBudgetStatus()
 	if err != nil {
 		return nil, mcpErr(fmt.Sprintf("failed to get budget status: %s", err))
 	}
@@ -1573,37 +1719,48 @@ func (s *Server) handleCostBudget(ctx context.Context, args CostBudgetArgs) (any
 }
 
 type RateRemoveArgs struct {
-	ID string `json:"id" jsonschema:"description=Rate ID to remove"`
+	ID          string `json:"id" jsonschema:"description=Rate ID to remove"`
+	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
 }
 
 func (s *Server) handleRateRemove(ctx context.Context, args RateRemoveArgs) (string, error) {
 	if args.ID == "" {
 		return "", mcpErr("rate id is required")
 	}
-	if err := s.billingSvc.RemoveRate(args.ID); err != nil {
+	svc, err := s.servicesForPath(args.ProjectPath)
+	if err != nil {
+		return "", mcpErr("Failed to load project at the given path.")
+	}
+	if err := svc.Billing.RemoveRate(args.ID); err != nil {
 		return "", mcpErr(fmt.Sprintf("failed to remove rate: %s", err))
 	}
 	return fmt.Sprintf("Rate %s removed", args.ID), nil
 }
 
 type RateSetDefaultArgs struct {
-	ID string `json:"id" jsonschema:"description=Rate ID to set as default"`
+	ID          string `json:"id" jsonschema:"description=Rate ID to set as default"`
+	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
 }
 
 func (s *Server) handleRateSetDefault(ctx context.Context, args RateSetDefaultArgs) (string, error) {
 	if args.ID == "" {
 		return "", mcpErr("rate id is required")
 	}
-	if err := s.billingSvc.SetDefaultRate(args.ID); err != nil {
+	svc, err := s.servicesForPath(args.ProjectPath)
+	if err != nil {
+		return "", mcpErr("Failed to load project at the given path.")
+	}
+	if err := svc.Billing.SetDefaultRate(args.ID); err != nil {
 		return "", mcpErr(fmt.Sprintf("failed to set default rate: %s", err))
 	}
 	return fmt.Sprintf("Rate %s set as default", args.ID), nil
 }
 
 type RateTaxArgs struct {
-	Name     string  `json:"name" jsonschema:"description=Tax name (e.g., VAT, Sales Tax)"`
-	Percent  float64 `json:"percent" jsonschema:"description=Tax percentage (e.g., 20 for 20%%)"`
-	Included bool    `json:"included" jsonschema:"description=Tax is included in rate"`
+	Name        string  `json:"name" jsonschema:"description=Tax name (e.g., VAT, Sales Tax)"`
+	Percent     float64 `json:"percent" jsonschema:"description=Tax percentage (e.g., 20 for 20%%)"`
+	Included    bool    `json:"included" jsonschema:"description=Tax is included in rate"`
+	ProjectPath string  `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
 }
 
 func (s *Server) handleRateTax(ctx context.Context, args RateTaxArgs) (string, error) {
@@ -1613,7 +1770,11 @@ func (s *Server) handleRateTax(ctx context.Context, args RateTaxArgs) (string, e
 	if args.Percent < 0 || args.Percent > 100 {
 		return "", mcpErr("tax percent must be between 0 and 100")
 	}
-	if err := s.billingSvc.SetTax(args.Name, args.Percent, args.Included); err != nil {
+	svc, err := s.servicesForPath(args.ProjectPath)
+	if err != nil {
+		return "", mcpErr("Failed to load project at the given path.")
+	}
+	if err := svc.Billing.SetTax(args.Name, args.Percent, args.Included); err != nil {
 		return "", mcpErr(fmt.Sprintf("failed to set tax: %s", err))
 	}
 	return fmt.Sprintf("Tax configured: %s at %.1f%%", args.Name, args.Percent), nil

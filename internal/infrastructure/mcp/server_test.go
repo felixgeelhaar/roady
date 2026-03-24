@@ -349,6 +349,72 @@ func TestServicesForPath_Override(t *testing.T) {
 	}
 }
 
+func TestServicesForPath_CacheHitAndEviction(t *testing.T) {
+	// Set up the "home" project.
+	rootA := t.TempDir()
+	repoA := storage.NewFilesystemRepository(rootA)
+	if err := repoA.Initialize(); err != nil {
+		t.Fatalf("init repo A: %v", err)
+	}
+	if err := initMockAIConfig(rootA); err != nil {
+		t.Fatalf("mock AI config A: %v", err)
+	}
+	if err := repoA.SaveSpec(&spec.ProductSpec{ID: "a", Title: "A"}); err != nil {
+		t.Fatalf("save spec A: %v", err)
+	}
+
+	srv, err := NewServer(rootA)
+	if err != nil {
+		t.Fatalf("create server: %v", err)
+	}
+
+	// Create enough cross-project dirs to exceed maxCachedServices.
+	dirs := make([]string, maxCachedServices+2)
+	for i := range dirs {
+		d := t.TempDir()
+		repo := storage.NewFilesystemRepository(d)
+		if err := repo.Initialize(); err != nil {
+			t.Fatalf("init repo %d: %v", i, err)
+		}
+		if err := initMockAIConfig(d); err != nil {
+			t.Fatalf("mock AI config %d: %v", i, err)
+		}
+		if err := repo.SaveSpec(&spec.ProductSpec{ID: "p", Title: "P"}); err != nil {
+			t.Fatalf("save spec %d: %v", i, err)
+		}
+		dirs[i] = d
+	}
+
+	// First call builds, second call should return the cached instance.
+	svc1, err := srv.servicesForPath(dirs[0])
+	if err != nil {
+		t.Fatalf("first call: %v", err)
+	}
+	svc2, err := srv.servicesForPath(dirs[0])
+	if err != nil {
+		t.Fatalf("cached call: %v", err)
+	}
+	if svc1 != svc2 {
+		t.Fatal("expected cache hit for same override path")
+	}
+
+	// Fill the cache beyond the cap.
+	for _, d := range dirs[1:] {
+		if _, err := srv.servicesForPath(d); err != nil {
+			t.Fatalf("fill cache: %v", err)
+		}
+	}
+
+	// The first entry should have been evicted.
+	svc3, err := srv.servicesForPath(dirs[0])
+	if err != nil {
+		t.Fatalf("post-eviction call: %v", err)
+	}
+	if svc3 == svc1 {
+		t.Fatal("expected cache miss after eviction (got same pointer)")
+	}
+}
+
 func TestHandleGetSpec_WithProjectPath(t *testing.T) {
 	rootA := t.TempDir()
 	repoA := storage.NewFilesystemRepository(rootA)

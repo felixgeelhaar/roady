@@ -3,6 +3,7 @@ package mcp
 import (
 	"context"
 
+	"github.com/felixgeelhaar/roady/pkg/application"
 	"github.com/felixgeelhaar/roady/pkg/storage"
 )
 
@@ -35,8 +36,19 @@ func (s *Server) handleOrgDetectDrift(ctx context.Context, args GetSpecArgs) (an
 
 // Plugin handlers
 
+func (s *Server) pluginSvcForPath(projectPath string) *application.PluginService {
+	if projectPath == "" || projectPath == s.root {
+		return s.pluginSvc
+	}
+	svc, err := s.servicesForPath(projectPath)
+	if err != nil {
+		return s.pluginSvc
+	}
+	return svc.Plugin
+}
+
 func (s *Server) handlePluginList(ctx context.Context, args GetSpecArgs) (any, error) {
-	plugins, err := s.pluginSvc.ListPlugins()
+	plugins, err := s.pluginSvcForPath(args.ProjectPath).ListPlugins()
 	if err != nil {
 		return nil, mcpErr("Failed to list plugins.")
 	}
@@ -44,11 +56,12 @@ func (s *Server) handlePluginList(ctx context.Context, args GetSpecArgs) (any, e
 }
 
 type PluginValidateArgs struct {
-	Name string `json:"name" jsonschema:"description=Name of the plugin to validate"`
+	Name        string `json:"name" jsonschema:"description=Name of the plugin to validate"`
+	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
 }
 
 func (s *Server) handlePluginValidate(ctx context.Context, args PluginValidateArgs) (any, error) {
-	result, err := s.pluginSvc.ValidatePlugin(args.Name)
+	result, err := s.pluginSvcForPath(args.ProjectPath).ValidatePlugin(args.Name)
 	if err != nil {
 		return nil, mcpErr("Failed to validate plugin.")
 	}
@@ -56,18 +69,20 @@ func (s *Server) handlePluginValidate(ctx context.Context, args PluginValidateAr
 }
 
 type PluginStatusArgs struct {
-	Name string `json:"name,omitempty" jsonschema:"description=Name of the plugin to check (omit for all)"`
+	Name        string `json:"name,omitempty" jsonschema:"description=Name of the plugin to check (omit for all)"`
+	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
 }
 
 func (s *Server) handlePluginStatus(ctx context.Context, args PluginStatusArgs) (any, error) {
+	psvc := s.pluginSvcForPath(args.ProjectPath)
 	if args.Name != "" {
-		result, err := s.pluginSvc.CheckHealth(args.Name)
+		result, err := psvc.CheckHealth(args.Name)
 		if err != nil {
 			return nil, mcpErr("Failed to check plugin health.")
 		}
 		return result, nil
 	}
-	results, err := s.pluginSvc.CheckAllHealth()
+	results, err := psvc.CheckAllHealth()
 	if err != nil {
 		return nil, mcpErr("Failed to check plugin health.")
 	}
@@ -77,7 +92,11 @@ func (s *Server) handlePluginStatus(ctx context.Context, args PluginStatusArgs) 
 // Messaging handler
 
 func (s *Server) handleMessagingList(ctx context.Context, args GetSpecArgs) (any, error) {
-	repo := storage.NewFilesystemRepository(s.root)
+	root := s.root
+	if args.ProjectPath != "" {
+		root = args.ProjectPath
+	}
+	repo := storage.NewFilesystemRepository(root)
 	cfg, err := repo.LoadMessagingConfig()
 	if err != nil {
 		return nil, mcpErr("Failed to load messaging config.")
