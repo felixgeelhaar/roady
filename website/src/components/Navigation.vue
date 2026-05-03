@@ -9,6 +9,7 @@ const navLinks = [
   { href: '#commands', label: 'Commands' },
   { href: '#mcp', label: 'MCP' },
   { href: '#integrations', label: 'Integrations' },
+  { href: '/roady/roadmap', label: 'Roadmap' },
   { href: '/roady/docs', label: 'Docs' },
 ];
 

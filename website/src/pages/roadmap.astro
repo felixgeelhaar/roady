@@ -1,0 +1,126 @@
+---
+// /roady/roadmap — renders the canonical ROADMAP.md from the repo root
+// so the website never drifts from the source of truth. Astro treats
+// .md as a first-class import and exposes a renderable Content
+// component plus the markdown frontmatter.
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Navigation from '../components/Navigation.vue';
+import Footer from '../components/Footer.astro';
+import { Content as RoadmapBody } from '../../../ROADMAP.md';
+---
+
+<BaseLayout
+  title="Roady — roadmap"
+  description="Public roadmap for Roady, including the planned Roady Cloud open-core boundary."
+>
+  <Navigation client:load />
+
+  <main class="pt-32 pb-24">
+    <section class="max-w-3xl mx-auto px-6">
+      <p class="uppercase tracking-widest text-xs md:text-sm text-violet-400 mb-3 font-semibold">
+        Public roadmap
+      </p>
+      <h1 class="text-4xl md:text-5xl font-extrabold text-white mb-4 leading-tight">
+        What's next, and where Cloud fits.
+      </h1>
+      <p class="text-gray-400 mb-12">
+        Source of truth lives in
+        <a
+          href="https://github.com/felixgeelhaar/roady/blob/main/ROADMAP.md"
+          class="text-violet-400 underline hover:text-violet-300"
+        >ROADMAP.md</a>.
+        This page renders that file at build time, so it never drifts.
+      </p>
+
+      <article class="roadmap-body text-gray-300 leading-relaxed">
+        <RoadmapBody />
+      </article>
+    </section>
+  </main>
+
+  <Footer />
+</BaseLayout>
+
+<style is:global>
+  /* Self-contained prose styling for the rendered markdown so we don't
+     pull in @tailwindcss/typography as a dependency for one page.
+     Scoped to .roadmap-body to keep the rest of the site untouched. */
+  .roadmap-body h1,
+  .roadmap-body h2,
+  .roadmap-body h3,
+  .roadmap-body h4 {
+    color: white;
+    font-weight: 700;
+    line-height: 1.25;
+  }
+  .roadmap-body h1 { font-size: 2rem; margin: 2.5rem 0 1rem; }
+  .roadmap-body h2 {
+    font-size: 1.5rem;
+    margin: 3rem 0 1rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgb(255 255 255 / 0.07);
+  }
+  .roadmap-body h3 { font-size: 1.15rem; margin: 1.75rem 0 0.5rem; color: rgb(196 181 253); }
+  .roadmap-body p { margin: 0.75rem 0; color: rgb(156 163 175); }
+  .roadmap-body ul,
+  .roadmap-body ol { margin: 0.75rem 0 0.75rem 1.25rem; color: rgb(156 163 175); }
+  .roadmap-body ul { list-style: disc; }
+  .roadmap-body ol { list-style: decimal; }
+  .roadmap-body li { margin: 0.4rem 0; }
+  .roadmap-body li::marker { color: rgb(139 92 246); }
+  .roadmap-body strong { color: white; font-weight: 600; }
+  .roadmap-body em { color: rgb(229 231 235); font-style: italic; }
+  .roadmap-body a {
+    color: rgb(167 139 250);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .roadmap-body a:hover { color: rgb(196 181 253); }
+  .roadmap-body code {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 0.85em;
+    color: rgb(196 181 253);
+    background: rgb(0 0 0 / 0.4);
+    padding: 0.1rem 0.35rem;
+    border-radius: 0.25rem;
+  }
+  .roadmap-body pre {
+    background: rgb(0 0 0 / 0.5);
+    border: 1px solid rgb(255 255 255 / 0.05);
+    border-radius: 0.75rem;
+    padding: 1rem 1.25rem;
+    overflow-x: auto;
+    margin: 1rem 0;
+  }
+  .roadmap-body pre code {
+    background: transparent;
+    padding: 0;
+    color: rgb(229 231 235);
+  }
+  .roadmap-body blockquote {
+    border-left: 3px solid rgb(139 92 246 / 0.5);
+    padding-left: 1rem;
+    margin: 1rem 0;
+    color: rgb(209 213 219);
+    font-style: italic;
+  }
+  .roadmap-body hr {
+    border: none;
+    border-top: 1px solid rgb(255 255 255 / 0.1);
+    margin: 2.5rem 0;
+  }
+  .roadmap-body table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.25rem 0;
+    font-size: 0.9rem;
+  }
+  .roadmap-body th,
+  .roadmap-body td {
+    text-align: left;
+    padding: 0.6rem 0.8rem;
+    border-bottom: 1px solid rgb(255 255 255 / 0.07);
+  }
+  .roadmap-body th { color: white; font-weight: 600; }
+  .roadmap-body td { color: rgb(156 163 175); }
+</style>

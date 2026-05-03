@@ -180,7 +180,7 @@ function submitWaitlist() {
           Opens your mail client &mdash; no third-party form backend, no hidden datastore.
         </p>
         <p class="mt-3 text-[11px] text-gray-600">
-          See <a href="https://github.com/felixgeelhaar/roady/blob/main/ROADMAP.md" class="underline hover:text-gray-400">ROADMAP.md</a>
+          See <a href="/roady/roadmap" class="underline hover:text-gray-400">the roadmap</a>
           for the full open-core boundary.
         </p>
       </div>
