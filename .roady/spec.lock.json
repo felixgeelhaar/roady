@@ -1133,6 +1133,88 @@
       "source": {}
     },
     {
+      "id": "launch-readiness",
+      "title": "Pre-launch infra hardening (v0.11.x)",
+      "description": "Close the gaps surfaced by the \"is roady ready for the world?\"\naudit so the project survives the first wave of public scrutiny\nwithout embarrassing infra failures.\n",
+      "requirements": [
+        {
+          "id": "lr-goreleaser-plugins",
+          "title": "Attach plugin archives to GitHub releases",
+          "description": "Update .goreleaser.yaml so the plugin builds (linear / jira /\ngithub / asana / notion / trello / mock) emit archives that\nland on the release page next to the main roady binary.\nPlugin users currently hit a dead end on the release page.\n",
+          "priority": "high",
+          "estimate": "",
+          "depends_on": [],
+          "source": {}
+        },
+        {
+          "id": "lr-ci-lint-gate",
+          "title": "Add golangci-lint gate to CI",
+          "description": "Append a golangci-lint step to .github/workflows/ci.yml so\nfuture contributions cannot regress lint silently. Use the\nrepo's .golangci.yml (v2 config). Fail the workflow on new\nissues.\n",
+          "priority": "high",
+          "estimate": "",
+          "depends_on": [],
+          "source": {}
+        },
+        {
+          "id": "lr-release-smoke-test",
+          "title": "Release smoke-test in CI",
+          "description": "After goreleaser publishes, download the linux/amd64 archive\nfrom the just-cut release, extract, run `roady --version`\nand `roady demo`, fail the workflow if either errors. Catches\nbroken artifacts before users do.\n",
+          "priority": "medium",
+          "estimate": "",
+          "depends_on": [
+            "lr-goreleaser-plugins"
+          ],
+          "source": {}
+        },
+        {
+          "id": "lr-waitlist-honest",
+          "title": "Make Cloud waitlist form honest",
+          "description": "Today the form stores emails in localStorage only — collects\nno signal. Replace with a mailto: fallback or a real backend\nendpoint, OR remove the form entirely until Cloud has an\nalpha date. Pick one; the form-without-backend pattern is\ndishonest.\n",
+          "priority": "high",
+          "estimate": "",
+          "depends_on": [],
+          "source": {}
+        },
+        {
+          "id": "lr-website-deploy",
+          "title": "Wire automated website deploy via GitHub Pages",
+          "description": "Today the Astro site builds cleanly but has no deploy\npipeline. Add a Pages workflow that builds website/ on every\nmain push and publishes to gh-pages so the public site stays\nin sync with the README and docs.\n",
+          "priority": "medium",
+          "estimate": "",
+          "depends_on": [],
+          "source": {}
+        },
+        {
+          "id": "lr-changelog",
+          "title": "Add CHANGELOG.md with goreleaser-driven generation",
+          "description": "Source readers currently have no version diff outside of\nthe GitHub releases page. Add CHANGELOG.md and configure\ngoreleaser to write it on each tag.\n",
+          "priority": "medium",
+          "estimate": "",
+          "depends_on": [],
+          "source": {}
+        },
+        {
+          "id": "lr-icp-research-round-2",
+          "title": "Round 2 web research + synthetic interviews",
+          "description": "Stress-test the refined positioning (\"drift-aware planning\nfor AI coding agents\") with two more synthetic ICP personas\n(not just \"Sam\"): an indie dev shipping multiple side\nprojects with Cursor and a startup CTO running a small team\non Claude Code. Mine actual phrasing across r/cursor and\nHackerNews threads. Update docs/positioning.md.\n",
+          "priority": "high",
+          "estimate": "",
+          "depends_on": [],
+          "source": {}
+        },
+        {
+          "id": "lr-document-launch-prereqs",
+          "title": "Document HOMEBREW_TAP_GITHUB_TOKEN + Pages enablement",
+          "description": "Add a launch-prereqs section to CONTRIBUTING.md or the README\nwith the exact GitHub repo settings the maintainer must\nenable: HOMEBREW_TAP_GITHUB_TOKEN secret, GitHub Pages\nsource. Cannot be set via code; needs maintainer action.\n",
+          "priority": "medium",
+          "estimate": "",
+          "depends_on": [],
+          "source": {}
+        }
+      ],
+      "source": {}
+    },
+    {
       "id": "ai-powered-workflows",
       "title": "AI-Powered Workflows",
       "description": "AI spec review, auto-prioritization, smart decomposition,\nand natural language query interface for project status.\n",

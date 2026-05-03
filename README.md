@@ -8,11 +8,14 @@
 [![nox Security](https://img.shields.io/badge/nox-A-brightgreen?logo=lock)](https://github.com/felixgeelhaar/roady/security)
 [![nox Scan](https://img.shields.io/badge/scan-0%20findings-brightgreen)](https://github.com/felixgeelhaar/roady/security)
 
-# Roady — planning memory for AI coding agents
+# Roady — the plan-of-record for AI coding agents
 
-> Specs, plans, and execution state that **survive context resets** and
-> travel between sessions, agents, and humans. File-based, git-versioned,
-> MCP-native.
+> Spec, plan, and drift detection that **survive context resets**.
+> File-based, git-versioned, MCP-native.
+
+> *"With multiple Claude agents running in parallel, I'd lose track of
+> specs, dependencies, and history."* — verbatim from a 2026 [Show HN
+> thread](https://news.ycombinator.com/item?id=44960594).
 
 You pair with Claude Code, Codex, Cursor, or Gemini on a multi-day
 feature. Three days in, the agent forgets what was decided, rewrites the
@@ -94,6 +97,10 @@ dashboard, audit retention, SOC2).
 ## Contributing & license
 
 Contributions welcome — open an issue or PR. MIT License, see `LICENSE`.
+
+Maintainers: see [`docs/maintainer-setup.md`](docs/maintainer-setup.md)
+for the one-time GitHub repo settings the release pipeline depends on
+(`HOMEBREW_TAP_TOKEN` secret, GitHub Pages source).
 
 ---
 

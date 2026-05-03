@@ -954,6 +954,96 @@ features:
           priority: high
           estimate: ""
           depends_on: []
+    - id: launch-readiness
+      title: Pre-launch infra hardening (v0.11.x)
+      description: |
+        Close the gaps surfaced by the "is roady ready for the world?"
+        audit so the project survives the first wave of public scrutiny
+        without embarrassing infra failures.
+      requirements:
+        - id: lr-goreleaser-plugins
+          title: Attach plugin archives to GitHub releases
+          description: |
+            Update .goreleaser.yaml so the plugin builds (linear / jira /
+            github / asana / notion / trello / mock) emit archives that
+            land on the release page next to the main roady binary.
+            Plugin users currently hit a dead end on the release page.
+          priority: high
+          estimate: ""
+          depends_on: []
+        - id: lr-ci-lint-gate
+          title: Add golangci-lint gate to CI
+          description: |
+            Append a golangci-lint step to .github/workflows/ci.yml so
+            future contributions cannot regress lint silently. Use the
+            repo's .golangci.yml (v2 config). Fail the workflow on new
+            issues.
+          priority: high
+          estimate: ""
+          depends_on: []
+        - id: lr-release-smoke-test
+          title: Release smoke-test in CI
+          description: |
+            After goreleaser publishes, download the linux/amd64 archive
+            from the just-cut release, extract, run `roady --version`
+            and `roady demo`, fail the workflow if either errors. Catches
+            broken artifacts before users do.
+          priority: medium
+          estimate: ""
+          depends_on:
+            - lr-goreleaser-plugins
+        - id: lr-waitlist-honest
+          title: Make Cloud waitlist form honest
+          description: |
+            Today the form stores emails in localStorage only — collects
+            no signal. Replace with a mailto: fallback or a real backend
+            endpoint, OR remove the form entirely until Cloud has an
+            alpha date. Pick one; the form-without-backend pattern is
+            dishonest.
+          priority: high
+          estimate: ""
+          depends_on: []
+        - id: lr-website-deploy
+          title: Wire automated website deploy via GitHub Pages
+          description: |
+            Today the Astro site builds cleanly but has no deploy
+            pipeline. Add a Pages workflow that builds website/ on every
+            main push and publishes to gh-pages so the public site stays
+            in sync with the README and docs.
+          priority: medium
+          estimate: ""
+          depends_on: []
+        - id: lr-changelog
+          title: Add CHANGELOG.md with goreleaser-driven generation
+          description: |
+            Source readers currently have no version diff outside of
+            the GitHub releases page. Add CHANGELOG.md and configure
+            goreleaser to write it on each tag.
+          priority: medium
+          estimate: ""
+          depends_on: []
+        - id: lr-icp-research-round-2
+          title: Round 2 web research + synthetic interviews
+          description: |
+            Stress-test the refined positioning ("drift-aware planning
+            for AI coding agents") with two more synthetic ICP personas
+            (not just "Sam"): an indie dev shipping multiple side
+            projects with Cursor and a startup CTO running a small team
+            on Claude Code. Mine actual phrasing across r/cursor and
+            HackerNews threads. Update docs/positioning.md.
+          priority: high
+          estimate: ""
+          depends_on: []
+        - id: lr-document-launch-prereqs
+          title: Document HOMEBREW_TAP_GITHUB_TOKEN + Pages enablement
+          description: |
+            Add a launch-prereqs section to CONTRIBUTING.md or the README
+            with the exact GitHub repo settings the maintainer must
+            enable: HOMEBREW_TAP_GITHUB_TOKEN secret, GitHub Pages
+            source. Cannot be set via code; needs maintainer action.
+          priority: medium
+          estimate: ""
+          depends_on: []
     - id: ai-powered-workflows
       title: AI-Powered Workflows
       description: |

@@ -27,32 +27,58 @@ builds:
   - id: roady-plugin-linear
     main: ./cmd/roady-plugin-linear/main.go
     binary: roady-plugin-linear
-    env:
-      - CGO_ENABLED=0
-    goos:
-      - linux
-      - darwin
-      - windows
-    goarch:
-      - amd64
-      - arm64
+    env: [CGO_ENABLED=0]
+    goos: [linux, darwin, windows]
+    goarch: [amd64, arm64]
 
   - id: roady-plugin-jira
     main: ./cmd/roady-plugin-jira/main.go
     binary: roady-plugin-jira
-    env:
-      - CGO_ENABLED=0
-    goos:
-      - linux
-      - darwin
-      - windows
-    goarch:
-      - amd64
-      - arm64
+    env: [CGO_ENABLED=0]
+    goos: [linux, darwin, windows]
+    goarch: [amd64, arm64]
+
+  - id: roady-plugin-github
+    main: ./cmd/roady-plugin-github/main.go
+    binary: roady-plugin-github
+    env: [CGO_ENABLED=0]
+    goos: [linux, darwin, windows]
+    goarch: [amd64, arm64]
+
+  - id: roady-plugin-asana
+    main: ./cmd/roady-plugin-asana/main.go
+    binary: roady-plugin-asana
+    env: [CGO_ENABLED=0]
+    goos: [linux, darwin, windows]
+    goarch: [amd64, arm64]
+
+  - id: roady-plugin-notion
+    main: ./cmd/roady-plugin-notion/main.go
+    binary: roady-plugin-notion
+    env: [CGO_ENABLED=0]
+    goos: [linux, darwin, windows]
+    goarch: [amd64, arm64]
+
+  - id: roady-plugin-trello
+    main: ./cmd/roady-plugin-trello/main.go
+    binary: roady-plugin-trello
+    env: [CGO_ENABLED=0]
+    goos: [linux, darwin, windows]
+    goarch: [amd64, arm64]
+
+  - id: roady-plugin-mock
+    main: ./cmd/roady-plugin-mock/main.go
+    binary: roady-plugin-mock
+    env: [CGO_ENABLED=0]
+    goos: [linux, darwin, windows]
+    goarch: [amd64, arm64]
 
 archives:
-  - format: tar.gz
-    # this name template makes the OS and Arch compatible with what people expect.
+  # Bundled distribution: one archive per platform containing the main
+  # binary plus every plugin. Suits Homebrew + the typical "I want
+  # everything" download.
+  - id: bundle
+    formats: [tar.gz]
     name_template: >-
       {{ .ProjectName }}_
       {{- title .Os }}_
@@ -60,10 +86,17 @@ archives:
       {{- else if eq .Arch "386" }}i386
       {{- else }}{{ .Arch }}{{ end }}
       {{- if .Arm }}v{{ .Arm }}{{ end }}
-    # use zip for windows archives
     format_overrides:
       - goos: windows
-        format: zip
+        formats: [zip]
+    files:
+      - LICENSE
+      - README.md
+      - CHANGELOG.md*
+      - ROADMAP.md*
+      - docs/positioning.md*
+      - docs/vs.md*
+      - docs/advanced.md*
 
 checksum:
   name_template: 'checksums.txt'
@@ -77,6 +110,7 @@ changelog:
     exclude:
       - '^docs:'
       - '^test:'
+      - '^chore\(\.roady\):'
 
 brews:
   - name: roady
@@ -92,3 +126,10 @@ brews:
       bin.install "roady"
       bin.install "roady-plugin-linear"
       bin.install "roady-plugin-jira"
+      bin.install "roady-plugin-github"
+      bin.install "roady-plugin-asana"
+      bin.install "roady-plugin-notion"
+      bin.install "roady-plugin-trello"
+      bin.install "roady-plugin-mock"
+    test: |
+      system "#{bin}/roady --version"

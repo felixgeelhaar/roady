@@ -1186,6 +1186,96 @@
       "source": {}
     },
     {
+      "id": "task-lr-goreleaser-plugins",
+      "title": "Attach plugin archives to GitHub releases (Pre-launch infra hardening (v0.11.x))",
+      "description": "Update .goreleaser.yaml so the plugin builds (linear / jira /\ngithub / asana / notion / trello / mock) emit archives that\nland on the release page next to the main roady binary.\nPlugin users currently hit a dead end on the release page.\n",
+      "priority": "high",
+      "estimate": "",
+      "depends_on": [],
+      "feature_id": "launch-readiness",
+      "origin": "heuristic",
+      "source": {}
+    },
+    {
+      "id": "task-lr-ci-lint-gate",
+      "title": "Add golangci-lint gate to CI (Pre-launch infra hardening (v0.11.x))",
+      "description": "Append a golangci-lint step to .github/workflows/ci.yml so\nfuture contributions cannot regress lint silently. Use the\nrepo's .golangci.yml (v2 config). Fail the workflow on new\nissues.\n",
+      "priority": "high",
+      "estimate": "",
+      "depends_on": [],
+      "feature_id": "launch-readiness",
+      "origin": "heuristic",
+      "source": {}
+    },
+    {
+      "id": "task-lr-release-smoke-test",
+      "title": "Release smoke-test in CI (Pre-launch infra hardening (v0.11.x))",
+      "description": "After goreleaser publishes, download the linux/amd64 archive\nfrom the just-cut release, extract, run `roady --version`\nand `roady demo`, fail the workflow if either errors. Catches\nbroken artifacts before users do.\n",
+      "priority": "medium",
+      "estimate": "",
+      "depends_on": [
+        "task-lr-goreleaser-plugins"
+      ],
+      "feature_id": "launch-readiness",
+      "origin": "heuristic",
+      "source": {}
+    },
+    {
+      "id": "task-lr-waitlist-honest",
+      "title": "Make Cloud waitlist form honest (Pre-launch infra hardening (v0.11.x))",
+      "description": "Today the form stores emails in localStorage only — collects\nno signal. Replace with a mailto: fallback or a real backend\nendpoint, OR remove the form entirely until Cloud has an\nalpha date. Pick one; the form-without-backend pattern is\ndishonest.\n",
+      "priority": "high",
+      "estimate": "",
+      "depends_on": [],
+      "feature_id": "launch-readiness",
+      "origin": "heuristic",
+      "source": {}
+    },
+    {
+      "id": "task-lr-website-deploy",
+      "title": "Wire automated website deploy via GitHub Pages (Pre-launch infra hardening (v0.11.x))",
+      "description": "Today the Astro site builds cleanly but has no deploy\npipeline. Add a Pages workflow that builds website/ on every\nmain push and publishes to gh-pages so the public site stays\nin sync with the README and docs.\n",
+      "priority": "medium",
+      "estimate": "",
+      "depends_on": [],
+      "feature_id": "launch-readiness",
+      "origin": "heuristic",
+      "source": {}
+    },
+    {
+      "id": "task-lr-changelog",
+      "title": "Add CHANGELOG.md with goreleaser-driven generation (Pre-launch infra hardening (v0.11.x))",
+      "description": "Source readers currently have no version diff outside of\nthe GitHub releases page. Add CHANGELOG.md and configure\ngoreleaser to write it on each tag.\n",
+      "priority": "medium",
+      "estimate": "",
+      "depends_on": [],
+      "feature_id": "launch-readiness",
+      "origin": "heuristic",
+      "source": {}
+    },
+    {
+      "id": "task-lr-icp-research-round-2",
+      "title": "Round 2 web research + synthetic interviews (Pre-launch infra hardening (v0.11.x))",
+      "description": "Stress-test the refined positioning (\"drift-aware planning\nfor AI coding agents\") with two more synthetic ICP personas\n(not just \"Sam\"): an indie dev shipping multiple side\nprojects with Cursor and a startup CTO running a small team\non Claude Code. Mine actual phrasing across r/cursor and\nHackerNews threads. Update docs/positioning.md.\n",
+      "priority": "high",
+      "estimate": "",
+      "depends_on": [],
+      "feature_id": "launch-readiness",
+      "origin": "heuristic",
+      "source": {}
+    },
+    {
+      "id": "task-lr-document-launch-prereqs",
+      "title": "Document HOMEBREW_TAP_GITHUB_TOKEN + Pages enablement (Pre-launch infra hardening (v0.11.x))",
+      "description": "Add a launch-prereqs section to CONTRIBUTING.md or the README\nwith the exact GitHub repo settings the maintainer must\nenable: HOMEBREW_TAP_GITHUB_TOKEN secret, GitHub Pages\nsource. Cannot be set via code; needs maintainer action.\n",
+      "priority": "medium",
+      "estimate": "",
+      "depends_on": [],
+      "feature_id": "launch-readiness",
+      "origin": "heuristic",
+      "source": {}
+    },
+    {
       "id": "task-ai-spec-review",
       "title": "AI spec quality review (AI-Powered Workflows)",
       "description": "AI spec quality review with completeness scoring",
@@ -1236,16 +1326,6 @@
       "source": {}
     },
     {
-      "id": "task-collab-assignment",
-      "title": "Task assignment with Assignee field (Multi-User Collaboration)",
-      "description": "Add Assignee field to Task domain entity, implement assign/unassign operations in CLI and MCP, persist in plan.json and state.json.",
-      "priority": "high",
-      "estimate": "",
-      "depends_on": [],
-      "feature_id": "multi-user-collaboration",
-      "source": {}
-    },
-    {
       "id": "task-collab-conflict",
       "title": "Optimistic locking for concurrency (Multi-User Collaboration)",
       "description": "Optimistic locking for concurrent state modifications. Add version field to state.json, check-and-set semantics on write, conflict error with merge hints.",
@@ -1269,9 +1349,19 @@
       ],
       "feature_id": "multi-user-collaboration",
       "source": {}
+    },
+    {
+      "id": "task-collab-assignment",
+      "title": "Task assignment with Assignee field (Multi-User Collaboration)",
+      "description": "Add Assignee field to Task domain entity, implement assign/unassign operations in CLI and MCP, persist in plan.json and state.json.",
+      "priority": "high",
+      "estimate": "",
+      "depends_on": [],
+      "feature_id": "multi-user-collaboration",
+      "source": {}
     }
   ],
   "approval_status": "approved",
   "created_at": "2026-01-31T18:00:00+01:00",
-  "updated_at": "2026-05-03T13:48:11.002602+02:00"
+  "updated_at": "2026-05-03T17:00:10.855434+02:00"
 }

@@ -40,14 +40,15 @@ async function copyCommand() {
   }
 }
 
-// Roady Cloud waitlist signal capture. No backend wired yet — submissions
-// are stored in localStorage so the conversion path captures intent today;
-// a real backend (Formspree, Resend, or a hosted endpoint) lands once
-// Cloud has a credible alpha date. The point of shipping the form now is
-// to qualify the roadmap claim with actual demand data.
+// Roady Cloud waitlist. No third-party form backend wired (deliberate:
+// hosting one before Cloud has a credible alpha date is dishonest).
+// Submitting opens the visitor's mail client with a pre-filled message
+// to the maintainer; the email lands in a real inbox the maintainer
+// reads, so signal is collected without a hidden datastore the visitor
+// cannot inspect.
 const waitlistEmail = ref('');
-const waitlistSubmitted = ref(false);
 const waitlistError = ref('');
+const WAITLIST_INBOX = 'roady-cloud@felixgeelhaar.com';
 
 function submitWaitlist() {
   waitlistError.value = '';
@@ -56,17 +57,12 @@ function submitWaitlist() {
     waitlistError.value = 'Please enter a valid email.';
     return;
   }
-  try {
-    const key = 'roady-cloud-waitlist';
-    const existing: string[] = JSON.parse(localStorage.getItem(key) ?? '[]');
-    if (!existing.includes(email)) existing.push(email);
-    localStorage.setItem(key, JSON.stringify(existing));
-  } catch {
-    // Private browsing / storage disabled — still flag success so the
-    // visitor sees acknowledgement; we lose the signal silently.
-  }
-  waitlistSubmitted.value = true;
-  waitlistEmail.value = '';
+  const subject = encodeURIComponent('Roady Cloud waitlist');
+  const body = encodeURIComponent(
+    `Reply-from: ${email}\n\nI'd like first access to Roady Cloud when it has an alpha date.\n`
+  );
+  // Open the user's mail client. We don't pretend to have a backend.
+  window.location.href = `mailto:${WAITLIST_INBOX}?subject=${subject}&body=${body}`;
 }
 </script>
 
@@ -77,7 +73,7 @@ function submitWaitlist() {
 
     <div class="max-w-7xl mx-auto px-6 text-center">
       <p class="uppercase tracking-widest text-xs md:text-sm text-violet-400 mb-4 font-semibold">
-        Planning memory for AI coding agents
+        The plan-of-record for AI coding agents
       </p>
 
       <h1 class="text-5xl md:text-7xl font-extrabold text-white mb-6 leading-tight">
@@ -86,7 +82,7 @@ function submitWaitlist() {
       </h1>
 
       <p class="text-xl md:text-2xl text-gray-400 max-w-2xl mx-auto mb-10">
-        Specs, plans, and execution state that stay in sync with your code &mdash; readable by you, writable by your agent, durable across sessions.
+        Spec, plan, and drift detection that stay in sync with your code &mdash; readable by you, writable by your agent, durable across sessions.
       </p>
 
       <!-- Install Method Selector -->
@@ -162,7 +158,6 @@ function submitWaitlist() {
           want first access.
         </p>
         <form
-          v-if="!waitlistSubmitted"
           @submit.prevent="submitWaitlist"
           class="flex flex-col sm:flex-row gap-2"
         >
@@ -177,12 +172,12 @@ function submitWaitlist() {
             type="submit"
             class="px-4 py-2 rounded-lg bg-violet-600/80 hover:bg-violet-500 text-white text-sm font-medium transition-colors"
           >
-            Join waitlist
+            Email maintainer
           </button>
         </form>
         <p v-if="waitlistError" class="mt-2 text-xs text-red-400">{{ waitlistError }}</p>
-        <p v-if="waitlistSubmitted" class="text-sm text-emerald-400">
-          Thanks &mdash; we'll be in touch when Cloud has an alpha date.
+        <p class="mt-2 text-[11px] text-gray-600">
+          Opens your mail client &mdash; no third-party form backend, no hidden datastore.
         </p>
         <p class="mt-3 text-[11px] text-gray-600">
           See <a href="https://github.com/felixgeelhaar/roady/blob/main/ROADMAP.md" class="underline hover:text-gray-400">ROADMAP.md</a>

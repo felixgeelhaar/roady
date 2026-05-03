@@ -1,6 +1,6 @@
 {
   "project_id": "test-refactor",
-  "version": 86,
+  "version": 103,
   "task_states": {
     "task-agg-coordinator": {
       "status": "done",
@@ -469,6 +469,70 @@
       "owner": "felixgeelhaar",
       "elapsed_minutes": 0
     },
+    "task-lr-changelog": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar",
+      "started_at": "2026-05-03T18:46:10.359437+02:00",
+      "completed_at": "2026-05-03T18:48:13.096109+02:00",
+      "elapsed_minutes": 2
+    },
+    "task-lr-ci-lint-gate": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar",
+      "started_at": "2026-05-03T17:03:19.56788+02:00",
+      "completed_at": "2026-05-03T17:03:55.932056+02:00",
+      "elapsed_minutes": 0
+    },
+    "task-lr-document-launch-prereqs": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar",
+      "started_at": "2026-05-03T18:51:19.630717+02:00",
+      "completed_at": "2026-05-03T18:52:01.870308+02:00",
+      "elapsed_minutes": 0
+    },
+    "task-lr-goreleaser-plugins": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar",
+      "started_at": "2026-05-03T17:00:49.698001+02:00",
+      "completed_at": "2026-05-03T17:03:19.546609+02:00",
+      "elapsed_minutes": 2
+    },
+    "task-lr-icp-research-round-2": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar",
+      "started_at": "2026-05-03T18:48:13.113723+02:00",
+      "completed_at": "2026-05-03T18:51:19.616886+02:00",
+      "elapsed_minutes": 3
+    },
+    "task-lr-release-smoke-test": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar",
+      "started_at": "2026-05-03T17:03:55.945144+02:00",
+      "completed_at": "2026-05-03T17:03:55.953767+02:00",
+      "elapsed_minutes": 0
+    },
+    "task-lr-waitlist-honest": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar",
+      "started_at": "2026-05-03T18:43:03.202215+02:00",
+      "completed_at": "2026-05-03T18:44:09.638088+02:00",
+      "elapsed_minutes": 1
+    },
+    "task-lr-website-deploy": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar",
+      "started_at": "2026-05-03T18:44:09.652034+02:00",
+      "completed_at": "2026-05-03T18:46:10.270627+02:00",
+      "elapsed_minutes": 2
+    },
     "task-notif-realtime": {
       "status": "done",
       "path": "",
@@ -742,5 +806,5 @@
       "elapsed_minutes": 0
     }
   },
-  "updated_at": "2026-05-03T14:12:46.79685+02:00"
+  "updated_at": "2026-05-03T18:52:01.870308+02:00"
 }

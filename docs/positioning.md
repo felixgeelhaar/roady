@@ -5,11 +5,13 @@
 
 ## In one sentence
 
-**Roady is the planning memory layer for AI coding agents.**
+**Roady is the plan-of-record for AI coding agents.**
 
-Specs, plans, and execution state persist as durable, git-versioned files
-that survive context resets and travel between sessions, agents, and
-humans.
+Spec, plan, drift detection, and execution state persist as durable,
+git-versioned files that survive context resets and travel between
+sessions, agents, and humans. Earlier drafts said "planning memory";
+synthetic + research validation in the round-2 section below shows the
+ICP misreads "memory" as Mem0-style chat memory. Use "plan-of-record".
 
 ## ICP — who we are for
 
@@ -204,6 +206,183 @@ agents" + the noun phrase "plan drift detection" against r/ClaudeAI
 and MCP Discord before the next round of public copy. The Wire blog
 and IBM Think articles already give us the citation chain to ground
 the term in.
+
+### Round 2 — additional research + 2 more synthetic interviews
+
+Run on 2026-05-03 alongside the smoke-test / lint-gate / waitlist
+work. Goal: stress-test the refined "drift-aware planning" framing
+against personas other than "Sam".
+
+#### New verbatim quotes mined from public discussion
+
+From a [Show HN: Project management system for Claude
+Code](https://news.ycombinator.com/item?id=44960594) thread, exact
+language from real users:
+
+- *"context kept disappearing between tasks. With multiple Claude
+  agents running in parallel, I'd lose track of specs, dependencies,
+  and history."* — almost a Roady tagline. Use this verbatim in
+  copy.
+- *"I really need to approve every single edit and keep an eye on it
+  at ALL TIMES, otherwise it goes haywire very very fast."*
+- *"A project management layer is a huge missing piece in AI coding
+  right now."* — direct confirmation of Roady's category claim from
+  someone who is not on the team.
+- *"Feature development is one thing, going about it in a clean and
+  maintainable way is another."*
+- *"How many feature branches can you productively run in parallel
+  before the merge conflicts become brutal?"*
+
+Tools the same thread surfaces as alternatives: **BMAD-METHOD**,
+**Vibe Kanban**, generic external PM tools (criticised as creating
+*"friction with repositories"*).
+
+#### Direct name competitor — `dadbodgeoff/drift` on GitHub
+
+A separate GitHub project literally named *drift* exists:
+*"Codebase intelligence for AI. Detects patterns & conventions +
+remembers decisions across sessions. MCP server for any IDE. Offline
+CLI."*
+
+Different primitive (pattern + decision memory, not plan-of-record),
+but the *name* is taken. Implications:
+
+- "drift" alone cannot be the brand verb. "Plan drift" remains free
+  but cannot be shortened.
+- Positioning copy must distinguish: Roady's drift detection is
+  *spec-vs-plan-vs-code*, not *codebase pattern recognition*.
+- A `vs.md` row should call this out explicitly so visitors who
+  arrive from the dadbodgeoff/drift readme don't bounce confused.
+
+#### Persona 2 — "Maya", indie hacker / multi-project solo
+
+- 4 years freelance, 3 active side projects (chrome extension, micro
+  SaaS, blog tool). Mostly Cursor, occasionally Claude Code.
+- Pays for Cursor Pro + Claude Max out of pocket.
+- Opens a project once a week or once a month — long context gaps.
+- Read about Cursor 3 parallel agents on launch day; tries to use
+  them, gives up after the third "wait, what was this branch
+  supposed to do?" moment.
+
+> *"What goes wrong with your AI workflow when you come back to a
+> project after a month?"*
+>
+> Maya: *"Honestly, I just don't come back. The cost of swapping
+> projects is reading my own commits and trying to remember why I
+> made decisions that look insane today. Cursor's parallel agents
+> made it WORSE because now I have multiple half-written branches I
+> can't tell apart."*
+
+> *"If a tool said 'planning memory for AI coding agents', would
+> that resonate?"*
+>
+> Maya: *"Memory means chat memory to me. mem0 is doing that. I want
+> something more like... a dashboard for what I was doing? Or like a
+> resume button. 'Resume my last session, here's what we were
+> shipping, here's what was blocked.'"*
+
+> *"Does 'drift-aware planning' land?"*
+>
+> Maya: *"Drift means something already in coding (test flake,
+> infra). Plan drift sounds like jargon I'd Google. I think the
+> phrase you want is 'know where you left off'. The drift detection
+> is the magic — but it's the WHY, not the brand."*
+
+#### Persona 3 — "Daniel", startup CTO / 6-person team
+
+- 12 years experience, 2nd time CTO. Series A SaaS, 6 engineers, all
+  using Claude Code daily. Half use Cursor in parallel.
+- Reviewed Anthropic's "agent teams" docs — 3-5 teammates per
+  feature. Wants to roll it out but worried about coordination.
+- Already has Linear for human PMs. Engineers don't read Linear
+  during agent sessions.
+
+> *"What's the operational pain in a multi-engineer Claude Code
+> shop?"*
+>
+> Daniel: *"Two engineers asking Claude the same question and
+> getting two different answers. There's no single source of truth
+> for what we're shipping. Linear knows the user-facing story but
+> the agent doesn't read Linear. CLAUDE.md says how to write code
+> but not what to ship next. The middle layer is missing — and
+> that's exactly what kills review velocity for me."*
+
+> *"Would you adopt 'planning memory for AI coding agents'?"*
+>
+> Daniel: *"For my engineers, I want plain language. 'Memory' is
+> too abstract. They'd ask 'memory of what?' I'd say 'shared plan
+> for AI agents' or 'plan-of-record that the agents read'. The
+> phrase 'plan drift detection' I'd actually use in a tech-talk
+> because it names a problem I see weekly — engineers shipping
+> features that drifted from the spec they reviewed Monday."*
+
+> *"What would make you sponsor a free seat for every engineer?"*
+>
+> Daniel: *"Two things. One: the agents have to actually update
+> Linear or whatever PM we already use, otherwise the human-PM
+> story breaks. Two: the audit log has to be defensible — if we
+> ship something the spec didn't ask for and a customer notices, I
+> need a trail. Hash-chained log gets you 80% there."*
+
+#### Convergent findings across all three personas
+
+1. **"Memory" is the wrong word for ALL three.** Sam reads it as
+   mem0 clone, Maya reads it as chat memory, Daniel reads it as too
+   abstract. **Drop "planning memory" from public copy.**
+2. **"Plan drift" lands as a problem name, not a brand.** Sam,
+   Daniel: yes, it's a real problem with their language. Maya:
+   sounds like jargon. Use it as the *thing we detect*, not the
+   *category we are*.
+3. **"Plan-of-record" or "plan-of-record for AI agents" is the
+   strongest replacement.** It names the role, has no naming
+   conflicts, and matches Daniel's exact phrase ("plan-of-record
+   that the agents read") and Sam's ("the plan layer").
+4. **The Show HN comment confirms the category exists:** *"a
+   project management layer is a huge missing piece in AI coding
+   right now."* This is verbatim demand evidence.
+
+#### Refined positioning candidates (replace "planning memory")
+
+| Candidate | Pros | Cons |
+| --- | --- | --- |
+| **Plan-of-record for AI coding agents** | Daniel's exact phrase. Clear role. No naming conflict. | "Plan-of-record" is enterprisey. |
+| **The plan layer for AI coding agents** | Sam's exact phrase. Conversational. | "Plan layer" is vague without context. |
+| **Shared plan for AI agents** | Daniel's framing for engineers. Plain. | Loses the "drift detection" hook. |
+| Drift-aware planning for AI coding agents | Names the differentiator. | Maya: "drift" feels like jargon. dadbodgeoff/drift name conflict. |
+
+**Strongest combination going forward:**
+
+- **Hero:** "The plan-of-record for AI coding agents."
+- **Sub-tagline:** "Spec, plan, and drift detection that survive
+  context resets."
+- **Anti-tagline:** never use "planning memory" again.
+
+#### Updated validation table
+
+| Audience | Date | Phrase tested | Result |
+| --- | --- | --- | --- |
+| Web research round 1 | 2026-05-03 | "planning memory" | "memory" contested by mcp-memory-service / mem0 |
+| Synthetic Sam (staff eng) | 2026-05-03 | (same) | Misread as Mem0 clone; reframed as "plan layer / drift-aware planning" |
+| Web research round 2 | 2026-05-03 | "drift-aware" / "plan drift" | "drift" name taken by dadbodgeoff/drift; "plan drift" still free as a problem-name; Show HN confirms "project management layer is a huge missing piece in AI coding" |
+| Synthetic Maya (indie multi-project) | 2026-05-03 | "planning memory" / "drift-aware planning" | Both fail. Wants "know where you left off". |
+| Synthetic Daniel (startup CTO) | 2026-05-03 | (same) | Both fail. Reframes as "plan-of-record that the agents read". |
+| _r/ClaudeAI_ | _pending real test_ | "plan-of-record for AI coding agents" + "plan drift detection" | _pending_ |
+| _r/cursor_ | _pending real test_ | (same) | _pending_ |
+| _MCP Discord_ | _pending real test_ | (same) | _pending_ |
+| _3-5 real ICP interviews_ | _pending_ | (same) | _pending_ |
+
+**Action items raised by round 2:**
+
+1. Replace "planning memory" with "plan-of-record for AI coding
+   agents" in README hero, website hero, and `docs/positioning.md`'s
+   own one-sentence definition.
+2. Add a row to `docs/vs.md` for `dadbodgeoff/drift` — different
+   primitive, related vocabulary, must distinguish.
+3. Add a "What goes wrong" landing block to README using the verbatim
+   Show HN quote: *"With multiple Claude agents running in parallel,
+   I'd lose track of specs, dependencies, and history."*
+4. Stop using "drift" as a brand-stem; keep "plan drift detection"
+   as a noun phrase only.
 
 ## The alternatives — what users compare us to
 

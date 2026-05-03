@@ -77,6 +77,43 @@ Roady ships a `roady-plugin-linear` / `roady-plugin-jira` /
 `roady-plugin-github` syncer if you want both: human PMs in Linear,
 agents working through Roady, state synchronised both directions.
 
+### vs `dadbodgeoff/drift` (the GitHub project, not the concept)
+
+A separate open-source project literally named `drift`:
+[github.com/dadbodgeoff/drift](https://github.com/dadbodgeoff/drift),
+*"Codebase intelligence for AI. Detects patterns & conventions +
+remembers decisions across sessions. MCP server for any IDE. Offline
+CLI."*
+
+Different primitive: it remembers *coding conventions and decisions*
+("we use this lib for X, we agreed not to do Y") so the agent stops
+re-asking. Roady remembers *plans and specs* ("we agreed to build
+feature X with requirements A, B, C; here's what's done and what
+diverged"). They compose well — `drift` makes the agent stop
+hallucinating conventions; Roady makes the agent stop drifting from
+intent.
+
+If you arrive here from `dadbodgeoff/drift` confused, the short
+version: same MCP-server-for-AI category, different layer of the
+stack. Use both.
+
+### vs BMAD-METHOD
+
+A larger, more ceremonious framework — clear role separation,
+comprehensive documentation. Recommended for *large* projects with
+formal-process tolerance. Roady is the lightweight option: spec /
+plan / drift in `.roady/` files, no role hierarchy, no documentation
+ceremony unless you want it. If your team has a Scrum Master and a
+PMO, BMAD is probably a better cultural fit. If your team is one
+human and three agents, Roady is closer to the metal.
+
+### vs Vibe Kanban
+
+Newer competitor in the AI-PM-layer space (surfaced by HN
+commenters as the potential "winning tool"). Different UI metaphor
+(Kanban board) and not yet broadly distributed. Worth tracking. We
+will refresh this row as their public surface clarifies.
+
 ### vs Aider repo-map / Sweep
 
 Aider's repo-map and Sweep's context tooling fetch *read-time*

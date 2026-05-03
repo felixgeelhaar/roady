@@ -5,6 +5,84 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Pre-launch infra hardening
+
+- Plugin builds (`asana`, `github`, `mock`, `notion`, `trello`) added to GoReleaser. Every plugin now ships in the bundled release archive (previously only `linear` and `jira` shipped).
+- CI gains a `golangci-lint` job. Full repo on main pushes; `--new-from-rev=origin/main` on PRs to avoid drowning new contributions in pre-existing warnings.
+- New `release-smoke-test` CI job downloads the freshly published Linux/amd64 archive, runs `roady --version` and `roady demo` against it, fails the workflow on any error.
+- Cloud waitlist form replaced its hidden-localStorage backend with a transparent `mailto:` fallback. No more form-without-a-server pattern.
+- New GitHub Pages workflow (`.github/workflows/website.yml`) auto-deploys the Astro site on every main push affecting `website/`, `README.md`, or `docs/`.
+- This `CHANGELOG.md` extended through v0.10.
+
+## [0.10.0] - 2026-05-03
+
+Bundles the v0.9 + v0.10 cycles. v0.9 was cut as a soft release and never tagged.
+
+### Added — v0.9.0 Activation & Clarity
+
+- `roady --help` grouped by user intent (Get Started / Track & Report / Integrate / Admin) via cobra command groups.
+- `roady init` defaults to interactive wizard in a TTY (proper isatty check); `--non-interactive` flag for CI; next-step CTA on completion.
+- `roady demo` command — scaffolds a pre-seeded sample with intentional spec/lock divergence, runs drift detect. Sub-second aha for first-time visitors.
+- `roady status` empty-state ladder (`uninitialised` / `no-spec` / `no-plan`) with actionable next-step hints.
+
+### Added — v0.10.0 AI Quality & Telemetry
+
+- Eval harness (`evals/`) over the planning pipeline: golden fixtures (cli-tool / web-api / multi-feature), AI planner contract via programmable mock, drift precision/recall corpus. Opt-in real-provider matrix via `-tags evals_ai`.
+- `Task.Origin` provenance (`heuristic | ai | human`) with source-doc citations propagated end-to-end (`from doc:line` shown in `roady status`).
+- Native streaming via `OnToken` callback on `ai.CompletionRequest`. Real SSE / NDJSON wiring for Anthropic, OpenAI, Gemini, Ollama. AI service auto-routes via `ai.WithOnToken` context helper. CLI prints streamed tokens live; MCP forwards as progress notifications.
+- `Confidence` and `Sources` on `CompletionResponse`. Real providers populate `Confidence` from natural stop signal.
+- MCP tool consolidation: parameterised `roady_tasks` (status enum) supersedes the three legacy `roady_get_*_tasks` tools, kept as deprecation aliases. Canonical `roady_plan_decompose` and `roady_drift_recurring` aliases for off-pattern names.
+- `roady_cost_estimate` MCP tool — pre-flight token + USD projection with pricing table for Anthropic / OpenAI / Gemini.
+- Unified `roady notify` namespace (add/list/test/remove). `roady messaging` and `roady webhook notif` retained as deprecation aliases.
+- AI command progress + clean cancellation via shared `withAIProgress` wrapper across the five AI CLI surfaces.
+
+### Changed — v0.11 Positioning
+
+- New positioning: "planning memory for AI coding agents" (treated as hypothesis pending real ICP validation; see `docs/positioning.md`).
+- README rewritten around a single 5-step workflow.
+- `docs/positioning.md`, `docs/vs.md`, `docs/advanced.md`, `ROADMAP.md` shipped.
+- Astro website hero / definition / features / commands / MCP / integrations sections realigned with the new positioning.
+
+### Fixed
+
+- TTY detection used `os.ModeCharDevice` which returned `true` for `/dev/null` on Linux, breaking the e2e test on CI by silently triggering the interactive wizard. Switched to `go-isatty` for proper termios check.
+- Pre-existing `readStdin` bug in `cli/spec.go` that always returned `""`.
+- 40 `errcheck` lint warnings on writer outputs across v0.10 additions.
+
+### Security
+
+- All open dependabot advisories closed (postcss XSS, astro XSS, astro allowlist bypass).
+
+### Breaking
+
+- None. Every deprecated MCP tool name continues to work.
+
+## [0.9.2] - 2026-03-24
+
+Patch release. See [GitHub release notes](https://github.com/felixgeelhaar/roady/releases/tag/v0.9.2).
+
+## [0.9.1] - 2026-03-24
+
+Patch release. See [GitHub release notes](https://github.com/felixgeelhaar/roady/releases/tag/v0.9.1).
+
+## [0.9.0] - 2026-03-21
+
+See [GitHub release notes](https://github.com/felixgeelhaar/roady/releases/tag/v0.9.0).
+
+## [0.8.0] - 2026-03
+
+See [GitHub release notes](https://github.com/felixgeelhaar/roady/releases/tag/v0.8.0).
+
+## [0.7.3] - 2026-02-17
+
+See [GitHub release notes](https://github.com/felixgeelhaar/roady/releases/tag/v0.7.3).
+
+## [0.7.0] - 2026-02
+
+See [GitHub release notes](https://github.com/felixgeelhaar/roady/releases/tag/v0.7.0).
+
 ## [0.6.3] - 2026-02-08
 
 ### Fixed
@@ -159,6 +237,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Resilience via `fortify` integration for filesystem retries
 - State management via `statekit` FSM for task transitions
 
+[Unreleased]: https://github.com/felixgeelhaar/roady/compare/v0.10.0...HEAD
+[0.10.0]: https://github.com/felixgeelhaar/roady/compare/v0.9.2...v0.10.0
+[0.9.2]: https://github.com/felixgeelhaar/roady/compare/v0.9.1...v0.9.2
+[0.9.1]: https://github.com/felixgeelhaar/roady/compare/v0.9.0...v0.9.1
+[0.9.0]: https://github.com/felixgeelhaar/roady/compare/v0.8.0...v0.9.0
+[0.8.0]: https://github.com/felixgeelhaar/roady/compare/v0.7.3...v0.8.0
+[0.7.3]: https://github.com/felixgeelhaar/roady/compare/v0.7.0...v0.7.3
+[0.7.0]: https://github.com/felixgeelhaar/roady/compare/v0.6.3...v0.7.0
 [0.6.3]: https://github.com/felixgeelhaar/roady/compare/v0.6.2...v0.6.3
 [0.6.2]: https://github.com/felixgeelhaar/roady/compare/v0.6.1...v0.6.2
 [0.6.1]: https://github.com/felixgeelhaar/roady/compare/v0.6.0...v0.6.1
