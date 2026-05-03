@@ -1,7 +1,7 @@
 {
   "id": "horizons-8",
-  "title": "Roady v0.10.0: AI Quality \u0026 Telemetry",
-  "description": "Roady planning system roadmap:\n- v0.5.0 (complete): Horizons 5 \u0026 6 — predictive analytics, domain hardening, event sourcing.\n- v0.6.0 (complete): Multi-repo org dashboard, plugin contracts, notification webhooks, fsnotify watch,\n  coordinator integration into CLI/MCP with snapshot and task queries.\n- v0.7.0 (complete): Org policy inheritance, cross-project drift, plugin registry and health,\n  Slack/realtime notifications, watch auto-sync and patterns.\n- v0.8.0 (complete): Developer experience polish, API/SDK stability, multi-user collaboration,\n  AI-powered workflows, interactive D3 MCP app visualizations.\n- v0.9.0 (complete): Expert-review-driven refinements — sharpen onboarding, reduce CLI\n  cognitive load, ship a pre-seeded demo, fix empty-state UX.\n- v0.10.0 (complete): AI quality and telemetry — eval harness over the planning\n  pipeline (heuristic + AI mock + drift corpus), Task.Origin provenance, source-doc\n  citations through spec analyze, CompletionResponse confidence + sources +\n  streaming OnToken contract, MCP tool consolidation (roady_tasks +\n  roady_cost_estimate), naming standardisation aliases, roady notify namespace\n  unification, AI command progress feedback with SIGINT cancellation.\n",
+  "title": "Roady v0.11.0: Positioning \u0026 Narrative",
+  "description": "Roady planning system roadmap:\n- v0.5.0 (complete): Horizons 5 \u0026 6 — predictive analytics, domain hardening, event sourcing.\n- v0.6.0 (complete): Multi-repo org dashboard, plugin contracts, notification webhooks, fsnotify watch,\n  coordinator integration into CLI/MCP with snapshot and task queries.\n- v0.7.0 (complete): Org policy inheritance, cross-project drift, plugin registry and health,\n  Slack/realtime notifications, watch auto-sync and patterns.\n- v0.8.0 (complete): Developer experience polish, API/SDK stability, multi-user collaboration,\n  AI-powered workflows, interactive D3 MCP app visualizations.\n- v0.9.0 (complete): Expert-review-driven refinements — sharpen onboarding, reduce CLI\n  cognitive load, ship a pre-seeded demo, fix empty-state UX.\n- v0.10.0 (complete): AI quality and telemetry — eval harness over the planning\n  pipeline (heuristic + AI mock + drift corpus), Task.Origin provenance, source-doc\n  citations through spec analyze, CompletionResponse confidence + sources +\n  streaming OnToken contract, MCP tool consolidation (roady_tasks +\n  roady_cost_estimate), naming standardisation aliases, roady notify namespace\n  unification, AI command progress feedback with SIGINT cancellation.\n- v0.11.0 (complete): Positioning and narrative cleanup — single ICP picked\n  (devs using AI coding agents), category named (\"Planning memory for AI\n  coding agents\"), README hero rewritten, feature museum moved to\n  docs/advanced.md, docs/vs.md competitive comparison + docs/positioning.md\n  one-pager + ROADMAP.md sketch shipped, Astro website hero / definition /\n  features sections realigned to match.\n",
   "features": [
     {
       "id": "predictive-velocity",
@@ -986,6 +986,78 @@
       "source": {}
     },
     {
+      "id": "positioning-narrative",
+      "title": "Positioning \u0026 Narrative (v0.11.0)",
+      "description": "Cross-functional GTM consensus: pick a single ICP, name the\ncategory, cut the feature museum from the surface area visible\nto first-time visitors. Driven by Dunford / Bush / Lochhead\nframings from the v0.10 expert review.\n",
+      "requirements": [
+        {
+          "id": "pos-doc",
+          "title": "One-page positioning doc",
+          "description": "Add docs/positioning.md following Dunford's \"Obviously\nAwesome\" template: alternative-of, unique attributes, value\nthose deliver, who cares most, market category.\n",
+          "priority": "high",
+          "estimate": "",
+          "depends_on": [],
+          "source": {}
+        },
+        {
+          "id": "pos-readme-hero",
+          "title": "Rewrite README hero around chosen ICP and category",
+          "description": "Replace the feature-museum README with one sentence + one\nworkflow. Move advanced features behind a single\n\"Everything else\" link to docs/advanced.md so power users\ncan still find them.\n",
+          "priority": "high",
+          "estimate": "",
+          "depends_on": [
+            "pos-doc"
+          ],
+          "source": {}
+        },
+        {
+          "id": "pos-advanced-doc",
+          "title": "docs/advanced.md catalogues displaced features",
+          "description": "Receive the bullets cut from README so existing users keep\ndiscoverability. Group by audience: solo dev, small team,\norg / enterprise.\n",
+          "priority": "high",
+          "estimate": "",
+          "depends_on": [
+            "pos-readme-hero"
+          ],
+          "source": {}
+        },
+        {
+          "id": "pos-vs-doc",
+          "title": "docs/vs.md competitive comparison",
+          "description": "Opinionated table comparing Roady to Cursor rules, Claude.md,\nspec-kit, Backlog.md, Linear, GitHub Projects. Triangulates\nvalue the Dunford way.\n",
+          "priority": "medium",
+          "estimate": "",
+          "depends_on": [
+            "pos-doc"
+          ],
+          "source": {}
+        },
+        {
+          "id": "pos-roadmap-paid-wedge",
+          "title": "ROADMAP.md sketches the paid wedge",
+          "description": "Public roadmap line for Roady Cloud (hosted MCP, multi-repo\norg dashboard, audit retention, SOC2). Signals seriousness\nwithout committing scope; collects waitlist signal later.\n",
+          "priority": "medium",
+          "estimate": "",
+          "depends_on": [
+            "pos-doc"
+          ],
+          "source": {}
+        },
+        {
+          "id": "pos-website-align",
+          "title": "Align Astro website hero with new positioning",
+          "description": "Update website/src/pages/index.astro (or equivalent hero\ncomponent) so the public site mirrors the README positioning:\nsingle-sentence value prop, single ICP framing, category name\npresent in hero, trim feature avalanche on the home page.\n",
+          "priority": "high",
+          "estimate": "",
+          "depends_on": [
+            "pos-doc"
+          ],
+          "source": {}
+        }
+      ],
+      "source": {}
+    },
+    {
       "id": "ai-powered-workflows",
       "title": "AI-Powered Workflows",
       "description": "AI spec review, auto-prioritization, smart decomposition,\nand natural language query interface for project status.\n",
@@ -1054,5 +1126,5 @@
       "description": "All new CLI commands should have corresponding MCP tools"
     }
   ],
-  "version": "0.10.0"
+  "version": "0.11.0"
 }

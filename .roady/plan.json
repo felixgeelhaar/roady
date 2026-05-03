@@ -1021,6 +1021,82 @@
       "source": {}
     },
     {
+      "id": "task-pos-doc",
+      "title": "One-page positioning doc (Positioning \u0026 Narrative (v0.11.0))",
+      "description": "Add docs/positioning.md following Dunford's \"Obviously\nAwesome\" template: alternative-of, unique attributes, value\nthose deliver, who cares most, market category.\n",
+      "priority": "high",
+      "estimate": "",
+      "depends_on": [],
+      "feature_id": "positioning-narrative",
+      "origin": "heuristic",
+      "source": {}
+    },
+    {
+      "id": "task-pos-readme-hero",
+      "title": "Rewrite README hero around chosen ICP and category (Positioning \u0026 Narrative (v0.11.0))",
+      "description": "Replace the feature-museum README with one sentence + one\nworkflow. Move advanced features behind a single\n\"Everything else\" link to docs/advanced.md so power users\ncan still find them.\n",
+      "priority": "high",
+      "estimate": "",
+      "depends_on": [
+        "task-pos-doc"
+      ],
+      "feature_id": "positioning-narrative",
+      "origin": "heuristic",
+      "source": {}
+    },
+    {
+      "id": "task-pos-advanced-doc",
+      "title": "docs/advanced.md catalogues displaced features (Positioning \u0026 Narrative (v0.11.0))",
+      "description": "Receive the bullets cut from README so existing users keep\ndiscoverability. Group by audience: solo dev, small team,\norg / enterprise.\n",
+      "priority": "high",
+      "estimate": "",
+      "depends_on": [
+        "task-pos-readme-hero"
+      ],
+      "feature_id": "positioning-narrative",
+      "origin": "heuristic",
+      "source": {}
+    },
+    {
+      "id": "task-pos-vs-doc",
+      "title": "docs/vs.md competitive comparison (Positioning \u0026 Narrative (v0.11.0))",
+      "description": "Opinionated table comparing Roady to Cursor rules, Claude.md,\nspec-kit, Backlog.md, Linear, GitHub Projects. Triangulates\nvalue the Dunford way.\n",
+      "priority": "medium",
+      "estimate": "",
+      "depends_on": [
+        "task-pos-doc"
+      ],
+      "feature_id": "positioning-narrative",
+      "origin": "heuristic",
+      "source": {}
+    },
+    {
+      "id": "task-pos-roadmap-paid-wedge",
+      "title": "ROADMAP.md sketches the paid wedge (Positioning \u0026 Narrative (v0.11.0))",
+      "description": "Public roadmap line for Roady Cloud (hosted MCP, multi-repo\norg dashboard, audit retention, SOC2). Signals seriousness\nwithout committing scope; collects waitlist signal later.\n",
+      "priority": "medium",
+      "estimate": "",
+      "depends_on": [
+        "task-pos-doc"
+      ],
+      "feature_id": "positioning-narrative",
+      "origin": "heuristic",
+      "source": {}
+    },
+    {
+      "id": "task-pos-website-align",
+      "title": "Align Astro website hero with new positioning (Positioning \u0026 Narrative (v0.11.0))",
+      "description": "Update website/src/pages/index.astro (or equivalent hero\ncomponent) so the public site mirrors the README positioning:\nsingle-sentence value prop, single ICP framing, category name\npresent in hero, trim feature avalanche on the home page.\n",
+      "priority": "high",
+      "estimate": "",
+      "depends_on": [
+        "task-pos-doc"
+      ],
+      "feature_id": "positioning-narrative",
+      "origin": "heuristic",
+      "source": {}
+    },
+    {
       "id": "task-ai-spec-review",
       "title": "AI spec quality review (AI-Powered Workflows)",
       "description": "AI spec quality review with completeness scoring",
@@ -1081,18 +1157,6 @@
       "source": {}
     },
     {
-      "id": "task-collab-conflict",
-      "title": "Optimistic locking for concurrency (Multi-User Collaboration)",
-      "description": "Optimistic locking for concurrent state modifications. Add version field to state.json, check-and-set semantics on write, conflict error with merge hints.",
-      "priority": "medium",
-      "estimate": "",
-      "depends_on": [
-        "task-collab-assignment"
-      ],
-      "feature_id": "multi-user-collaboration",
-      "source": {}
-    },
-    {
       "id": "task-collab-shared",
       "title": "Remote workspace sync (Multi-User Collaboration)",
       "description": "Remote workspace sync for shared project state. Git-based or server-based sync of .roady directory, conflict resolution strategy, pull/push commands.",
@@ -1104,9 +1168,21 @@
       ],
       "feature_id": "multi-user-collaboration",
       "source": {}
+    },
+    {
+      "id": "task-collab-conflict",
+      "title": "Optimistic locking for concurrency (Multi-User Collaboration)",
+      "description": "Optimistic locking for concurrent state modifications. Add version field to state.json, check-and-set semantics on write, conflict error with merge hints.",
+      "priority": "medium",
+      "estimate": "",
+      "depends_on": [
+        "task-collab-assignment"
+      ],
+      "feature_id": "multi-user-collaboration",
+      "source": {}
     }
   ],
   "approval_status": "approved",
   "created_at": "2026-01-31T18:00:00+01:00",
-  "updated_at": "2026-05-03T11:46:54.977114+02:00"
+  "updated_at": "2026-05-03T12:28:48.824351+02:00"
 }

@@ -1,5 +1,5 @@
 id: horizons-8
-title: 'Roady v0.10.0: AI Quality & Telemetry'
+title: 'Roady v0.11.0: Positioning & Narrative'
 description: |
     Roady planning system roadmap:
     - v0.5.0 (complete): Horizons 5 & 6 — predictive analytics, domain hardening, event sourcing.
@@ -17,6 +17,12 @@ description: |
       streaming OnToken contract, MCP tool consolidation (roady_tasks +
       roady_cost_estimate), naming standardisation aliases, roady notify namespace
       unification, AI command progress feedback with SIGINT cancellation.
+    - v0.11.0 (complete): Positioning and narrative cleanup — single ICP picked
+      (devs using AI coding agents), category named ("Planning memory for AI
+      coding agents"), README hero rewritten, feature museum moved to
+      docs/advanced.md, docs/vs.md competitive comparison + docs/positioning.md
+      one-pager + ROADMAP.md sketch shipped, Astro website hero / definition /
+      features sections realigned to match.
 features:
     - id: predictive-velocity
       title: Predictive Velocity Analytics
@@ -798,6 +804,75 @@ features:
           depends_on:
             - aqt-streaming-contract
             - aqt-ai-progress-cancel
+    - id: positioning-narrative
+      title: Positioning & Narrative (v0.11.0)
+      description: |
+        Cross-functional GTM consensus: pick a single ICP, name the
+        category, cut the feature museum from the surface area visible
+        to first-time visitors. Driven by Dunford / Bush / Lochhead
+        framings from the v0.10 expert review.
+      requirements:
+        - id: pos-doc
+          title: One-page positioning doc
+          description: |
+            Add docs/positioning.md following Dunford's "Obviously
+            Awesome" template: alternative-of, unique attributes, value
+            those deliver, who cares most, market category.
+          priority: high
+          estimate: ""
+          depends_on: []
+        - id: pos-readme-hero
+          title: Rewrite README hero around chosen ICP and category
+          description: |
+            Replace the feature-museum README with one sentence + one
+            workflow. Move advanced features behind a single
+            "Everything else" link to docs/advanced.md so power users
+            can still find them.
+          priority: high
+          estimate: ""
+          depends_on:
+            - pos-doc
+        - id: pos-advanced-doc
+          title: docs/advanced.md catalogues displaced features
+          description: |
+            Receive the bullets cut from README so existing users keep
+            discoverability. Group by audience: solo dev, small team,
+            org / enterprise.
+          priority: high
+          estimate: ""
+          depends_on:
+            - pos-readme-hero
+        - id: pos-vs-doc
+          title: docs/vs.md competitive comparison
+          description: |
+            Opinionated table comparing Roady to Cursor rules, Claude.md,
+            spec-kit, Backlog.md, Linear, GitHub Projects. Triangulates
+            value the Dunford way.
+          priority: medium
+          estimate: ""
+          depends_on:
+            - pos-doc
+        - id: pos-roadmap-paid-wedge
+          title: ROADMAP.md sketches the paid wedge
+          description: |
+            Public roadmap line for Roady Cloud (hosted MCP, multi-repo
+            org dashboard, audit retention, SOC2). Signals seriousness
+            without committing scope; collects waitlist signal later.
+          priority: medium
+          estimate: ""
+          depends_on:
+            - pos-doc
+        - id: pos-website-align
+          title: Align Astro website hero with new positioning
+          description: |
+            Update website/src/pages/index.astro (or equivalent hero
+            component) so the public site mirrors the README positioning:
+            single-sentence value prop, single ICP framing, category name
+            present in hero, trim feature avalanche on the home page.
+          priority: high
+          estimate: ""
+          depends_on:
+            - pos-doc
     - id: ai-powered-workflows
       title: AI-Powered Workflows
       description: |
@@ -840,4 +915,4 @@ constraints:
       description: Follow existing DDD patterns and naming conventions
     - id: cli-mcp-parity
       description: All new CLI commands should have corresponding MCP tools
-version: 0.10.0
+version: 0.11.0

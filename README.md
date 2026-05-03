@@ -8,199 +8,96 @@
 [![nox Security](https://img.shields.io/badge/nox-A-brightgreen?logo=lock)](https://github.com/felixgeelhaar/roady/security)
 [![nox Scan](https://img.shields.io/badge/scan-0%20findings-brightgreen)](https://github.com/felixgeelhaar/roady/security)
 
-# Roady
+# Roady — planning memory for AI coding agents
 
-**Roady** is a planning-first system of record for software work. It acts as a durable, high-integrity memory layer between **intent** (what you want to build), **plans** (how you'll build it), and **execution** (the actual work).
+> Specs, plans, and execution state that **survive context resets** and
+> travel between sessions, agents, and humans. File-based, git-versioned,
+> MCP-native.
 
-Designed for individuals, teams, and AI agents, Roady ensures that your development roadmap never drifts from your original intent.
+You pair with Claude Code, Codex, Cursor, or Gemini on a multi-day
+feature. Three days in, the agent forgets what was decided, rewrites the
+wrong thing, or quietly drifts off-spec. Roady is the durable layer
+that holds the answer to *what are we building, what's next, and where
+did reality diverge from the plan?* — readable by you and writable by
+your agent.
 
-## Key Features
-
-*   **Spec-Driven Inference:** Automatically derive functional specifications from multiple markdown documents (`roady spec analyze`).
-*   **Adaptive AI Planning:** Decompose high-level features into granular task graphs using OpenAI or local Ollama models (`roady plan generate --ai`).
-*   **Deterministic Drift Detection:** Instantly catch misalignments between docs, plans, and code reality (`roady drift detect`).
-*   **Organizational Intelligence:** Discover projects across your machine (`roady discover`) and get unified progress views with aggregated metrics (`roady org status --json`). Shared policy inheritance lets org-level defaults cascade to projects (`roady org policy`), and cross-project drift detection aggregates issues across all repos (`roady org drift`).
-*   **AI Governance:** Enforce policy-based token limits to control agentic spending.
-*   **Event-Sourced Audit:** Every action is an immutable domain event with hash-chain integrity. Live handlers react to task transitions, drift warnings, and plan changes in real time (`roady audit verify`).
-*   **Realtime Event Streaming:** Server-Sent Events endpoint streams live events to clients with type filtering and reconnection support.
-*   **fsnotify File Watching:** Efficient OS-level file monitoring with configurable debounce, selective include/exclude glob patterns (`--include "*.md" --exclude "*.tmp"`), and a `--reconcile` flag for full auto-sync workflows (`roady watch docs/ --reconcile`).
-*   **Pluggable Messaging:** Webhook and Slack adapters with a factory registry for event notifications (`roady messaging add/list/test`).
-*   **Plugin Registry & Health:** Register, validate, and monitor syncer plugins with health checks (`roady plugin list/register/validate/status`).
-*   **Outgoing Webhook Notifications:** HMAC-SHA256 signed webhook delivery with retry and dead-letter queue (`roady webhook notif add/list/test`).
-*   **Plugin Contract Testing:** Automated contract test suite validates plugins conform to Syncer interface semantics.
-*   **Continuous Automation:** Watch documents for changes and sync task statuses via Git commit markers (`[roady:task-id]`).
-*   **Interactive TUI:** Real-time visibility into your project's health and velocity (`roady dashboard`).
-*   **Interactive D3 Visualizations:** Rich, browser-based charts embedded in MCP apps — donut charts for status breakdowns, force-directed DAGs for plan and dependency graphs, gauges for usage and compliance, bar charts for drift severity, line charts for debt trends, and tree diagrams for spec hierarchies.
-*   **Billing & Cost Tracking:** Define hourly rates with multi-currency and tax support, log time on task transitions, and generate cost reports with estimated-vs-actual variance analysis (`roady cost report`, `roady rate add`, `roady cost budget`).
-*   **Quantified Debt Analysis:** Score and classify recurring drift as planning debt with sticky thresholds, category breakdowns, and historical trend analysis (`roady debt report`, `roady debt score`, `roady debt trend`).
-*   **Team & Workspace Sync:** Manage team members with role-based access (admin/member/viewer) and synchronize `.roady/` state across collaborators via Git with conflict detection (`roady team add`, `roady workspace push/pull`).
-*   **Cross-Repo Dependencies:** Declare runtime, build, and data dependencies between repositories, visualize the graph, detect cycles, and scan health (`roady deps add`, `roady deps graph`, `roady deps scan`).
-*   **Smart AI Workflows:** Codebase-aware task decomposition, AI-suggested priority rebalancing, and natural language queries about project state (`roady plan smart-decompose`, `roady plan prioritize`, `roady query`).
-* **MCP First:** Seamlessly expose planning capabilities to AI agents via the Model Context Protocol. Works with Claude Code, OpenCode, Claude Desktop, OpenAI Codex, and Google Gemini.
-
-## Quick Start
-
-### 1. Installation
-**Homebrew (macOS/Linux):**
-```bash
-brew install felixgeelhaar/tap/roady
-```
-
-**Alternative (Go):**
-```bash
-go install github.com/felixgeelhaar/roady/cmd/roady@latest
-```
-
-### 2. One-Command AI Setup
-Connect Roady to Claude Code or Claude Desktop:
-```bash
-roady setup claude-code   # For CLI
-roady setup claude-desktop # For Desktop
-```
-
-### 3. Initialize
-```bash
-roady init my-awesome-project
-```
-
-### 4. Plan your Intent
-Put your PRDs or feature docs in `docs/`, then:
-```bash
-roady spec analyze docs/ --reconcile
-roady plan generate --ai
-```
-
-### 5. Drive Execution
-```bash
-# With Claude Code commands:
-/roady-task        # Start next ready task
-/roady-status     # Check project status
-/roady-review     # Detect drift
-
-# Or via CLI:
-roady task start <task-id>
-git commit -m "Implement [roady:task-id]"
-roady git sync
-```
-
-### 6. Check Health & Forecast
-```bash
-roady status
-roady drift detect
-roady forecast
-```
-
-### 7. Track Costs
-```bash
-roady rate add --id dev --name "Developer" --rate 120
-roady cost report
-roady cost budget
-```
-
-## MCP Integration
-
-Roady exposes 40+ MCP tools for AI agents. Works with any MCP-compatible AI tool:
+## See it in 60 seconds
 
 ```bash
-# Start MCP server
-roady mcp                    # stdio (Claude Code, OpenCode)
-roady mcp --transport http   # HTTP (web apps)
-roady mcp --transport ws    # WebSocket (real-time)
+brew install felixgeelhaar/tap/roady     # or: go install github.com/felixgeelhaar/roady/cmd/roady@latest
+roady demo                               # scaffolds a sample project + shows drift
 ```
 
-**Supported AI Tools:**
-- **Claude Code** - `roady setup claude-code`
-- **OpenCode** - `roady setup opencode`
-- **Claude Desktop** - `roady setup claude-desktop`
-- **OpenAI Codex** - `roady setup openai`
-- **Google Gemini** - `roady setup gemini`
+The demo creates a `roady-demo/` directory with a deliberately drifted
+spec/plan, runs `roady drift detect`, and prints the next steps. Zero
+prerequisites, zero AI keys, zero signup.
 
-**One-Command Setup:**
-```bash
-roady setup claude-code   # Configure for your AI tool
-```
-
-**Example Claude Code usage:**
-```
-/roady-task              # Get next task
-# Claude implements the task
-/roady-review            # Check for drift
-```
-
-## Governance & Policy
-
-Configure project guardrails in `.roady/policy.yaml`:
-
-```yaml
-max_wip: 3            # Limit concurrent tasks
-allow_ai: true        # Enable AI planning
-token_limit: 50000    # Hard budget for AI operations
-```
-
-Org-level defaults can be set in `.roady/org.yaml` and inherited by all projects:
-
-```yaml
-name: my-org
-shared_policy:
-  max_wip: 5
-  allow_ai: true
-  token_limit: 100000
-```
-
-Project-level values override org defaults. View the merged result with `roady org policy`.
-
-Configure AI provider defaults in `.roady/ai.yaml`:
-
-```yaml
-provider: openai   # Use OpenAI or Ollama
-model: gpt-4o      # Your preferred model
-```
-
-See `docs/ai-configuration.md` for the latest policy/provider split and governance logging details.
-
-Plan lifecycle transitions (generate/update/approve) are logged in `.roady/events.jsonl` so governance can trace when the spec-plan pair changed; the release workflow and MCP approval steps rely on those entries to show when drift was accepted.
-
-## Release Automation
-
-Use `scripts/release.sh` to run coverage recording, tests, AI plan generation, and the Relicta release workflow in a single, repeatable script:
+## The actual workflow
 
 ```bash
-./scripts/release.sh
+# 1. Hook your agent to Roady (one command per supported tool)
+roady setup claude-code           # or claude-desktop, opencode, openai, gemini
+
+# 2. Initialise + import your existing docs
+roady init my-project
+roady spec analyze docs/          # parses markdown, captures source citations
+
+# 3. Generate a plan (heuristic by default; --ai for richer decomposition)
+roady plan generate
+roady plan approve
+
+# 4. Drive execution from inside your AI editor
+/roady-task                       # agent picks the next ready task
+# ...agent implements, commits with [roady:task-id] marker...
+roady git sync                    # state moves forward automatically
+
+# 5. Ask the question that matters
+roady drift detect                # has reality diverged from intent?
 ```
 
-Ensure `coverctl` and `relicta` are installed before running the script. It regenerates the plan with `--ai` so you can ship Roady and the MCP tools together.
+Status, drift, and progress all show in `roady status` — including a
+`from doc:line` citation for every task so the AI's choices stay
+auditable.
 
-## AI Integration (MCP)
+## What Roady is, and is not
 
-Roady is a first-class MCP server. Add it to your `claude_desktop_config.json`:
+| Roady is... | Roady is not... |
+| --- | --- |
+| The plan-of-record for an AI-paired feature | A Jira / Linear replacement |
+| Memory that survives `/clear` and session resets | A chat history layer |
+| File-based, git-friendly, local-first | A hosted SaaS (today) |
+| MCP-native — every operation is a tool | A code-search or context-stuffing tool |
 
-```json
-{
-  "mcpServers": {
-    "roady": {
-      "command": "roady",
-      "args": ["mcp"]
-    }
-  }
-}
-```
+See [`docs/positioning.md`](docs/positioning.md) for the full positioning,
+ICP, and category claim.
 
-Run over HTTP or WebSocket when needed:
+## How it compares
 
-```bash
-roady mcp --transport http --addr :8080
-roady mcp --transport ws --addr :8080
-```
+[`docs/vs.md`](docs/vs.md) — opinionated comparison vs Cursor rules,
+Claude.md, spec-kit, Backlog.md, Linear, GitHub Projects.
 
-See `docs/mcp-guide.md` for the complete MCP documentation, including all available tools and example workflows.
+## Everything else
 
-## Architecture
+The headline workflow is intentionally short. Roady supports billing
+rates, debt scoring, dependency graphs, multi-project org dashboards,
+plugin syncers, fsnotify watch mode, web dashboards, D3 visualisations,
+realtime SSE streaming, webhook + Slack notifications, and more — see
+[`docs/advanced.md`](docs/advanced.md) for the full catalogue grouped by
+audience (solo dev / small team / org).
 
-Roady is built on clean **Domain-Driven Design (DDD)** principles:
-*   **Domain:** Pure business logic for Specs, Plans, Drift, Policy, and Domain Events. Value objects (`TaskStatus`, `TaskPriority`, `ApprovalStatus`) enforce transitions. An `EventDispatcher` routes events to handlers (logging, drift warnings, task transitions) and projections (velocity, state, audit timeline).
-*   **Infrastructure:** Modern Go stack using `cobra`, `bubbletea`, `mcp-go`, and `fortify`. Pluggable messaging adapters (webhook, Slack) via factory registry. SSE handler for realtime event streaming. MCP apps built with Vue 3 + D3.js, compiled to self-contained HTML files via Vite.
-*   **Storage:** Git-friendly YAML/JSON artifacts in `.roady/`. Events stored as hash-chained JSONL via `FileEventStore` with `InMemoryEventPublisher` for live subscriptions. Messaging config in `.roady/messaging.yaml`. Billing data in `rates.yaml` and `time_entries.yaml`.
+## Roadmap
 
-## License
+[`ROADMAP.md`](ROADMAP.md) sketches what's next, including the planned
+**Roady Cloud** open-core boundary (hosted MCP, multi-repo org
+dashboard, audit retention, SOC2).
 
-MIT License. See `LICENSE` for details.
+## Contributing & license
+
+Contributions welcome — open an issue or PR. MIT License, see `LICENSE`.
+
+---
+
+*Built with `cobra`, `bubbletea`, `mcp-go`, `fortify`. Domain-driven Go
+with `pkg/domain` / `pkg/application` / `internal/infrastructure`.
+Architecture notes in [`docs/architecture.md`](docs/architecture.md) (or
+the existing DDD docs in `docs/ddd-*.md`).*

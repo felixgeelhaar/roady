@@ -1,67 +1,67 @@
 ---
-// Static content - no props needed
+// Definition section — mirrors README "What Roady is, and is not" table.
+// Source of truth: docs/positioning.md.
 ---
 
 <section class="py-16 border-t border-white/5 bg-[#0D1117]">
   <div class="max-w-5xl mx-auto px-6">
+    <p class="text-center text-sm uppercase tracking-widest text-violet-400 font-semibold mb-3">
+      Built narrowly, on purpose
+    </p>
+    <h2 class="text-center text-3xl md:text-4xl font-bold text-white mb-12">
+      What Roady is, and is not
+    </h2>
+
     <div class="grid md:grid-cols-2 gap-12">
       <div>
         <h3 class="text-xl font-bold text-white mb-4 flex items-center">
           <i data-lucide="check-circle" class="w-5 h-5 text-emerald-400 mr-2"></i>
-          What Roady Is
+          Roady is&hellip;
         </h3>
         <ul class="space-y-3 text-gray-400">
           <li class="flex items-start">
             <span class="text-violet-400 mr-2">&bull;</span>
-            A planning memory and source of truth
+            The plan-of-record for an AI-paired feature
           </li>
           <li class="flex items-start">
             <span class="text-violet-400 mr-2">&bull;</span>
-            A spec & plan generator with AI acceleration
+            Memory that survives <code class="mono text-gray-300">/clear</code> and session resets
           </li>
           <li class="flex items-start">
             <span class="text-violet-400 mr-2">&bull;</span>
-            A drift detection and debt analysis engine
+            File-based, git-friendly, local-first
           </li>
           <li class="flex items-start">
             <span class="text-violet-400 mr-2">&bull;</span>
-            An event-sourced audit trail with live projections
+            MCP-native &mdash; every operation is a tool
           </li>
           <li class="flex items-start">
             <span class="text-violet-400 mr-2">&bull;</span>
-            A CLI and MCP-first tool for AI agents
-          </li>
-          <li class="flex items-start">
-            <span class="text-violet-400 mr-2">&bull;</span>
-            A Go SDK with typed helpers and OpenAPI generation
-          </li>
-          <li class="flex items-start">
-            <span class="text-violet-400 mr-2">&bull;</span>
-            A multi-user collaboration layer with roles and workspace sync
+            Drift detection between intent, plan, and code
           </li>
         </ul>
       </div>
       <div>
         <h3 class="text-xl font-bold text-white mb-4 flex items-center">
           <i data-lucide="x-circle" class="w-5 h-5 text-red-400 mr-2"></i>
-          What Roady Is Not
+          Roady is not&hellip;
         </h3>
         <ul class="space-y-3 text-gray-400">
           <li class="flex items-start">
             <span class="text-red-400/50 mr-2">&bull;</span>
-            A task runner or build tool
+            A Jira / Linear replacement
           </li>
           <li class="flex items-start">
             <span class="text-red-400/50 mr-2">&bull;</span>
-            A replacement for Jira / GitHub Issues
+            A chat history layer
           </li>
           <li class="flex items-start">
             <span class="text-red-400/50 mr-2">&bull;</span>
-            An AI agent that executes code
+            A hosted SaaS (today &mdash; see <a href="https://github.com/felixgeelhaar/roady/blob/main/ROADMAP.md" class="text-violet-400 underline">ROADMAP</a>)
           </li>
           <li class="flex items-start">
             <span class="text-red-400/50 mr-2">&bull;</span>
-            A project management UI
+            A code-search or context-stuffing tool
           </li>
         </ul>
       </div>

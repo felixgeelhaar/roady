@@ -1,6 +1,6 @@
 {
   "project_id": "test-refactor",
-  "version": 57,
+  "version": 70,
   "task_states": {
     "task-agg-coordinator": {
       "status": "done",
@@ -523,6 +523,54 @@
       "owner": "felixgeelhaar",
       "elapsed_minutes": 0
     },
+    "task-pos-advanced-doc": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar",
+      "started_at": "2026-05-03T12:30:35.147627+02:00",
+      "completed_at": "2026-05-03T12:31:27.921983+02:00",
+      "elapsed_minutes": 0
+    },
+    "task-pos-doc": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar",
+      "started_at": "2026-05-03T12:29:00.332415+02:00",
+      "completed_at": "2026-05-03T12:29:50.858639+02:00",
+      "elapsed_minutes": 0
+    },
+    "task-pos-readme-hero": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar",
+      "started_at": "2026-05-03T12:29:50.872027+02:00",
+      "completed_at": "2026-05-03T12:30:35.135089+02:00",
+      "elapsed_minutes": 0
+    },
+    "task-pos-roadmap-paid-wedge": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar",
+      "started_at": "2026-05-03T12:32:10.083625+02:00",
+      "completed_at": "2026-05-03T12:32:48.601032+02:00",
+      "elapsed_minutes": 0
+    },
+    "task-pos-vs-doc": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar",
+      "started_at": "2026-05-03T12:31:27.933304+02:00",
+      "completed_at": "2026-05-03T12:32:10.070885+02:00",
+      "elapsed_minutes": 0
+    },
+    "task-pos-website-align": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar",
+      "started_at": "2026-05-03T12:32:48.613153+02:00",
+      "completed_at": "2026-05-03T12:35:13.088648+02:00",
+      "elapsed_minutes": 2
+    },
     "task-pv-cli": {
       "status": "done",
       "path": "",
@@ -638,5 +686,5 @@
       "elapsed_minutes": 0
     }
   },
-  "updated_at": "2026-05-03T11:57:39.452882+02:00"
+  "updated_at": "2026-05-03T12:35:13.088648+02:00"
 }
