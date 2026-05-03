@@ -21,7 +21,10 @@ jobs:
       - name: golangci-lint
         uses: golangci/golangci-lint-action@1481404843c368bc19ca9406f87d6e0fc97bdcfd
         with:
-          version: v2.5.0
+          # `latest` so the linter binary stays compatible with whatever
+          # Go version go.mod targets (a pinned older version was built
+          # against an older Go and refused to run on go1.26 modules).
+          version: latest
           # On main pushes (post-merge), require zero issues. On PRs,
           # only fail on issues newly introduced versus the merge base
           # so the gate doesn't drown new contributions in pre-existing
