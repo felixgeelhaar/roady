@@ -12,9 +12,9 @@ import (
 
 // DebtService provides debt analysis capabilities.
 type DebtService struct {
-	driftSvc          *DriftService
-	driftHistoryProj  *events.DriftHistoryProjection
-	auditSvc          domain.AuditLogger
+	driftSvc         *DriftService
+	driftHistoryProj *events.DriftHistoryProjection
+	auditSvc         domain.AuditLogger
 }
 
 // NewDebtService creates a new debt service.
@@ -174,12 +174,12 @@ func (s *DebtService) RecordDriftResolved(componentID string, driftType drift.Dr
 
 // DebtSummary provides a quick overview of debt status.
 type DebtSummary struct {
-	TotalItems      int     `json:"total_items"`
-	StickyItems     int     `json:"sticky_items"`
-	AverageScore    float64 `json:"average_score"`
-	HealthLevel     string  `json:"health_level"`
-	TopDebtor       string  `json:"top_debtor,omitempty"`
-	TopDebtorScore  float64 `json:"top_debtor_score,omitempty"`
+	TotalItems     int     `json:"total_items"`
+	StickyItems    int     `json:"sticky_items"`
+	AverageScore   float64 `json:"average_score"`
+	HealthLevel    string  `json:"health_level"`
+	TopDebtor      string  `json:"top_debtor,omitempty"`
+	TopDebtorScore float64 `json:"top_debtor_score,omitempty"`
 }
 
 // GetDebtSummary returns a quick overview of the debt status.

@@ -16,12 +16,12 @@ func TestShouldRunInteractive(t *testing.T) {
 	})
 
 	cases := []struct {
-		name              string
-		interactive       bool
-		nonInteractive    bool
-		template          string
-		tty               bool
-		want              bool
+		name           string
+		interactive    bool
+		nonInteractive bool
+		template       string
+		tty            bool
+		want           bool
 	}{
 		{"explicit interactive wins over non-tty", true, false, "", false, true},
 		{"explicit non-interactive even on tty", false, true, "", true, false},

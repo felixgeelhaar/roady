@@ -148,10 +148,10 @@ func TestProductSpec_HashWithFeatures(t *testing.T) {
 
 func TestSource_StringAndIsZero(t *testing.T) {
 	cases := []struct {
-		name    string
-		src     spec.Source
-		isZero  bool
-		want    string
+		name   string
+		src    spec.Source
+		isZero bool
+		want   string
 	}{
 		{"zero", spec.Source{}, true, ""},
 		{"doc only", spec.Source{Doc: "docs/x.md"}, false, "docs/x.md"},

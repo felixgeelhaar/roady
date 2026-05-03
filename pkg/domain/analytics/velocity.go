@@ -76,12 +76,12 @@ func (bp BurndownPoint) IsProjected() bool {
 
 // TaskCycleTime tracks how long tasks spend in each status.
 type TaskCycleTime struct {
-	TaskID       string        // ID of the task
-	TotalTime    time.Duration // Total time from pending to done
-	WaitTime     time.Duration // Time spent in pending/blocked
-	WorkTime     time.Duration // Time spent in progress
-	StartedAt    time.Time     // When task moved to in_progress
-	CompletedAt  time.Time     // When task moved to done
+	TaskID      string        // ID of the task
+	TotalTime   time.Duration // Total time from pending to done
+	WaitTime    time.Duration // Time spent in pending/blocked
+	WorkTime    time.Duration // Time spent in progress
+	StartedAt   time.Time     // When task moved to in_progress
+	CompletedAt time.Time     // When task moved to done
 }
 
 // Efficiency returns the ratio of work time to total time.
@@ -139,12 +139,12 @@ func (f ForecastResult) EstimatedCompletionDate() time.Time {
 
 // VelocityStats holds statistical summary of velocity data.
 type VelocityStats struct {
-	Mean     float64 // Average velocity
-	Median   float64 // Median velocity
-	StdDev   float64 // Standard deviation
-	Min      float64 // Minimum observed velocity
-	Max      float64 // Maximum observed velocity
-	Samples  int     // Number of samples
+	Mean    float64 // Average velocity
+	Median  float64 // Median velocity
+	StdDev  float64 // Standard deviation
+	Min     float64 // Minimum observed velocity
+	Max     float64 // Maximum observed velocity
+	Samples int     // Number of samples
 }
 
 // Variability returns the coefficient of variation (StdDev/Mean).

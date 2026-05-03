@@ -201,9 +201,9 @@ func TestCostReport_AddEntry_WithEstimates(t *testing.T) {
 
 func TestCostReport_ComputeCoverage(t *testing.T) {
 	tests := []struct {
-		name     string
-		entries  []CostReportEntry
-		wantPct  float64
+		name    string
+		entries []CostReportEntry
+		wantPct float64
 	}{
 		{
 			name:    "empty report",

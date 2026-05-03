@@ -53,12 +53,12 @@ func (s *AsanaSyncer) Init(config map[string]string) error {
 
 // AsanaTask represents an Asana task.
 type AsanaTask struct {
-	GID         string  `json:"gid"`
-	Name        string  `json:"name"`
-	Notes       string  `json:"notes"`
-	Completed   bool    `json:"completed"`
+	GID          string `json:"gid"`
+	Name         string `json:"name"`
+	Notes        string `json:"notes"`
+	Completed    bool   `json:"completed"`
 	PermalinkURL string `json:"permalink_url"`
-	Assignee    *struct {
+	Assignee     *struct {
 		GID string `json:"gid"`
 	} `json:"assignee,omitempty"`
 	CustomFields []AsanaCustomField `json:"custom_fields,omitempty"`
@@ -66,9 +66,9 @@ type AsanaTask struct {
 
 // AsanaCustomField represents a custom field on an Asana task.
 type AsanaCustomField struct {
-	GID         string `json:"gid"`
-	Name        string `json:"name"`
-	TextValue   string `json:"text_value,omitempty"`
+	GID          string `json:"gid"`
+	Name         string `json:"name"`
+	TextValue    string `json:"text_value,omitempty"`
 	DisplayValue string `json:"display_value,omitempty"`
 }
 

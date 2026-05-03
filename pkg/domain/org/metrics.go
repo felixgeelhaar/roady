@@ -2,17 +2,17 @@ package org
 
 // ProjectMetrics holds computed metrics for a single project.
 type ProjectMetrics struct {
-	Name     string  `json:"name"`
-	Path     string  `json:"path"`
-	Progress float64 `json:"progress"`
-	Verified int     `json:"verified"`
-	WIP      int     `json:"wip"`
-	Done     int     `json:"done"`
-	Pending  int     `json:"pending"`
-	Blocked  int     `json:"blocked"`
-	Total    int     `json:"total"`
-	HasDrift   bool `json:"has_drift"`
-	DriftCount int  `json:"drift_count,omitempty"`
+	Name       string  `json:"name"`
+	Path       string  `json:"path"`
+	Progress   float64 `json:"progress"`
+	Verified   int     `json:"verified"`
+	WIP        int     `json:"wip"`
+	Done       int     `json:"done"`
+	Pending    int     `json:"pending"`
+	Blocked    int     `json:"blocked"`
+	Total      int     `json:"total"`
+	HasDrift   bool    `json:"has_drift"`
+	DriftCount int     `json:"drift_count,omitempty"`
 }
 
 // ProjectDriftSummary holds drift information for a single project.

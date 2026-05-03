@@ -208,37 +208,37 @@ func main() {
 	// Example 11: Generate plan (if needed)
 	// Uncomment to generate a new plan from the spec
 	/*
-	fmt.Println("\n=== Generating Plan ===")
-	newPlan, err := services.Plan.GeneratePlan(ctx)
-	if err != nil {
-		log.Fatalf("Failed to generate plan: %v", err)
-	}
-	fmt.Printf("Generated plan with %d tasks\n", len(newPlan.Tasks))
+		fmt.Println("\n=== Generating Plan ===")
+		newPlan, err := services.Plan.GeneratePlan(ctx)
+		if err != nil {
+			log.Fatalf("Failed to generate plan: %v", err)
+		}
+		fmt.Printf("Generated plan with %d tasks\n", len(newPlan.Tasks))
 	*/
 
 	// Example 12: Approve plan (if needed)
 	// Uncomment to approve the current plan
 	/*
-	fmt.Println("\n=== Approving Plan ===")
-	err = services.Plan.ApprovePlan()
-	if err != nil {
-		log.Fatalf("Failed to approve plan: %v", err)
-	}
-	fmt.Println("Plan approved successfully!")
+		fmt.Println("\n=== Approving Plan ===")
+		err = services.Plan.ApprovePlan()
+		if err != nil {
+			log.Fatalf("Failed to approve plan: %v", err)
+		}
+		fmt.Println("Plan approved successfully!")
 	*/
 
 	// Example 13: Task transitions
 	// Uncomment to start/complete tasks
 	/*
-	taskID := "task-example"
-	err = services.Task.TransitionTask(taskID, "start", "sdk-user", "")
-	if err != nil {
-		log.Printf("Failed to start task: %v", err)
-	}
-	err = services.Task.TransitionTask(taskID, "complete", "sdk-user", "commit-123")
-	if err != nil {
-		log.Printf("Failed to complete task: %v", err)
-	}
+		taskID := "task-example"
+		err = services.Task.TransitionTask(taskID, "start", "sdk-user", "")
+		if err != nil {
+			log.Printf("Failed to start task: %v", err)
+		}
+		err = services.Task.TransitionTask(taskID, "complete", "sdk-user", "commit-123")
+		if err != nil {
+			log.Printf("Failed to complete task: %v", err)
+		}
 	*/
 
 	fmt.Println("\n=== SDK Example Complete ===")

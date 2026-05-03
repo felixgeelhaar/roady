@@ -18,13 +18,13 @@ type DriftHistoryProjection struct {
 
 // DriftSnapshot represents a point-in-time drift detection.
 type DriftSnapshot struct {
-	Timestamp   time.Time      `json:"timestamp"`
-	IssueCount  int            `json:"issue_count"`
-	ComponentID string         `json:"component_id,omitempty"`
-	DriftType   drift.DriftType `json:"drift_type,omitempty"`
+	Timestamp   time.Time           `json:"timestamp"`
+	IssueCount  int                 `json:"issue_count"`
+	ComponentID string              `json:"component_id,omitempty"`
+	DriftType   drift.DriftType     `json:"drift_type,omitempty"`
 	Category    drift.DriftCategory `json:"category,omitempty"`
-	Message     string         `json:"message,omitempty"`
-	EventID     string         `json:"event_id"`
+	Message     string              `json:"message,omitempty"`
+	EventID     string              `json:"event_id"`
 }
 
 // NewDriftHistoryProjection creates a new drift history projection.

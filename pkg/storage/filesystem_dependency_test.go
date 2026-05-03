@@ -202,7 +202,9 @@ func TestFilesystemRepository_ListDependencies(t *testing.T) {
 func TestFilesystemRepository_UpdateRepoHealth(t *testing.T) {
 	tmpDir := t.TempDir()
 	repo := NewFilesystemRepository(tmpDir)
-	if err := repo.Initialize(); err != nil { t.Fatal(err) }
+	if err := repo.Initialize(); err != nil {
+		t.Fatal(err)
+	}
 
 	health := &dependency.RepoHealth{
 		RepoPath:       "/some/repo",
@@ -232,7 +234,9 @@ func TestFilesystemRepository_UpdateRepoHealth(t *testing.T) {
 func TestFilesystemRepository_GetRepoHealth_NotExists(t *testing.T) {
 	tmpDir := t.TempDir()
 	repo := NewFilesystemRepository(tmpDir)
-	if err := repo.Initialize(); err != nil { t.Fatal(err) }
+	if err := repo.Initialize(); err != nil {
+		t.Fatal(err)
+	}
 
 	health, err := repo.GetRepoHealth("/nonexistent")
 	if err != nil {

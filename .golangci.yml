@@ -15,3 +15,11 @@ linters:
     gocritic:
       disabled-checks:
         - deprecatedComment  # Fixing format triggers 195 SA1019 usages; defer to migration PR
+
+# golangci-lint v2 separates formatters from linters. Enabling gofmt +
+# goimports here gates format drift in CI without bundling reformat into
+# the lint pass — `golangci-lint fmt` is the corresponding apply command.
+formatters:
+  enable:
+    - gofmt
+    - goimports

@@ -1,6 +1,6 @@
 {
   "project_id": "test-refactor",
-  "version": 103,
+  "version": 110,
   "task_states": {
     "task-agg-coordinator": {
       "status": "done",
@@ -477,6 +477,22 @@
       "completed_at": "2026-05-03T18:48:13.096109+02:00",
       "elapsed_minutes": 2
     },
+    "task-lr-ci-coverctl": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar",
+      "started_at": "2026-05-03T22:28:52.722543+02:00",
+      "completed_at": "2026-05-03T22:30:46.003029+02:00",
+      "elapsed_minutes": 1
+    },
+    "task-lr-ci-gofmt": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar",
+      "started_at": "2026-05-03T22:26:10.801796+02:00",
+      "completed_at": "2026-05-03T22:28:52.702659+02:00",
+      "elapsed_minutes": 2
+    },
     "task-lr-ci-lint-gate": {
       "status": "done",
       "path": "",
@@ -484,6 +500,14 @@
       "started_at": "2026-05-03T17:03:19.56788+02:00",
       "completed_at": "2026-05-03T17:03:55.932056+02:00",
       "elapsed_minutes": 0
+    },
+    "task-lr-ci-remove-verdict": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar",
+      "started_at": "2026-05-03T22:28:52.734896+02:00",
+      "completed_at": "2026-05-03T22:30:46.030405+02:00",
+      "elapsed_minutes": 1
     },
     "task-lr-document-launch-prereqs": {
       "status": "done",
@@ -806,5 +830,5 @@
       "elapsed_minutes": 0
     }
   },
-  "updated_at": "2026-05-03T18:52:01.870308+02:00"
+  "updated_at": "2026-05-03T22:30:46.030405+02:00"
 }

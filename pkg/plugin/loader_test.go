@@ -102,8 +102,14 @@ func TestLoader_LoadRelativePath(t *testing.T) {
 
 	// Change to tempDir and use relative path
 	oldWd, _ := os.Getwd()
-	if err := os.Chdir(tempDir); err != nil { t.Fatal(err) }
-	defer func() { if err := os.Chdir(oldWd); err != nil { t.Fatal(err) } }()
+	if err := os.Chdir(tempDir); err != nil {
+		t.Fatal(err)
+	}
+	defer func() {
+		if err := os.Chdir(oldWd); err != nil {
+			t.Fatal(err)
+		}
+	}()
 
 	l := NewLoader()
 	// This should fail because it's not a real plugin, but the path validation should pass

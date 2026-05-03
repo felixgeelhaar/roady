@@ -22,13 +22,13 @@ var trelloBaseURL = "https://api.trello.com/1"
 
 // TrelloSyncer syncs tasks with a Trello board.
 type TrelloSyncer struct {
-	apiKey    string
-	token     string
-	boardID   string
+	apiKey     string
+	token      string
+	boardID    string
 	todoListID string
 	doneListID string
-	client    *http.Client
-	lists     map[string]TrelloList // cached lists
+	client     *http.Client
+	lists      map[string]TrelloList // cached lists
 }
 
 // TrelloList represents a Trello list.

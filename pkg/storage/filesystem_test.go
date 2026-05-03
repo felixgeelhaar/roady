@@ -207,11 +207,19 @@ func TestFilesystemRepository_Errors(t *testing.T) {
 	tempDir, _ := os.MkdirTemp("", "roady-readonly-*")
 	defer func() { _ = os.RemoveAll(tempDir) }()
 	repo := NewFilesystemRepository(tempDir)
-	if err := repo.Initialize(); err != nil { t.Fatal(err) }
+	if err := repo.Initialize(); err != nil {
+		t.Fatal(err)
+	}
 
 	// Make .roady read-only to force WriteFile failure
-	if err := os.Chmod(filepath.Join(repo.root, ".roady"), 0400); err != nil { t.Fatal(err) }
-	defer func() { if err := os.Chmod(filepath.Join(repo.root, ".roady"), 0700); err != nil { t.Fatal(err) } }()
+	if err := os.Chmod(filepath.Join(repo.root, ".roady"), 0400); err != nil {
+		t.Fatal(err)
+	}
+	defer func() {
+		if err := os.Chmod(filepath.Join(repo.root, ".roady"), 0700); err != nil {
+			t.Fatal(err)
+		}
+	}()
 
 	if err := repo.SaveSpec(&spec.ProductSpec{ID: "fail"}); err == nil {
 		t.Error("expected write error on readonly dir (spec)")

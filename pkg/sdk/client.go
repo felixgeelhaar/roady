@@ -12,7 +12,7 @@ import (
 
 // Client is a typed Go client for the Roady MCP server.
 type Client struct {
-	mcp     *client.Client
+	mcp      *client.Client
 	retryCfg retry.Config
 	timeout  time.Duration
 }

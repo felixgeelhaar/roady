@@ -1276,6 +1276,39 @@
       "source": {}
     },
     {
+      "id": "task-lr-ci-gofmt",
+      "title": "Enable gofmt in golangci-lint config (Pre-launch infra hardening (v0.11.x))",
+      "description": "Add gofmt (or gofumpt) to the enabled linters list in\n.golangci.yml so format drift cannot regress past CI.\n",
+      "priority": "high",
+      "estimate": "",
+      "depends_on": [],
+      "feature_id": "launch-readiness",
+      "origin": "heuristic",
+      "source": {}
+    },
+    {
+      "id": "task-lr-ci-coverctl",
+      "title": "Wire coverctl coverage gate into CI (Pre-launch infra hardening (v0.11.x))",
+      "description": "Install coverctl in the build job (go install\ngithub.com/felixgeelhaar/coverctl/cmd/coverctl@latest), run\n`coverctl check --from-profile -p coverage.out` after the\nexisting test step so the coverage thresholds in\n.coverctl.yaml actually gate merges.\n",
+      "priority": "high",
+      "estimate": "",
+      "depends_on": [],
+      "feature_id": "launch-readiness",
+      "origin": "heuristic",
+      "source": {}
+    },
+    {
+      "id": "task-lr-ci-remove-verdict",
+      "title": "Remove deprecated verdict step from CI (Pre-launch infra hardening (v0.11.x))",
+      "description": "verdict is deprecated; the existing step is a no-op anyway\n(continue-on-error + binary likely missing on runners).\nDelete the step; nox stays a local-pre-commit advisory\nbecause the nox binary is not publicly distributed.\n",
+      "priority": "medium",
+      "estimate": "",
+      "depends_on": [],
+      "feature_id": "launch-readiness",
+      "origin": "heuristic",
+      "source": {}
+    },
+    {
       "id": "task-ai-spec-review",
       "title": "AI spec quality review (AI-Powered Workflows)",
       "description": "AI spec quality review with completeness scoring",
@@ -1338,6 +1371,16 @@
       "source": {}
     },
     {
+      "id": "task-collab-assignment",
+      "title": "Task assignment with Assignee field (Multi-User Collaboration)",
+      "description": "Add Assignee field to Task domain entity, implement assign/unassign operations in CLI and MCP, persist in plan.json and state.json.",
+      "priority": "high",
+      "estimate": "",
+      "depends_on": [],
+      "feature_id": "multi-user-collaboration",
+      "source": {}
+    },
+    {
       "id": "task-collab-shared",
       "title": "Remote workspace sync (Multi-User Collaboration)",
       "description": "Remote workspace sync for shared project state. Git-based or server-based sync of .roady directory, conflict resolution strategy, pull/push commands.",
@@ -1349,19 +1392,9 @@
       ],
       "feature_id": "multi-user-collaboration",
       "source": {}
-    },
-    {
-      "id": "task-collab-assignment",
-      "title": "Task assignment with Assignee field (Multi-User Collaboration)",
-      "description": "Add Assignee field to Task domain entity, implement assign/unassign operations in CLI and MCP, persist in plan.json and state.json.",
-      "priority": "high",
-      "estimate": "",
-      "depends_on": [],
-      "feature_id": "multi-user-collaboration",
-      "source": {}
     }
   ],
   "approval_status": "approved",
   "created_at": "2026-01-31T18:00:00+01:00",
-  "updated_at": "2026-05-03T17:00:10.855434+02:00"
+  "updated_at": "2026-05-03T22:26:10.776185+02:00"
 }

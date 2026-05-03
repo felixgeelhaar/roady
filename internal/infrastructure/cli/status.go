@@ -58,11 +58,11 @@ type statusJSONOutput struct {
 }
 
 type planJSONOutput struct {
-	Status   string            `json:"status"`
-	Tasks    int               `json:"total_tasks"`
-	Progress float64           `json:"progress"`
-	Counts   map[string]int    `json:"counts"`
-	Items    []taskJSONOutput  `json:"tasks,omitempty"`
+	Status   string           `json:"status"`
+	Tasks    int              `json:"total_tasks"`
+	Progress float64          `json:"progress"`
+	Counts   map[string]int   `json:"counts"`
+	Items    []taskJSONOutput `json:"tasks,omitempty"`
 }
 
 type taskJSONOutput struct {

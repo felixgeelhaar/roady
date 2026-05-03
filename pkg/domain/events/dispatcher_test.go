@@ -16,11 +16,11 @@ type mockEvent struct {
 	version       int
 }
 
-func (e mockEvent) EventType() string      { return e.eventType }
-func (e mockEvent) AggregateID() string    { return e.aggregateID }
-func (e mockEvent) AggregateType() string  { return e.aggregateType }
-func (e mockEvent) OccurredAt() time.Time  { return e.timestamp }
-func (e mockEvent) Version() int           { return e.version }
+func (e mockEvent) EventType() string     { return e.eventType }
+func (e mockEvent) AggregateID() string   { return e.aggregateID }
+func (e mockEvent) AggregateType() string { return e.aggregateType }
+func (e mockEvent) OccurredAt() time.Time { return e.timestamp }
+func (e mockEvent) Version() int          { return e.version }
 
 func newMockEvent(eventType string) mockEvent {
 	return mockEvent{
@@ -67,9 +67,15 @@ func TestEventDispatcher_RegisterMultipleEventTypes(t *testing.T) {
 		EventTypes: []string{"event.a", "event.b", "event.c"},
 	})
 
-	if err := d.Dispatch(context.Background(), newMockEvent("event.a")); err != nil { t.Fatal(err) }
-	if err := d.Dispatch(context.Background(), newMockEvent("event.b")); err != nil { t.Fatal(err) }
-	if err := d.Dispatch(context.Background(), newMockEvent("event.c")); err != nil { t.Fatal(err) }
+	if err := d.Dispatch(context.Background(), newMockEvent("event.a")); err != nil {
+		t.Fatal(err)
+	}
+	if err := d.Dispatch(context.Background(), newMockEvent("event.b")); err != nil {
+		t.Fatal(err)
+	}
+	if err := d.Dispatch(context.Background(), newMockEvent("event.c")); err != nil {
+		t.Fatal(err)
+	}
 
 	if callCount != 3 {
 		t.Errorf("Expected 3 calls, got %d", callCount)

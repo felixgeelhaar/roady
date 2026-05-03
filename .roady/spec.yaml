@@ -1044,6 +1044,35 @@ features:
           priority: medium
           estimate: ""
           depends_on: []
+        - id: lr-ci-gofmt
+          title: Enable gofmt in golangci-lint config
+          description: |
+            Add gofmt (or gofumpt) to the enabled linters list in
+            .golangci.yml so format drift cannot regress past CI.
+          priority: high
+          estimate: ""
+          depends_on: []
+        - id: lr-ci-coverctl
+          title: Wire coverctl coverage gate into CI
+          description: |
+            Install coverctl in the build job (go install
+            github.com/felixgeelhaar/coverctl/cmd/coverctl@latest), run
+            `coverctl check --from-profile -p coverage.out` after the
+            existing test step so the coverage thresholds in
+            .coverctl.yaml actually gate merges.
+          priority: high
+          estimate: ""
+          depends_on: []
+        - id: lr-ci-remove-verdict
+          title: Remove deprecated verdict step from CI
+          description: |
+            verdict is deprecated; the existing step is a no-op anyway
+            (continue-on-error + binary likely missing on runners).
+            Delete the step; nox stays a local-pre-commit advisory
+            because the nox binary is not publicly distributed.
+          priority: medium
+          estimate: ""
+          depends_on: []
     - id: ai-powered-workflows
       title: AI-Powered Workflows
       description: |

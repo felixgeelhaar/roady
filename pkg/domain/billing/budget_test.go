@@ -69,19 +69,19 @@ func TestNewBudgetStatus(t *testing.T) {
 
 func TestNewBudgetStatusWithEstimates(t *testing.T) {
 	tests := []struct {
-		name              string
-		budgetHours       int
-		totalMinutes      int
-		estimatedHours    float64
-		hourlyRate        float64
-		totalTasks        int
-		estimatedTasks    int
-		currency          string
-		wantEstCost       float64
-		wantActualCost    float64
-		wantVariance      float64
-		wantCoverage      float64
-		wantUnestimated   int
+		name            string
+		budgetHours     int
+		totalMinutes    int
+		estimatedHours  float64
+		hourlyRate      float64
+		totalTasks      int
+		estimatedTasks  int
+		currency        string
+		wantEstCost     float64
+		wantActualCost  float64
+		wantVariance    float64
+		wantCoverage    float64
+		wantUnestimated int
 	}{
 		{
 			name:            "full estimates, under budget",

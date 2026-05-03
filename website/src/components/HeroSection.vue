@@ -48,7 +48,7 @@ async function copyCommand() {
 // cannot inspect.
 const waitlistEmail = ref('');
 const waitlistError = ref('');
-const WAITLIST_INBOX = 'roady-cloud@felixgeelhaar.com';
+const WAITLIST_INBOX = 'roady-cloud@felixgeelhaar.de';
 
 function submitWaitlist() {
   waitlistError.value = '';

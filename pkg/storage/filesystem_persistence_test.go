@@ -132,7 +132,9 @@ func TestSaveAndLoadPlan(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			d := t.TempDir()
 			r := NewFilesystemRepository(d)
-			if err := r.Initialize(); err != nil { t.Fatal(err) }
+			if err := r.Initialize(); err != nil {
+				t.Fatal(err)
+			}
 
 			if err := r.SavePlan(tt.plan); err != nil {
 				t.Fatalf("SavePlan: %v", err)
@@ -154,7 +156,9 @@ func TestSaveAndLoadPlan(t *testing.T) {
 func TestLoadPlan_Missing(t *testing.T) {
 	d := t.TempDir()
 	r := NewFilesystemRepository(d)
-	if err := r.Initialize(); err != nil { t.Fatal(err) }
+	if err := r.Initialize(); err != nil {
+		t.Fatal(err)
+	}
 
 	plan, err := r.LoadPlan()
 	if err != nil {
@@ -168,7 +172,9 @@ func TestLoadPlan_Missing(t *testing.T) {
 func TestLoadPlan_InvalidJSON(t *testing.T) {
 	d := t.TempDir()
 	r := NewFilesystemRepository(d)
-	if err := r.Initialize(); err != nil { t.Fatal(err) }
+	if err := r.Initialize(); err != nil {
+		t.Fatal(err)
+	}
 
 	path, _ := r.ResolvePath(PlanFile)
 	if err := os.WriteFile(path, []byte("{invalid"), 0600); err != nil {
@@ -414,7 +420,9 @@ func TestLoadPluginConfigs_InvalidYAML(t *testing.T) {
 	_ = r.Initialize()
 
 	path, _ := r.ResolvePath(PluginsFile)
-	if err := os.WriteFile(path, []byte("[}invalid"), 0600); err != nil { t.Fatal(err) }
+	if err := os.WriteFile(path, []byte("[}invalid"), 0600); err != nil {
+		t.Fatal(err)
+	}
 
 	_, err := r.LoadPluginConfigs()
 	if err == nil {
@@ -454,10 +462,14 @@ func TestCodebaseInspector_FileNotEmpty(t *testing.T) {
 
 	d := t.TempDir()
 	emptyFile := filepath.Join(d, "empty.txt")
-	if err := os.WriteFile(emptyFile, []byte(""), 0600); err != nil { t.Fatal(err) }
+	if err := os.WriteFile(emptyFile, []byte(""), 0600); err != nil {
+		t.Fatal(err)
+	}
 
 	nonEmptyFile := filepath.Join(d, "notempty.txt")
-	if err := os.WriteFile(nonEmptyFile, []byte("content"), 0600); err != nil { t.Fatal(err) }
+	if err := os.WriteFile(nonEmptyFile, []byte("content"), 0600); err != nil {
+		t.Fatal(err)
+	}
 
 	tests := []struct {
 		name     string

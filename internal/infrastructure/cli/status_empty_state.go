@@ -12,10 +12,10 @@ import (
 // emptyStateStep represents a remaining onboarding step. The first stage that
 // applies is what the user is told to run next. Stages are listed in order.
 type emptyStateStep struct {
-	Stage   string `json:"stage"`             // machine-readable id
-	Reason  string `json:"reason"`            // why we are stopping here
-	Command string `json:"command"`           // suggested command
-	Hint    string `json:"hint,omitempty"`    // extra context
+	Stage   string `json:"stage"`          // machine-readable id
+	Reason  string `json:"reason"`         // why we are stopping here
+	Command string `json:"command"`        // suggested command
+	Hint    string `json:"hint,omitempty"` // extra context
 }
 
 // emptyStateHintForCurrentDir inspects the project root and returns a hint

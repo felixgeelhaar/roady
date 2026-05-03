@@ -197,12 +197,12 @@ func (s *EventSourcedAuditService) RegisterHandler(reg events.HandlerRegistratio
 
 // AITelemetrySummary holds aggregated AI usage metrics.
 type AITelemetrySummary struct {
-	TotalCalls      int            `json:"total_calls"`
-	TotalInputTokens  int          `json:"total_input_tokens"`
-	TotalOutputTokens int          `json:"total_output_tokens"`
-	RetryCount      int            `json:"retry_count"`
-	CallsByAction   map[string]int `json:"calls_by_action"`
-	TokensByModel   map[string]int `json:"tokens_by_model"`
+	TotalCalls        int            `json:"total_calls"`
+	TotalInputTokens  int            `json:"total_input_tokens"`
+	TotalOutputTokens int            `json:"total_output_tokens"`
+	RetryCount        int            `json:"retry_count"`
+	CallsByAction     map[string]int `json:"calls_by_action"`
+	TokensByModel     map[string]int `json:"tokens_by_model"`
 }
 
 // GetAITelemetry returns aggregated AI usage metrics from events.

@@ -25,7 +25,7 @@ func TestCostEstimator_KnownPricing(t *testing.T) {
 		{"anthropic", "claude-sonnet-4-6", true},
 		{"openai", "gpt-4o-mini", true},
 		{"gemini", "gemini-2.0-flash", true},
-		{"ollama", "llama3", false},        // free / unknown
+		{"ollama", "llama3", false},         // free / unknown
 		{"unknown", "made-up-model", false}, // unknown
 	}
 

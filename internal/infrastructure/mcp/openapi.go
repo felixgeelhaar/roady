@@ -9,9 +9,9 @@ import (
 
 // OpenAPISpec represents a minimal OpenAPI 3.0 document.
 type OpenAPISpec struct {
-	OpenAPI string                `json:"openapi"`
-	Info    OpenAPIInfo           `json:"info"`
-	Paths   map[string]PathItem  `json:"paths"`
+	OpenAPI string              `json:"openapi"`
+	Info    OpenAPIInfo         `json:"info"`
+	Paths   map[string]PathItem `json:"paths"`
 }
 
 // OpenAPIInfo is the info section of an OpenAPI spec.
@@ -37,8 +37,8 @@ type Operation struct {
 
 // RequestBody is the request body definition.
 type RequestBody struct {
-	Required bool                  `json:"required"`
-	Content  map[string]MediaType  `json:"content"`
+	Required bool                 `json:"required"`
+	Content  map[string]MediaType `json:"content"`
 }
 
 // MediaType describes a media type with schema.

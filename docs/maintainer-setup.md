@@ -43,20 +43,37 @@ enabled on the repo first.
    trigger the workflow. The first run cold-starts a few minutes;
    subsequent runs are <1 min.
 
-## 3. Telemetry / usage stats (future)
+## 3. Quality gate inventory
+
+What's gated where, as of v0.10.1+:
+
+| Tool | Pre-commit hook | CI |
+| --- | --- | --- |
+| `golangci-lint` (`govet`, `gocritic`, `errcheck`, `staticcheck`, `unused`) | yes | yes |
+| `gofmt`, `goimports` (formatters in `golangci-lint` v2) | yes | yes |
+| `coverctl` (domain thresholds from `.coverctl.yaml`) | yes | yes |
+| `nox scan --staged` (security scanner) | yes (advisory) | **local-only** |
+
+`nox` is a private binary, not publicly distributed via `go install` or
+Homebrew. CI does not run it. Maintainers running the pre-commit hook
+locally see findings before push; everyone else sees them only at
+review time. If `nox` ever ships publicly, add a CI step in
+`.github/workflows/ci.yml` that mirrors the hook (advisory, non-gating).
+
+## 4. Telemetry / usage stats (future)
 
 Not currently wired. When wired (see `ROADMAP.md` "Roady Cloud"), will
 require a privacy-respecting opt-in flag in `policy.yaml` and a
 configurable endpoint. Out of scope for v0.11.
 
-## 4. Roady Cloud waitlist inbox
+## 5. Roady Cloud waitlist inbox
 
 The hero form opens the visitor's mail client with a `mailto:` to
-`roady-cloud@felixgeelhaar.com`. If you want a different inbox, update
+`roady-cloud@felixgeelhaar.de`. If you want a different inbox, update
 `WAITLIST_INBOX` in `website/src/components/HeroSection.vue`.
 Auto-responder is the maintainer's responsibility.
 
-## 5. Pre-commit hook (developer side)
+## 6. Pre-commit hook (developer side)
 
 Optional but recommended for local contributors:
 

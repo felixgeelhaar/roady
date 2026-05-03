@@ -11,14 +11,14 @@ import (
 // CostEstimate is the pre-flight projection an agent or human can inspect
 // before triggering an AI operation.
 type CostEstimate struct {
-	Operation             string  `json:"operation"`
-	Provider              string  `json:"provider"`
-	Model                 string  `json:"model"`
-	InputTokensEstimate   int     `json:"input_tokens_estimate"`
-	OutputTokensEstimate  int     `json:"output_tokens_estimate"`
-	EstimatedCostUSD      float64 `json:"estimated_cost_usd"`
-	PricingKnown          bool    `json:"pricing_known"`
-	Notes                 string  `json:"notes,omitempty"`
+	Operation            string  `json:"operation"`
+	Provider             string  `json:"provider"`
+	Model                string  `json:"model"`
+	InputTokensEstimate  int     `json:"input_tokens_estimate"`
+	OutputTokensEstimate int     `json:"output_tokens_estimate"`
+	EstimatedCostUSD     float64 `json:"estimated_cost_usd"`
+	PricingKnown         bool    `json:"pricing_known"`
+	Notes                string  `json:"notes,omitempty"`
 }
 
 // modelPrice tracks USD per 1,000,000 tokens for a model. Numbers are

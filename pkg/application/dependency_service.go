@@ -112,12 +112,12 @@ func (s *DependencyService) ScanDependentRepos(healthScanner HealthScanner) (*Sc
 	}
 
 	result := &ScanResult{
-		ScannedAt:     time.Now(),
-		TotalRepos:    0,
-		HealthyRepos:  0,
+		ScannedAt:      time.Now(),
+		TotalRepos:     0,
+		HealthyRepos:   0,
 		UnhealthyRepos: 0,
-		Unreachable:   0,
-		Details:       make(map[string]*dependency.RepoHealth),
+		Unreachable:    0,
+		Details:        make(map[string]*dependency.RepoHealth),
 	}
 
 	// Get all unique repos

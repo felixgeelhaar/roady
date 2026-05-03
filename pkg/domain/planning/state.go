@@ -213,4 +213,3 @@ func (s *ExecutionState) CompleteTask(taskID string) {
 	s.TaskStates[taskID] = result
 	s.UpdatedAt = now
 }
-

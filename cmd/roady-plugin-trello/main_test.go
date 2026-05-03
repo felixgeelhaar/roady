@@ -88,10 +88,10 @@ func TestTrelloSyncer_MapTrelloStatus(t *testing.T) {
 	syncer := &TrelloSyncer{
 		doneListID: "done-list-id",
 		lists: map[string]TrelloList{
-			"todo-list-id":       {ID: "todo-list-id", Name: "To Do"},
-			"progress-list-id":   {ID: "progress-list-id", Name: "In Progress"},
-			"done-list-id":       {ID: "done-list-id", Name: "Done"},
-			"blocked-list-id":    {ID: "blocked-list-id", Name: "Blocked"},
+			"todo-list-id":     {ID: "todo-list-id", Name: "To Do"},
+			"progress-list-id": {ID: "progress-list-id", Name: "In Progress"},
+			"done-list-id":     {ID: "done-list-id", Name: "Done"},
+			"blocked-list-id":  {ID: "blocked-list-id", Name: "Blocked"},
 		},
 	}
 
@@ -206,8 +206,8 @@ func contains(s, substr string) bool {
 	return len(s) > 0 && len(substr) > 0 &&
 		(s == substr || len(s) > len(substr) &&
 			(s[:len(substr)] == substr ||
-			 s[len(s)-len(substr):] == substr ||
-			 containsMiddle(s, substr)))
+				s[len(s)-len(substr):] == substr ||
+				containsMiddle(s, substr)))
 }
 
 func containsMiddle(s, substr string) bool {

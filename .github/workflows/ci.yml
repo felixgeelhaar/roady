@@ -51,16 +51,14 @@ jobs:
     - name: Test
       run: go test -v -coverprofile=coverage.out ./...
 
-    - name: Security Scan (Verdict)
-      run: |
-        # In a real environment, we'd install verdict or use a container
-        # For now, we simulate the scan if the binary is missing
-        if command -v verdict &> /dev/null; then
-          verdict scan .
-        else
-          echo "Verdict not found, skipping security scan in CI environment."
-        fi
-      continue-on-error: true
+    - name: Install coverctl
+      run: go install github.com/felixgeelhaar/coverctl/cmd/coverctl@latest
+
+    - name: Coverage policy gate
+      # Domain thresholds live in .coverctl.yaml (cmd / application /
+      # domain ≥ 80%, infrastructure ≥ 76%). Fails CI if any domain
+      # regresses below the floor.
+      run: coverctl check --from-profile -p coverage.out
 
   release:
     runs-on: ubuntu-latest

@@ -82,12 +82,12 @@ func (s *Server) Shutdown(ctx context.Context) error {
 
 // PageData holds data for template rendering.
 type PageData struct {
-	Title    string
-	Plan     *planning.Plan
-	State    *planning.ExecutionState
-	Tasks    []TaskView
-	Stats    DashboardStats
-	Error    string
+	Title string
+	Plan  *planning.Plan
+	State *planning.ExecutionState
+	Tasks []TaskView
+	Stats DashboardStats
+	Error string
 }
 
 // TaskView combines task and state info for display.
@@ -100,12 +100,12 @@ type TaskView struct {
 
 // DashboardStats holds summary statistics.
 type DashboardStats struct {
-	TotalTasks  int
-	Pending     int
-	InProgress  int
-	Done        int
-	Blocked     int
-	Completion  float64
+	TotalTasks int
+	Pending    int
+	InProgress int
+	Done       int
+	Blocked    int
+	Completion float64
 }
 
 func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {

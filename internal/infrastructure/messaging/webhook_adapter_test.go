@@ -10,8 +10,8 @@ import (
 	"time"
 
 	"github.com/felixgeelhaar/roady/internal/infrastructure/messaging"
-	domainmsg "github.com/felixgeelhaar/roady/pkg/domain/messaging"
 	"github.com/felixgeelhaar/roady/pkg/domain/events"
+	domainmsg "github.com/felixgeelhaar/roady/pkg/domain/messaging"
 )
 
 func TestWebhookAdapter_Send_Success(t *testing.T) {

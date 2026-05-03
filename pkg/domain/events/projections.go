@@ -164,10 +164,10 @@ func (p *TaskStateProjection) GetAllStates() map[string]*TaskState {
 
 // VelocityProjection tracks task completion velocity over time.
 type VelocityProjection struct {
-	mu           sync.RWMutex
-	completions  []time.Time
+	mu            sync.RWMutex
+	completions   []time.Time
 	verifications []time.Time
-	windowDays   int
+	windowDays    int
 }
 
 // NewVelocityProjection creates a velocity projection with a rolling window.

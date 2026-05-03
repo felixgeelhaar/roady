@@ -20,11 +20,11 @@ type WebhookEndpoint struct {
 
 // DeadLetter records a failed webhook delivery attempt.
 type DeadLetter struct {
-	Timestamp    time.Time `json:"timestamp"`
-	WebhookName  string    `json:"webhook_name"`
-	URL          string    `json:"url"`
-	EventType    string    `json:"event_type"`
-	Payload      string    `json:"payload"`
-	Error        string    `json:"error"`
-	Attempts     int       `json:"attempts"`
+	Timestamp   time.Time `json:"timestamp"`
+	WebhookName string    `json:"webhook_name"`
+	URL         string    `json:"url"`
+	EventType   string    `json:"event_type"`
+	Payload     string    `json:"payload"`
+	Error       string    `json:"error"`
+	Attempts    int       `json:"attempts"`
 }

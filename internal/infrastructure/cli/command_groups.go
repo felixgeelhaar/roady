@@ -3,10 +3,10 @@ package cli
 import "github.com/spf13/cobra"
 
 const (
-	groupGetStarted   = "getting-started"
-	groupTrackReport  = "track-report"
-	groupIntegrate    = "integrate"
-	groupAdmin        = "admin"
+	groupGetStarted  = "getting-started"
+	groupTrackReport = "track-report"
+	groupIntegrate   = "integrate"
+	groupAdmin       = "admin"
 )
 
 // commandGroupAssignments maps a top-level command name (cmd.Name()) to the

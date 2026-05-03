@@ -25,21 +25,21 @@ type CostReportEntry struct {
 }
 
 type CostReport struct {
-	GeneratedAt        time.Time         `json:"generated_at"`
-	Currency           string            `json:"currency"`
-	Period             string            `json:"period,omitempty"`
-	TaxName            string            `json:"tax_name,omitempty"`
-	TaxPercent         float64           `json:"tax_percent,omitempty"`
-	Entries            []CostReportEntry `json:"entries"`
-	TotalHours         float64           `json:"total_hours"`
-	TotalCost          float64           `json:"total_cost"`
-	TotalTax           float64           `json:"total_tax"`
-	TotalWithTax       float64           `json:"total_with_tax"`
-	TotalEstimatedHours float64          `json:"total_estimated_hours"`
-	TotalEstimatedCost  float64          `json:"total_estimated_cost"`
-	TotalCostVariance   float64          `json:"total_cost_variance"`
-	TotalHoursVariance  float64          `json:"total_hours_variance"`
-	EstimateCoverage    float64          `json:"estimate_coverage"`
+	GeneratedAt         time.Time         `json:"generated_at"`
+	Currency            string            `json:"currency"`
+	Period              string            `json:"period,omitempty"`
+	TaxName             string            `json:"tax_name,omitempty"`
+	TaxPercent          float64           `json:"tax_percent,omitempty"`
+	Entries             []CostReportEntry `json:"entries"`
+	TotalHours          float64           `json:"total_hours"`
+	TotalCost           float64           `json:"total_cost"`
+	TotalTax            float64           `json:"total_tax"`
+	TotalWithTax        float64           `json:"total_with_tax"`
+	TotalEstimatedHours float64           `json:"total_estimated_hours"`
+	TotalEstimatedCost  float64           `json:"total_estimated_cost"`
+	TotalCostVariance   float64           `json:"total_cost_variance"`
+	TotalHoursVariance  float64           `json:"total_hours_variance"`
+	EstimateCoverage    float64           `json:"estimate_coverage"`
 }
 
 func NewCostReport(currency string) *CostReport {

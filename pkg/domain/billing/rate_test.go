@@ -118,10 +118,10 @@ func TestRateConfig_RemoveRate(t *testing.T) {
 			wantCount: 0,
 		},
 		{
-			name:    "remove nonexistent",
-			initial: []Rate{{ID: "a", Name: "A", HourlyRate: 100}},
+			name:     "remove nonexistent",
+			initial:  []Rate{{ID: "a", Name: "A", HourlyRate: 100}},
 			removeID: "z",
-			wantErr: true,
+			wantErr:  true,
 		},
 	}
 

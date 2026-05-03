@@ -182,9 +182,9 @@ func outputForecastJSON(f *analytics.ForecastResult) error {
 		burndown := make([]map[string]interface{}, len(f.Burndown))
 		for i, b := range f.Burndown {
 			burndown[i] = map[string]interface{}{
-				"date":       b.Date.Format("2006-01-02"),
-				"actual":     b.Actual,
-				"projected":  b.Projected,
+				"date":         b.Date.Format("2006-01-02"),
+				"actual":       b.Actual,
+				"projected":    b.Projected,
 				"is_projected": b.IsProjected(),
 			}
 		}

@@ -79,7 +79,9 @@ func TestDriftHistoryProjection_MultipleDetections(t *testing.T) {
 			"issue_count":  1,
 		},
 	}
-	if err := p.Apply(event1); err != nil { t.Fatal(err) }
+	if err := p.Apply(event1); err != nil {
+		t.Fatal(err)
+	}
 
 	// Second detection of same drift
 	event2 := &BaseEvent{
@@ -93,7 +95,9 @@ func TestDriftHistoryProjection_MultipleDetections(t *testing.T) {
 			"issue_count":  1,
 		},
 	}
-	if err := p.Apply(event2); err != nil { t.Fatal(err) }
+	if err := p.Apply(event2); err != nil {
+		t.Fatal(err)
+	}
 
 	// Should have 2 history entries but 1 debt item with count 2
 	history := p.GetDriftHistory()
@@ -125,7 +129,9 @@ func TestDriftHistoryProjection_DriftAccepted(t *testing.T) {
 			"issue_count":  1,
 		},
 	}
-	if err := p.Apply(detectEvent); err != nil { t.Fatal(err) }
+	if err := p.Apply(detectEvent); err != nil {
+		t.Fatal(err)
+	}
 
 	// Accept drift
 	acceptEvent := &BaseEvent{

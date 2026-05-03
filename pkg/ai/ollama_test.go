@@ -278,12 +278,20 @@ func TestGetDefaultProvider_EnvOverride(t *testing.T) {
 	oldProvider := os.Getenv("ROADY_AI_PROVIDER")
 	oldModel := os.Getenv("ROADY_AI_MODEL")
 	defer func() {
-		if err := os.Setenv("ROADY_AI_PROVIDER", oldProvider); err != nil { t.Fatal(err) }
-		if err := os.Setenv("ROADY_AI_MODEL", oldModel); err != nil { t.Fatal(err) }
+		if err := os.Setenv("ROADY_AI_PROVIDER", oldProvider); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.Setenv("ROADY_AI_MODEL", oldModel); err != nil {
+			t.Fatal(err)
+		}
 	}()
 
-	if err := os.Setenv("ROADY_AI_PROVIDER", "mock"); err != nil { t.Fatal(err) }
-	if err := os.Setenv("ROADY_AI_MODEL", "env-model"); err != nil { t.Fatal(err) }
+	if err := os.Setenv("ROADY_AI_PROVIDER", "mock"); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Setenv("ROADY_AI_MODEL", "env-model"); err != nil {
+		t.Fatal(err)
+	}
 
 	p, err := infraAI.GetDefaultProvider("ollama", "llama3")
 	if err != nil {

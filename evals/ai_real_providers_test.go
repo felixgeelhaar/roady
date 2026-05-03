@@ -38,10 +38,10 @@ func realProviderSpec() *spec.ProductSpec {
 }
 
 type providerCase struct {
-	name    string
-	envKey  string
-	build   func(model, key string) domainai.Provider
-	model   string
+	name   string
+	envKey string
+	build  func(model, key string) domainai.Provider
+	model  string
 }
 
 func providerCases() []providerCase {

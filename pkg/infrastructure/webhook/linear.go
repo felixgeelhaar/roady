@@ -50,11 +50,11 @@ func (h *LinearHandler) ValidateSignature(r *http.Request, secret string) bool {
 
 // LinearPayload represents a Linear webhook payload.
 type LinearPayload struct {
-	Action        string `json:"action"`
-	Type          string `json:"type"`
-	CreatedAt     string `json:"createdAt"`
+	Action         string `json:"action"`
+	Type           string `json:"type"`
+	CreatedAt      string `json:"createdAt"`
 	OrganizationID string `json:"organizationId"`
-	Data          struct {
+	Data           struct {
 		ID          string `json:"id"`
 		Identifier  string `json:"identifier"`
 		Title       string `json:"title"`

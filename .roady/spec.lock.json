@@ -1210,6 +1210,33 @@
           "estimate": "",
           "depends_on": [],
           "source": {}
+        },
+        {
+          "id": "lr-ci-gofmt",
+          "title": "Enable gofmt in golangci-lint config",
+          "description": "Add gofmt (or gofumpt) to the enabled linters list in\n.golangci.yml so format drift cannot regress past CI.\n",
+          "priority": "high",
+          "estimate": "",
+          "depends_on": [],
+          "source": {}
+        },
+        {
+          "id": "lr-ci-coverctl",
+          "title": "Wire coverctl coverage gate into CI",
+          "description": "Install coverctl in the build job (go install\ngithub.com/felixgeelhaar/coverctl/cmd/coverctl@latest), run\n`coverctl check --from-profile -p coverage.out` after the\nexisting test step so the coverage thresholds in\n.coverctl.yaml actually gate merges.\n",
+          "priority": "high",
+          "estimate": "",
+          "depends_on": [],
+          "source": {}
+        },
+        {
+          "id": "lr-ci-remove-verdict",
+          "title": "Remove deprecated verdict step from CI",
+          "description": "verdict is deprecated; the existing step is a no-op anyway\n(continue-on-error + binary likely missing on runners).\nDelete the step; nox stays a local-pre-commit advisory\nbecause the nox binary is not publicly distributed.\n",
+          "priority": "medium",
+          "estimate": "",
+          "depends_on": [],
+          "source": {}
         }
       ],
       "source": {}

@@ -142,7 +142,7 @@ func (p *ExtendedVelocityProjection) calculateTrend(windows []analytics.Velocity
 	}
 
 	// Compare short-term vs long-term velocity
-	shortTerm := windows[0].Velocity // Smallest window (most recent)
+	shortTerm := windows[0].Velocity             // Smallest window (most recent)
 	longTerm := windows[len(windows)-1].Velocity // Largest window (includes older data)
 
 	if longTerm == 0 && shortTerm == 0 {

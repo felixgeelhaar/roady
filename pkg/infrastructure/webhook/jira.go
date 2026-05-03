@@ -61,7 +61,7 @@ type JiraIssuePayload struct {
 			Summary     string `json:"summary"`
 			Description string `json:"description"`
 			Status      struct {
-				Name       string `json:"name"`
+				Name           string `json:"name"`
 				StatusCategory struct {
 					Key string `json:"key"`
 				} `json:"statusCategory"`

@@ -61,8 +61,8 @@ type geminiPart struct {
 
 type geminiResponse struct {
 	Candidates []struct {
-		Content       geminiContent `json:"content"`
-		FinishReason  string        `json:"finishReason"`
+		Content      geminiContent `json:"content"`
+		FinishReason string        `json:"finishReason"`
 	} `json:"candidates"`
 	UsageMetadata struct {
 		PromptTokenCount     int `json:"promptTokenCount"`

@@ -199,9 +199,9 @@ func (r *Resolver) SuggestDependencies() ([]*RepoDependency, error) {
 
 // DependencyValidationResult holds the result of dependency validation.
 type DependencyValidationResult struct {
-	Dependency *RepoDependency
-	IsValid    bool
-	Error      error
+	Dependency  *RepoDependency
+	IsValid     bool
+	Error       error
 	IsRoadyRepo bool
 }
 

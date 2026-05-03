@@ -30,9 +30,9 @@ func TestTaskStatus_IsValid(t *testing.T) {
 
 func TestTaskStatus_CanTransitionTo(t *testing.T) {
 	tests := []struct {
-		from   TaskStatus
-		to     TaskStatus
-		canDo  bool
+		from  TaskStatus
+		to    TaskStatus
+		canDo bool
 	}{
 		// From Pending
 		{StatusPending, StatusInProgress, true},
@@ -135,11 +135,11 @@ func TestTaskStatus_ValidTransitions(t *testing.T) {
 		status   TaskStatus
 		expected int
 	}{
-		{StatusPending, 2},     // start, block
-		{StatusInProgress, 3},  // complete, block, stop
-		{StatusBlocked, 1},     // unblock
-		{StatusDone, 2},        // reopen, verify
-		{StatusVerified, 1},    // reopen
+		{StatusPending, 2},    // start, block
+		{StatusInProgress, 3}, // complete, block, stop
+		{StatusBlocked, 1},    // unblock
+		{StatusDone, 2},       // reopen, verify
+		{StatusVerified, 1},   // reopen
 	}
 
 	for _, tt := range tests {
@@ -176,7 +176,7 @@ func TestTaskStatus_ValidEvents(t *testing.T) {
 
 func TestTaskStatus_IsFinal(t *testing.T) {
 	tests := []struct {
-		status TaskStatus
+		status  TaskStatus
 		isFinal bool
 	}{
 		{StatusPending, false},
@@ -409,7 +409,7 @@ func TestMustParseTaskStatus_Panics(t *testing.T) {
 
 func TestTaskStatus_RequiresEvidence(t *testing.T) {
 	tests := []struct {
-		status          TaskStatus
+		status           TaskStatus
 		requiresEvidence bool
 	}{
 		{StatusPending, false},

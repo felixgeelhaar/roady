@@ -18,11 +18,11 @@ func TestFileEventStore_AppendAndLoad(t *testing.T) {
 
 	// Append events
 	event1 := &events.BaseEvent{
-		Type:          events.EventTypeTaskStarted,
-		AggregateID_:  "task-1",
+		Type:           events.EventTypeTaskStarted,
+		AggregateID_:   "task-1",
 		AggregateType_: events.AggregateTypeTask,
-		Timestamp:     time.Now(),
-		Actor:         "alice",
+		Timestamp:      time.Now(),
+		Actor:          "alice",
 		Metadata: map[string]interface{}{
 			"task_id": "task-1",
 		},
@@ -32,11 +32,11 @@ func TestFileEventStore_AppendAndLoad(t *testing.T) {
 	}
 
 	event2 := &events.BaseEvent{
-		Type:          events.EventTypeTaskCompleted,
-		AggregateID_:  "task-1",
+		Type:           events.EventTypeTaskCompleted,
+		AggregateID_:   "task-1",
 		AggregateType_: events.AggregateTypeTask,
-		Timestamp:     time.Now(),
-		Actor:         "alice",
+		Timestamp:      time.Now(),
+		Actor:          "alice",
 		Metadata: map[string]interface{}{
 			"task_id": "task-1",
 		},
@@ -140,9 +140,15 @@ func TestFileEventStore_LoadByType(t *testing.T) {
 		t.Fatalf("NewFileEventStore failed: %v", err)
 	}
 
-	if err := store.Append(&events.BaseEvent{Type: events.EventTypeTaskStarted}); err != nil { t.Fatal(err) }
-	if err := store.Append(&events.BaseEvent{Type: events.EventTypeTaskCompleted}); err != nil { t.Fatal(err) }
-	if err := store.Append(&events.BaseEvent{Type: events.EventTypeTaskStarted}); err != nil { t.Fatal(err) }
+	if err := store.Append(&events.BaseEvent{Type: events.EventTypeTaskStarted}); err != nil {
+		t.Fatal(err)
+	}
+	if err := store.Append(&events.BaseEvent{Type: events.EventTypeTaskCompleted}); err != nil {
+		t.Fatal(err)
+	}
+	if err := store.Append(&events.BaseEvent{Type: events.EventTypeTaskStarted}); err != nil {
+		t.Fatal(err)
+	}
 
 	started, err := store.LoadByType(events.EventTypeTaskStarted)
 	if err != nil {
