@@ -9,7 +9,9 @@
       "priority": "high",
       "estimate": "",
       "depends_on": [],
-      "feature_id": "predictive-velocity"
+      "feature_id": "predictive-velocity",
+      "origin": "heuristic",
+      "source": {}
     },
     {
       "id": "task-pv-projection",
@@ -20,7 +22,9 @@
       "depends_on": [
         "task-pv-types"
       ],
-      "feature_id": "predictive-velocity"
+      "feature_id": "predictive-velocity",
+      "origin": "heuristic",
+      "source": {}
     },
     {
       "id": "task-pv-service",
@@ -31,7 +35,9 @@
       "depends_on": [
         "task-pv-projection"
       ],
-      "feature_id": "predictive-velocity"
+      "feature_id": "predictive-velocity",
+      "origin": "heuristic",
+      "source": {}
     },
     {
       "id": "task-pv-cli",
@@ -42,7 +48,9 @@
       "depends_on": [
         "task-pv-service"
       ],
-      "feature_id": "predictive-velocity"
+      "feature_id": "predictive-velocity",
+      "origin": "heuristic",
+      "source": {}
     },
     {
       "id": "task-pv-mcp",
@@ -53,7 +61,9 @@
       "depends_on": [
         "task-pv-service"
       ],
-      "feature_id": "predictive-velocity"
+      "feature_id": "predictive-velocity",
+      "origin": "heuristic",
+      "source": {}
     },
     {
       "id": "task-dep-types",
@@ -62,7 +72,9 @@
       "priority": "high",
       "estimate": "",
       "depends_on": [],
-      "feature_id": "dependency-graph"
+      "feature_id": "dependency-graph",
+      "origin": "heuristic",
+      "source": {}
     },
     {
       "id": "task-dep-resolver",
@@ -73,7 +85,9 @@
       "depends_on": [
         "task-dep-types"
       ],
-      "feature_id": "dependency-graph"
+      "feature_id": "dependency-graph",
+      "origin": "heuristic",
+      "source": {}
     },
     {
       "id": "task-dep-storage",
@@ -84,7 +98,9 @@
       "depends_on": [
         "task-dep-types"
       ],
-      "feature_id": "dependency-graph"
+      "feature_id": "dependency-graph",
+      "origin": "heuristic",
+      "source": {}
     },
     {
       "id": "task-dep-service",
@@ -96,7 +112,9 @@
         "task-dep-resolver",
         "task-dep-storage"
       ],
-      "feature_id": "dependency-graph"
+      "feature_id": "dependency-graph",
+      "origin": "heuristic",
+      "source": {}
     },
     {
       "id": "task-dep-cli",
@@ -107,7 +125,9 @@
       "depends_on": [
         "task-dep-service"
       ],
-      "feature_id": "dependency-graph"
+      "feature_id": "dependency-graph",
+      "origin": "heuristic",
+      "source": {}
     },
     {
       "id": "task-dep-mcp",
@@ -118,7 +138,9 @@
       "depends_on": [
         "task-dep-service"
       ],
-      "feature_id": "dependency-graph"
+      "feature_id": "dependency-graph",
+      "origin": "heuristic",
+      "source": {}
     },
     {
       "id": "task-debt-types",
@@ -127,7 +149,9 @@
       "priority": "high",
       "estimate": "",
       "depends_on": [],
-      "feature_id": "planning-debt"
+      "feature_id": "planning-debt",
+      "origin": "heuristic",
+      "source": {}
     },
     {
       "id": "task-debt-projection",
@@ -138,7 +162,9 @@
       "depends_on": [
         "task-debt-types"
       ],
-      "feature_id": "planning-debt"
+      "feature_id": "planning-debt",
+      "origin": "heuristic",
+      "source": {}
     },
     {
       "id": "task-debt-service",
@@ -149,7 +175,9 @@
       "depends_on": [
         "task-debt-projection"
       ],
-      "feature_id": "planning-debt"
+      "feature_id": "planning-debt",
+      "origin": "heuristic",
+      "source": {}
     },
     {
       "id": "task-debt-cli",
@@ -160,7 +188,9 @@
       "depends_on": [
         "task-debt-service"
       ],
-      "feature_id": "planning-debt"
+      "feature_id": "planning-debt",
+      "origin": "heuristic",
+      "source": {}
     },
     {
       "id": "task-drift-history",
@@ -171,7 +201,9 @@
       "depends_on": [
         "task-debt-projection"
       ],
-      "feature_id": "planning-debt"
+      "feature_id": "planning-debt",
+      "origin": "heuristic",
+      "source": {}
     },
     {
       "id": "task-debt-mcp",
@@ -182,7 +214,9 @@
       "depends_on": [
         "task-debt-service"
       ],
-      "feature_id": "planning-debt"
+      "feature_id": "planning-debt",
+      "origin": "heuristic",
+      "source": {}
     },
     {
       "id": "task-vo-status",
@@ -191,7 +225,9 @@
       "priority": "high",
       "estimate": "",
       "depends_on": [],
-      "feature_id": "value-objects"
+      "feature_id": "value-objects",
+      "origin": "heuristic",
+      "source": {}
     },
     {
       "id": "task-vo-priority",
@@ -200,7 +236,9 @@
       "priority": "high",
       "estimate": "",
       "depends_on": [],
-      "feature_id": "value-objects"
+      "feature_id": "value-objects",
+      "origin": "heuristic",
+      "source": {}
     },
     {
       "id": "task-vo-approval",
@@ -209,7 +247,9 @@
       "priority": "medium",
       "estimate": "",
       "depends_on": [],
-      "feature_id": "value-objects"
+      "feature_id": "value-objects",
+      "origin": "heuristic",
+      "source": {}
     },
     {
       "id": "task-vo-integrate",
@@ -222,7 +262,9 @@
         "task-vo-priority",
         "task-vo-approval"
       ],
-      "feature_id": "value-objects"
+      "feature_id": "value-objects",
+      "origin": "heuristic",
+      "source": {}
     },
     {
       "id": "task-vo-fsm",
@@ -234,7 +276,9 @@
         "task-vo-status",
         "task-vo-integrate"
       ],
-      "feature_id": "value-objects"
+      "feature_id": "value-objects",
+      "origin": "heuristic",
+      "source": {}
     },
     {
       "id": "task-evt-dispatcher",
@@ -243,7 +287,9 @@
       "priority": "high",
       "estimate": "",
       "depends_on": [],
-      "feature_id": "domain-events"
+      "feature_id": "domain-events",
+      "origin": "heuristic",
+      "source": {}
     },
     {
       "id": "task-evt-handlers",
@@ -254,7 +300,9 @@
       "depends_on": [
         "task-evt-dispatcher"
       ],
-      "feature_id": "domain-events"
+      "feature_id": "domain-events",
+      "origin": "heuristic",
+      "source": {}
     },
     {
       "id": "task-evt-notifiers",
@@ -265,7 +313,9 @@
       "depends_on": [
         "task-evt-dispatcher"
       ],
-      "feature_id": "domain-events"
+      "feature_id": "domain-events",
+      "origin": "heuristic",
+      "source": {}
     },
     {
       "id": "task-evt-integrate",
@@ -276,7 +326,9 @@
       "depends_on": [
         "task-evt-handlers"
       ],
-      "feature_id": "domain-events"
+      "feature_id": "domain-events",
+      "origin": "heuristic",
+      "source": {}
     },
     {
       "id": "task-evt-production-wiring",
@@ -287,7 +339,9 @@
       "depends_on": [
         "task-evt-integrate"
       ],
-      "feature_id": "domain-events"
+      "feature_id": "domain-events",
+      "origin": "heuristic",
+      "source": {}
     },
     {
       "id": "task-agg-coordinator",
@@ -296,7 +350,9 @@
       "priority": "high",
       "estimate": "",
       "depends_on": [],
-      "feature_id": "aggregate-consolidation"
+      "feature_id": "aggregate-consolidation",
+      "origin": "heuristic",
+      "source": {}
     },
     {
       "id": "task-agg-operations",
@@ -307,7 +363,9 @@
       "depends_on": [
         "task-agg-coordinator"
       ],
-      "feature_id": "aggregate-consolidation"
+      "feature_id": "aggregate-consolidation",
+      "origin": "heuristic",
+      "source": {}
     },
     {
       "id": "task-agg-snapshot",
@@ -318,7 +376,9 @@
       "depends_on": [
         "task-agg-coordinator"
       ],
-      "feature_id": "aggregate-consolidation"
+      "feature_id": "aggregate-consolidation",
+      "origin": "heuristic",
+      "source": {}
     },
     {
       "id": "task-agg-integrate",
@@ -330,7 +390,9 @@
         "task-agg-operations",
         "task-agg-snapshot"
       ],
-      "feature_id": "aggregate-consolidation"
+      "feature_id": "aggregate-consolidation",
+      "origin": "heuristic",
+      "source": {}
     },
     {
       "id": "task-d3-org-charts",
@@ -339,7 +401,9 @@
       "priority": "high",
       "estimate": "",
       "depends_on": [],
-      "feature_id": "interactive-d3-mcp-app-visualizations"
+      "feature_id": "interactive-d3-mcp-app-visualizations",
+      "origin": "heuristic",
+      "source": {}
     },
     {
       "id": "task-d3-forecast-refactor",
@@ -348,7 +412,9 @@
       "priority": "medium",
       "estimate": "",
       "depends_on": [],
-      "feature_id": "interactive-d3-mcp-app-visualizations"
+      "feature_id": "interactive-d3-mcp-app-visualizations",
+      "origin": "heuristic",
+      "source": {}
     },
     {
       "id": "task-d3-git-sync-refactor",
@@ -357,7 +423,9 @@
       "priority": "low",
       "estimate": "",
       "depends_on": [],
-      "feature_id": "interactive-d3-mcp-app-visualizations"
+      "feature_id": "interactive-d3-mcp-app-visualizations",
+      "origin": "heuristic",
+      "source": {}
     },
     {
       "id": "task-d3-sync-charts",
@@ -366,7 +434,9 @@
       "priority": "medium",
       "estimate": "",
       "depends_on": [],
-      "feature_id": "interactive-d3-mcp-app-visualizations"
+      "feature_id": "interactive-d3-mcp-app-visualizations",
+      "origin": "heuristic",
+      "source": {}
     },
     {
       "id": "task-d3-interaction-polish",
@@ -379,7 +449,9 @@
         "task-d3-forecast-refactor",
         "task-d3-sync-charts"
       ],
-      "feature_id": "interactive-d3-mcp-app-visualizations"
+      "feature_id": "interactive-d3-mcp-app-visualizations",
+      "origin": "heuristic",
+      "source": {}
     },
     {
       "id": "task-org-dashboard",
@@ -388,7 +460,9 @@
       "priority": "high",
       "estimate": "",
       "depends_on": [],
-      "feature_id": "multi-repo-org"
+      "feature_id": "multi-repo-org",
+      "origin": "heuristic",
+      "source": {}
     },
     {
       "id": "task-org-shared-policies",
@@ -399,7 +473,9 @@
       "depends_on": [
         "task-org-dashboard"
       ],
-      "feature_id": "multi-repo-org"
+      "feature_id": "multi-repo-org",
+      "origin": "heuristic",
+      "source": {}
     },
     {
       "id": "task-org-cross-drift",
@@ -410,7 +486,9 @@
       "depends_on": [
         "task-org-dashboard"
       ],
-      "feature_id": "multi-repo-org"
+      "feature_id": "multi-repo-org",
+      "origin": "heuristic",
+      "source": {}
     },
     {
       "id": "task-plugin-contracts",
@@ -419,7 +497,9 @@
       "priority": "high",
       "estimate": "",
       "depends_on": [],
-      "feature_id": "plugin-hardening"
+      "feature_id": "plugin-hardening",
+      "origin": "heuristic",
+      "source": {}
     },
     {
       "id": "task-plugin-registry",
@@ -430,7 +510,9 @@
       "depends_on": [
         "task-plugin-contracts"
       ],
-      "feature_id": "plugin-hardening"
+      "feature_id": "plugin-hardening",
+      "origin": "heuristic",
+      "source": {}
     },
     {
       "id": "task-plugin-health",
@@ -441,7 +523,9 @@
       "depends_on": [
         "task-plugin-contracts"
       ],
-      "feature_id": "plugin-hardening"
+      "feature_id": "plugin-hardening",
+      "origin": "heuristic",
+      "source": {}
     },
     {
       "id": "task-notif-webhooks",
@@ -450,7 +534,9 @@
       "priority": "high",
       "estimate": "",
       "depends_on": [],
-      "feature_id": "notification-integration"
+      "feature_id": "notification-integration",
+      "origin": "heuristic",
+      "source": {}
     },
     {
       "id": "task-notif-slack",
@@ -461,7 +547,9 @@
       "depends_on": [
         "task-notif-webhooks"
       ],
-      "feature_id": "notification-integration"
+      "feature_id": "notification-integration",
+      "origin": "heuristic",
+      "source": {}
     },
     {
       "id": "task-notif-realtime",
@@ -470,7 +558,9 @@
       "priority": "medium",
       "estimate": "",
       "depends_on": [],
-      "feature_id": "notification-integration"
+      "feature_id": "notification-integration",
+      "origin": "heuristic",
+      "source": {}
     },
     {
       "id": "task-watch-fsnotify",
@@ -479,7 +569,9 @@
       "priority": "high",
       "estimate": "",
       "depends_on": [],
-      "feature_id": "watch-enhancement"
+      "feature_id": "watch-enhancement",
+      "origin": "heuristic",
+      "source": {}
     },
     {
       "id": "task-watch-auto-sync",
@@ -490,7 +582,9 @@
       "depends_on": [
         "task-watch-fsnotify"
       ],
-      "feature_id": "watch-enhancement"
+      "feature_id": "watch-enhancement",
+      "origin": "heuristic",
+      "source": {}
     },
     {
       "id": "task-watch-patterns",
@@ -501,7 +595,9 @@
       "depends_on": [
         "task-watch-fsnotify"
       ],
-      "feature_id": "watch-enhancement"
+      "feature_id": "watch-enhancement",
+      "origin": "heuristic",
+      "source": {}
     },
     {
       "id": "task-dx-shell-completions",
@@ -510,7 +606,9 @@
       "priority": "high",
       "estimate": "",
       "depends_on": [],
-      "feature_id": "developer-experience"
+      "feature_id": "developer-experience",
+      "origin": "heuristic",
+      "source": {}
     },
     {
       "id": "task-dx-error-messages",
@@ -519,7 +617,9 @@
       "priority": "high",
       "estimate": "",
       "depends_on": [],
-      "feature_id": "developer-experience"
+      "feature_id": "developer-experience",
+      "origin": "heuristic",
+      "source": {}
     },
     {
       "id": "task-dx-config-wizard",
@@ -530,7 +630,9 @@
       "depends_on": [
         "task-dx-error-messages"
       ],
-      "feature_id": "developer-experience"
+      "feature_id": "developer-experience",
+      "origin": "heuristic",
+      "source": {}
     },
     {
       "id": "task-dx-onboarding",
@@ -542,7 +644,9 @@
         "task-dx-config-wizard",
         "task-dx-shell-completions"
       ],
-      "feature_id": "developer-experience"
+      "feature_id": "developer-experience",
+      "origin": "heuristic",
+      "source": {}
     },
     {
       "id": "task-sdk-mcp-schema",
@@ -551,7 +655,9 @@
       "priority": "high",
       "estimate": "",
       "depends_on": [],
-      "feature_id": "api-sdk-stability"
+      "feature_id": "api-sdk-stability",
+      "origin": "heuristic",
+      "source": {}
     },
     {
       "id": "task-sdk-go-client",
@@ -560,7 +666,9 @@
       "priority": "high",
       "estimate": "",
       "depends_on": [],
-      "feature_id": "api-sdk-stability"
+      "feature_id": "api-sdk-stability",
+      "origin": "heuristic",
+      "source": {}
     },
     {
       "id": "task-sdk-openapi",
@@ -571,7 +679,9 @@
       "depends_on": [
         "task-sdk-mcp-schema"
       ],
-      "feature_id": "api-sdk-stability"
+      "feature_id": "api-sdk-stability",
+      "origin": "heuristic",
+      "source": {}
     },
     {
       "id": "task-sdk-client-helpers",
@@ -582,7 +692,9 @@
       "depends_on": [
         "task-sdk-go-client"
       ],
-      "feature_id": "api-sdk-stability"
+      "feature_id": "api-sdk-stability",
+      "origin": "heuristic",
+      "source": {}
     },
     {
       "id": "task-collab-task-assignment",
@@ -591,7 +703,9 @@
       "priority": "high",
       "estimate": "",
       "depends_on": [],
-      "feature_id": "multi-user-collaboration"
+      "feature_id": "multi-user-collaboration",
+      "origin": "heuristic",
+      "source": {}
     },
     {
       "id": "task-collab-team-roles",
@@ -602,7 +716,9 @@
       "depends_on": [
         "task-collab-task-assignment"
       ],
-      "feature_id": "multi-user-collaboration"
+      "feature_id": "multi-user-collaboration",
+      "origin": "heuristic",
+      "source": {}
     },
     {
       "id": "task-collab-conflict-resolution",
@@ -613,7 +729,9 @@
       "depends_on": [
         "task-collab-task-assignment"
       ],
-      "feature_id": "multi-user-collaboration"
+      "feature_id": "multi-user-collaboration",
+      "origin": "heuristic",
+      "source": {}
     },
     {
       "id": "task-collab-shared-workspaces",
@@ -625,7 +743,282 @@
         "task-collab-conflict-resolution",
         "task-collab-team-roles"
       ],
-      "feature_id": "multi-user-collaboration"
+      "feature_id": "multi-user-collaboration",
+      "origin": "heuristic",
+      "source": {}
+    },
+    {
+      "id": "task-err-cli-help-groups",
+      "title": "Group CLI --help output by user intent (Expert Review Refinements (v0.9.0))",
+      "description": "Reorder Cobra command listing in `roady --help` into groups\n(Get Started, Track \u0026 Report, Integrate, Admin) using cobra\ncommand groups so the golden path surfaces above the noise.\nPure presentation, no API breakage.\n",
+      "priority": "high",
+      "estimate": "",
+      "depends_on": [],
+      "feature_id": "expert-review-refinements",
+      "origin": "heuristic",
+      "source": {}
+    },
+    {
+      "id": "task-err-init-interactive-default",
+      "title": "Make `roady init` interactive by default (Expert Review Refinements (v0.9.0))",
+      "description": "When `roady init` runs without --template or in a TTY, default\nto the existing wizard flow. Add --non-interactive flag for CI.\nPrints next-step CTA on completion (run `roady setup \u003ctool\u003e`).\n",
+      "priority": "high",
+      "estimate": "",
+      "depends_on": [],
+      "feature_id": "expert-review-refinements",
+      "origin": "heuristic",
+      "source": {}
+    },
+    {
+      "id": "task-err-demo-command",
+      "title": "Add `roady demo` command (Expert Review Refinements (v0.9.0))",
+      "description": "New top-level command that scaffolds a pre-seeded .roady/ with\nan intentional spec/plan/state divergence and runs drift detect\nso a new user sees the product's core value in \u003c60 seconds with\nzero prerequisites. Exits cleanly, suggests `roady drift accept`.\n",
+      "priority": "high",
+      "estimate": "",
+      "depends_on": [],
+      "feature_id": "expert-review-refinements",
+      "origin": "heuristic",
+      "source": {}
+    },
+    {
+      "id": "task-err-status-empty-state-cta",
+      "title": "Empty-state CTAs on `roady status` (Expert Review Refinements (v0.9.0))",
+      "description": "When `roady status` runs against an uninitialized or empty\nproject, replace the bare warning with an actionable next-step\nladder: init -\u003e spec analyze -\u003e plan generate -\u003e task ready.\nDetects which step is missing and points there.\n",
+      "priority": "medium",
+      "estimate": "",
+      "depends_on": [
+        "task-err-init-interactive-default"
+      ],
+      "feature_id": "expert-review-refinements",
+      "origin": "heuristic",
+      "source": {}
+    },
+    {
+      "id": "task-aqt-eval-fixtures",
+      "title": "Eval fixture corpus for spec -\u003e plan (AI Quality \u0026 Telemetry (v0.10.0))",
+      "description": "Add an `evals/fixtures/` directory with 2-3 representative spec\ninputs (small CLI, web API, multi-feature) and corresponding\ngolden plan structures (task IDs + dependency edges) used to\nanchor regression tests for the heuristic and AI planners.\n",
+      "priority": "high",
+      "estimate": "",
+      "depends_on": [],
+      "feature_id": "ai-quality-telemetry",
+      "origin": "heuristic",
+      "source": {}
+    },
+    {
+      "id": "task-aqt-eval-runner",
+      "title": "Eval runner test harness (AI Quality \u0026 Telemetry (v0.10.0))",
+      "description": "Add `evals/runner_test.go` that loads each fixture, invokes the\nheuristic PlanService against it, and asserts the produced task\nIDs and dependency closure match the golden. Runs under standard\n`go test ./evals/...` and is wired into CI naturally.\n",
+      "priority": "high",
+      "estimate": "",
+      "depends_on": [
+        "task-aqt-eval-fixtures"
+      ],
+      "feature_id": "ai-quality-telemetry",
+      "origin": "heuristic",
+      "source": {}
+    },
+    {
+      "id": "task-aqt-eval-readme",
+      "title": "Eval harness documentation (AI Quality \u0026 Telemetry (v0.10.0))",
+      "description": "Document how to add a new fixture, how to update goldens after\nan intentional planner change, and the policy for AI-provider\nevals (mock provider in CI, optional matrix run locally).\n",
+      "priority": "medium",
+      "estimate": "",
+      "depends_on": [
+        "task-aqt-eval-runner"
+      ],
+      "feature_id": "ai-quality-telemetry",
+      "origin": "heuristic",
+      "source": {}
+    },
+    {
+      "id": "task-aqt-task-origin",
+      "title": "Task.Origin provenance field (AI Quality \u0026 Telemetry (v0.10.0))",
+      "description": "Add an Origin field on planning.Task (\"heuristic\" | \"ai\" | \"human\")\nwith a default of \"heuristic\" so existing data stays valid. The\nheuristic planner tags every task it emits as \"heuristic\"; the AI\nplanning service tags AI-produced tasks as \"ai\". Status/plan\nreadouts surface the origin so reviewers can scrutinise AI tasks.\n",
+      "priority": "high",
+      "estimate": "",
+      "depends_on": [],
+      "feature_id": "ai-quality-telemetry",
+      "origin": "heuristic",
+      "source": {}
+    },
+    {
+      "id": "task-aqt-completion-confidence",
+      "title": "CompletionResponse confidence and source refs (AI Quality \u0026 Telemetry (v0.10.0))",
+      "description": "Extend ai.CompletionResponse with optional Confidence (0..1) and\nSourceRefs ([]SourceRef{Doc, Span}) fields. Provider impls fill\nthese where supported; callers may ignore. Non-breaking — additive\nstruct fields only.\n",
+      "priority": "medium",
+      "estimate": "",
+      "depends_on": [],
+      "feature_id": "ai-quality-telemetry",
+      "origin": "heuristic",
+      "source": {}
+    },
+    {
+      "id": "task-aqt-mcp-tasks-namespace",
+      "title": "Consolidate task-listing MCP tools into roady_tasks (AI Quality \u0026 Telemetry (v0.10.0))",
+      "description": "Add a parameterised roady_tasks MCP tool that supersedes\nroady_get_ready_tasks / roady_get_in_progress_tasks /\nroady_get_blocked_tasks. Take a status enum parameter\n(ready|in_progress|blocked|all). Keep the legacy tools registered\nas deprecation aliases that delegate to the new handler so agents\nalready coded against them keep working.\n",
+      "priority": "high",
+      "estimate": "",
+      "depends_on": [],
+      "feature_id": "ai-quality-telemetry",
+      "origin": "heuristic",
+      "source": {}
+    },
+    {
+      "id": "task-aqt-cost-estimate",
+      "title": "Pre-flight roady_cost_estimate MCP tool (AI Quality \u0026 Telemetry (v0.10.0))",
+      "description": "Add an MCP tool that estimates input/output tokens and USD cost\nfor the planned AI operations (generate_plan, smart_decompose,\nreview_spec, explain_drift, query) before they run. Estimates use\ncurrent spec size, the configured AI provider, and a model\npricing table for common providers (Anthropic, OpenAI, Gemini,\nOllama). Lets agents and humans decide whether to proceed before\nburning tokens.\n",
+      "priority": "medium",
+      "estimate": "",
+      "depends_on": [
+        "task-aqt-completion-confidence"
+      ],
+      "feature_id": "ai-quality-telemetry",
+      "origin": "heuristic",
+      "source": {}
+    },
+    {
+      "id": "task-aqt-mcp-naming-aliases",
+      "title": "Standardise MCP tool names with deprecation aliases (AI Quality \u0026 Telemetry (v0.10.0))",
+      "description": "Add canonical aliases for two off-pattern tool names while\nkeeping the originals registered. roady_smart_decompose gets a\nroady_plan_decompose alias. roady_sticky_drift gets a\nroady_drift_recurring alias. Both legacy names get a DEPRECATED\nmarker in their description. Pure additive change.\n",
+      "priority": "medium",
+      "estimate": "",
+      "depends_on": [
+        "task-aqt-mcp-tasks-namespace"
+      ],
+      "feature_id": "ai-quality-telemetry",
+      "origin": "heuristic",
+      "source": {}
+    },
+    {
+      "id": "task-aqt-notify-namespace",
+      "title": "Unify outbound notifications under roady notify (AI Quality \u0026 Telemetry (v0.10.0))",
+      "description": "Add a top-level roady notify command with add/list/test/remove\nsubcommands that share the messaging-adapter implementation\ntoday fragmented across roady messaging and roady webhook notif.\nExisting commands stay registered as deprecation aliases that\nprint a one-line migration hint and delegate to the same\nhandlers. No data migration; both legacy paths keep working.\n",
+      "priority": "medium",
+      "estimate": "",
+      "depends_on": [
+        "task-aqt-mcp-naming-aliases"
+      ],
+      "feature_id": "ai-quality-telemetry",
+      "origin": "heuristic",
+      "source": {}
+    },
+    {
+      "id": "task-aqt-eval-ai-matrix",
+      "title": "Eval matrix over AI planner with programmable mock provider (AI Quality \u0026 Telemetry (v0.10.0))",
+      "description": "Extend evals/ to cover the AI planning pipeline (DecomposeSpec)\nusing a programmable mock provider that returns canned JSON.\nAssert tasks parse, the Origin field is set to \"ai\", required\nfields populate, and feature coverage is preserved. Lays the\ngroundwork for an opt-in real-provider matrix gated on a build\ntag so CI never spends tokens.\n",
+      "priority": "medium",
+      "estimate": "",
+      "depends_on": [
+        "task-aqt-task-origin",
+        "task-aqt-eval-runner"
+      ],
+      "feature_id": "ai-quality-telemetry",
+      "origin": "heuristic",
+      "source": {}
+    },
+    {
+      "id": "task-aqt-eval-drift-corpus",
+      "title": "Drift detector precision and recall corpus (AI Quality \u0026 Telemetry (v0.10.0))",
+      "description": "Add a synthetic-divergence corpus to evals/. Each scenario\nstages a spec/plan/state trio with a known mismatch (intent\ndrift via lock divergence, plan drift via missing requirement,\nno drift in the healthy baseline). The runner asserts the\nDriftService report contains exactly the expected issue\ncategories — locking down precision (no false positives on\nhealthy state) and recall (all known mismatches surface).\n",
+      "priority": "medium",
+      "estimate": "",
+      "depends_on": [
+        "task-aqt-eval-runner"
+      ],
+      "feature_id": "ai-quality-telemetry",
+      "origin": "heuristic",
+      "source": {}
+    },
+    {
+      "id": "task-aqt-source-citations",
+      "title": "Wire source-doc citations through spec analyze to tasks (AI Quality \u0026 Telemetry (v0.10.0))",
+      "description": "Add an optional Source{Doc,Line} on spec.Feature and spec.Requirement\ncaptured during AnalyzeDirectory parsing (markdown file path +\nheading line number). Heuristic planner copies the originating\nfeature's Source onto each emitted task so the plan carries\ntraceability back to the doc that motivated it. Status output\nshows a \"from doc:line\" annotation when present.\n",
+      "priority": "medium",
+      "estimate": "",
+      "depends_on": [
+        "task-aqt-task-origin"
+      ],
+      "feature_id": "ai-quality-telemetry",
+      "origin": "heuristic",
+      "source": {}
+    },
+    {
+      "id": "task-aqt-ai-progress-cancel",
+      "title": "AI command progress feedback and clean cancellation (AI Quality \u0026 Telemetry (v0.10.0))",
+      "description": "Wrap each AI-backed CLI invocation (plan generate --ai, plan\nsmart-decompose, plan prioritize, drift explain, query) in a\nshared helper that prints an elapsed-time tick every few\nseconds while the provider is working and translates SIGINT\ninto a context cancellation so users can abort runaway calls\nwithout leaking the request. Doherty Threshold mitigation;\nno provider interface change.\n",
+      "priority": "medium",
+      "estimate": "",
+      "depends_on": [],
+      "feature_id": "ai-quality-telemetry",
+      "origin": "heuristic",
+      "source": {}
+    },
+    {
+      "id": "task-aqt-streaming-contract",
+      "title": "OnToken streaming callback on CompletionRequest (AI Quality \u0026 Telemetry (v0.10.0))",
+      "description": "Add an optional OnToken func(chunk string) field on\nai.CompletionRequest so streaming-capable providers can emit\ntoken chunks as they arrive. Non-streaming providers ignore\nthe field; existing callers are unaffected (additive only).\nAdd a streaming-capable mock provider used by tests to lock\nthe contract. Real per-provider SSE wiring lands separately.\n",
+      "priority": "medium",
+      "estimate": "",
+      "depends_on": [
+        "task-aqt-completion-confidence"
+      ],
+      "feature_id": "ai-quality-telemetry",
+      "origin": "heuristic",
+      "source": {}
+    },
+    {
+      "id": "task-aqt-mcp-streaming-bridge",
+      "title": "Bridge AI streaming to MCP progress notifications (AI Quality \u0026 Telemetry (v0.10.0))",
+      "description": "Wire an MCP-side helper that, when a ProgressToken is supplied\non the request context, installs an OnToken callback (via\nai.WithOnToken) that forwards each streamed chunk as an MCP\nprogress notification. Apply to every AI-backed MCP handler:\nexplain_drift, explain_spec, query, suggest_priorities,\nreview_spec, smart_decompose. Clients that subscribe to the\nprogress token see token-by-token output; clients that don't\nsee no behavioural change.\n",
+      "priority": "high",
+      "estimate": "",
+      "depends_on": [
+        "task-aqt-streaming-end-to-end"
+      ],
+      "feature_id": "ai-quality-telemetry",
+      "origin": "heuristic",
+      "source": {}
+    },
+    {
+      "id": "task-aqt-eval-ai-build-tag",
+      "title": "EVAL_AI build-tag harness for opt-in real-provider matrix (AI Quality \u0026 Telemetry (v0.10.0))",
+      "description": "Add a //go:build evals_ai gated test file that exercises the\nreal Anthropic / OpenAI / Gemini / Ollama providers against a\nshared spec when the corresponding API key env vars are set.\nDocumented in evals/README. Default builds skip it; opt-in\nwith `go test -tags evals_ai ./evals/...` for local validation.\n",
+      "priority": "medium",
+      "estimate": "",
+      "depends_on": [
+        "task-aqt-eval-ai-matrix"
+      ],
+      "feature_id": "ai-quality-telemetry",
+      "origin": "heuristic",
+      "source": {}
+    },
+    {
+      "id": "task-aqt-ai-task-source-population",
+      "title": "AI tasks inherit source citations from spec features (AI Quality \u0026 Telemetry (v0.10.0))",
+      "description": "Today the heuristic planner copies spec.Feature.Source / spec.Requirement.Source\nonto each emitted task, but tasks produced by the AI planner\n(DecomposeSpec) never carry Source because the JSON the model\nreturns has no source field. Post-process the AI task list and\nbackfill TaskSource by looking up the originating Feature (and\noptionally Requirement) by ID. Same goes for the coverage\nfallback path. Result: every task in the plan, regardless of\norigin, carries provenance back to the doc that motivated it.\n",
+      "priority": "high",
+      "estimate": "",
+      "depends_on": [
+        "task-aqt-source-citations",
+        "task-aqt-task-origin"
+      ],
+      "feature_id": "ai-quality-telemetry",
+      "origin": "heuristic",
+      "source": {}
+    },
+    {
+      "id": "task-aqt-streaming-end-to-end",
+      "title": "Real provider streaming wired end-to-end (AI Quality \u0026 Telemetry (v0.10.0))",
+      "description": "Replace the contract-only streaming with real implementations:\n(a) Anthropic SSE messages endpoint with content_block_delta\nparsing, (b) OpenAI Chat Completions SSE delta parsing,\n(c) Gemini streamGenerateContent with alt=sse, (d) Ollama\nNDJSON Stream:true. Each provider emits via OnToken when set,\nfalls back to its existing buffered behaviour otherwise, and\npopulates Confidence from the natural stop signal where one\nexists. Wire ai.WithOnToken / OnTokenFromContext through\nAIPlanningService so a single CLI/MCP layer setter rides\nthrough all nine AI call sites. CLI withAIProgress installs\nthe sink, prints streamed tokens to stderr, and steps the\nelapsed-time ticker out of the way once tokens flow. Locked\nby httptest-backed unit tests for each provider plus an\nevals/streaming_runner_test end-to-end check.\n",
+      "priority": "high",
+      "estimate": "",
+      "depends_on": [
+        "task-aqt-streaming-contract",
+        "task-aqt-ai-progress-cancel"
+      ],
+      "feature_id": "ai-quality-telemetry",
+      "origin": "heuristic",
+      "source": {}
     },
     {
       "id": "task-ai-spec-review",
@@ -634,7 +1027,9 @@
       "priority": "high",
       "estimate": "",
       "depends_on": [],
-      "feature_id": "ai-powered-workflows"
+      "feature_id": "ai-powered-workflows",
+      "origin": "heuristic",
+      "source": {}
     },
     {
       "id": "task-ai-auto-prioritize",
@@ -645,7 +1040,9 @@
       "depends_on": [
         "task-ai-spec-review"
       ],
-      "feature_id": "ai-powered-workflows"
+      "feature_id": "ai-powered-workflows",
+      "origin": "heuristic",
+      "source": {}
     },
     {
       "id": "task-ai-smart-decompose",
@@ -656,7 +1053,9 @@
       "depends_on": [
         "task-ai-auto-prioritize"
       ],
-      "feature_id": "ai-powered-workflows"
+      "feature_id": "ai-powered-workflows",
+      "origin": "heuristic",
+      "source": {}
     },
     {
       "id": "task-ai-natural-language",
@@ -667,7 +1066,31 @@
       "depends_on": [
         "task-ai-spec-review"
       ],
-      "feature_id": "ai-powered-workflows"
+      "feature_id": "ai-powered-workflows",
+      "origin": "heuristic",
+      "source": {}
+    },
+    {
+      "id": "task-collab-assignment",
+      "title": "Task assignment with Assignee field (Multi-User Collaboration)",
+      "description": "Add Assignee field to Task domain entity, implement assign/unassign operations in CLI and MCP, persist in plan.json and state.json.",
+      "priority": "high",
+      "estimate": "",
+      "depends_on": [],
+      "feature_id": "multi-user-collaboration",
+      "source": {}
+    },
+    {
+      "id": "task-collab-conflict",
+      "title": "Optimistic locking for concurrency (Multi-User Collaboration)",
+      "description": "Optimistic locking for concurrent state modifications. Add version field to state.json, check-and-set semantics on write, conflict error with merge hints.",
+      "priority": "medium",
+      "estimate": "",
+      "depends_on": [
+        "task-collab-assignment"
+      ],
+      "feature_id": "multi-user-collaboration",
+      "source": {}
     },
     {
       "id": "task-collab-shared",
@@ -679,30 +1102,11 @@
         "task-collab-conflict",
         "task-collab-team-roles"
       ],
-      "feature_id": "multi-user-collaboration"
-    },
-    {
-      "id": "task-collab-assignment",
-      "title": "Task assignment with Assignee field (Multi-User Collaboration)",
-      "description": "Add Assignee field to Task domain entity, implement assign/unassign operations in CLI and MCP, persist in plan.json and state.json.",
-      "priority": "high",
-      "estimate": "",
-      "depends_on": [],
-      "feature_id": "multi-user-collaboration"
-    },
-    {
-      "id": "task-collab-conflict",
-      "title": "Optimistic locking for concurrency (Multi-User Collaboration)",
-      "description": "Optimistic locking for concurrent state modifications. Add version field to state.json, check-and-set semantics on write, conflict error with merge hints.",
-      "priority": "medium",
-      "estimate": "",
-      "depends_on": [
-        "task-collab-assignment"
-      ],
-      "feature_id": "multi-user-collaboration"
+      "feature_id": "multi-user-collaboration",
+      "source": {}
     }
   ],
   "approval_status": "approved",
   "created_at": "2026-01-31T18:00:00+01:00",
-  "updated_at": "2026-02-01T12:25:58.488411+01:00"
+  "updated_at": "2026-05-03T11:46:54.977114+02:00"
 }

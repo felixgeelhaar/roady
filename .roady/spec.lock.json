@@ -1,7 +1,7 @@
 {
   "id": "horizons-8",
-  "title": "Roady v0.8.0: Developer Platform",
-  "description": "Roady planning system — v0.8.0 roadmap:\n- v0.5.0 (complete): Horizons 5 \u0026 6 — predictive analytics, domain hardening, event sourcing.\n- v0.6.0 (complete): Multi-repo org dashboard, plugin contracts, notification webhooks, fsnotify watch,\n  coordinator integration into CLI/MCP with snapshot and task queries.\n- v0.7.0 (complete): Org policy inheritance, cross-project drift, plugin registry and health,\n  Slack/realtime notifications, watch auto-sync and patterns.\n- v0.8.0: Developer experience polish, API/SDK stability, multi-user collaboration, AI-powered workflows.\n",
+  "title": "Roady v0.10.0: AI Quality \u0026 Telemetry",
+  "description": "Roady planning system roadmap:\n- v0.5.0 (complete): Horizons 5 \u0026 6 — predictive analytics, domain hardening, event sourcing.\n- v0.6.0 (complete): Multi-repo org dashboard, plugin contracts, notification webhooks, fsnotify watch,\n  coordinator integration into CLI/MCP with snapshot and task queries.\n- v0.7.0 (complete): Org policy inheritance, cross-project drift, plugin registry and health,\n  Slack/realtime notifications, watch auto-sync and patterns.\n- v0.8.0 (complete): Developer experience polish, API/SDK stability, multi-user collaboration,\n  AI-powered workflows, interactive D3 MCP app visualizations.\n- v0.9.0 (complete): Expert-review-driven refinements — sharpen onboarding, reduce CLI\n  cognitive load, ship a pre-seeded demo, fix empty-state UX.\n- v0.10.0 (complete): AI quality and telemetry — eval harness over the planning\n  pipeline (heuristic + AI mock + drift corpus), Task.Origin provenance, source-doc\n  citations through spec analyze, CompletionResponse confidence + sources +\n  streaming OnToken contract, MCP tool consolidation (roady_tasks +\n  roady_cost_estimate), naming standardisation aliases, roady notify namespace\n  unification, AI command progress feedback with SIGINT cancellation.\n",
   "features": [
     {
       "id": "predictive-velocity",
@@ -14,7 +14,8 @@
           "description": "Create pkg/domain/analytics/velocity.go with VelocityTrend, ConfidenceInterval, BurndownPoint types",
           "priority": "high",
           "estimate": "",
-          "depends_on": []
+          "depends_on": [],
+          "source": {}
         },
         {
           "id": "pv-projection",
@@ -24,7 +25,8 @@
           "estimate": "",
           "depends_on": [
             "pv-types"
-          ]
+          ],
+          "source": {}
         },
         {
           "id": "pv-service",
@@ -34,7 +36,8 @@
           "estimate": "",
           "depends_on": [
             "pv-projection"
-          ]
+          ],
+          "source": {}
         },
         {
           "id": "pv-cli",
@@ -44,7 +47,8 @@
           "estimate": "",
           "depends_on": [
             "pv-service"
-          ]
+          ],
+          "source": {}
         },
         {
           "id": "pv-mcp",
@@ -54,9 +58,11 @@
           "estimate": "",
           "depends_on": [
             "pv-service"
-          ]
+          ],
+          "source": {}
         }
-      ]
+      ],
+      "source": {}
     },
     {
       "id": "dependency-graph",
@@ -69,7 +75,8 @@
           "description": "Create pkg/domain/dependency/graph.go with RepoDependency, DependencyGraph, RepoHealth types",
           "priority": "high",
           "estimate": "",
-          "depends_on": []
+          "depends_on": [],
+          "source": {}
         },
         {
           "id": "dep-resolver",
@@ -79,7 +86,8 @@
           "estimate": "",
           "depends_on": [
             "dep-types"
-          ]
+          ],
+          "source": {}
         },
         {
           "id": "dep-storage",
@@ -89,7 +97,8 @@
           "estimate": "",
           "depends_on": [
             "dep-types"
-          ]
+          ],
+          "source": {}
         },
         {
           "id": "dep-service",
@@ -100,7 +109,8 @@
           "depends_on": [
             "dep-resolver",
             "dep-storage"
-          ]
+          ],
+          "source": {}
         },
         {
           "id": "dep-cli",
@@ -110,7 +120,8 @@
           "estimate": "",
           "depends_on": [
             "dep-service"
-          ]
+          ],
+          "source": {}
         },
         {
           "id": "dep-mcp",
@@ -120,9 +131,11 @@
           "estimate": "",
           "depends_on": [
             "dep-service"
-          ]
+          ],
+          "source": {}
         }
-      ]
+      ],
+      "source": {}
     },
     {
       "id": "planning-debt",
@@ -135,7 +148,8 @@
           "description": "Create pkg/domain/debt/debt.go with DebtItem, DebtScore, DebtReport types",
           "priority": "high",
           "estimate": "",
-          "depends_on": []
+          "depends_on": [],
+          "source": {}
         },
         {
           "id": "debt-projection",
@@ -145,7 +159,8 @@
           "estimate": "",
           "depends_on": [
             "debt-types"
-          ]
+          ],
+          "source": {}
         },
         {
           "id": "debt-service",
@@ -155,7 +170,8 @@
           "estimate": "",
           "depends_on": [
             "debt-projection"
-          ]
+          ],
+          "source": {}
         },
         {
           "id": "debt-cli",
@@ -165,7 +181,8 @@
           "estimate": "",
           "depends_on": [
             "debt-service"
-          ]
+          ],
+          "source": {}
         },
         {
           "id": "drift-history",
@@ -175,7 +192,8 @@
           "estimate": "",
           "depends_on": [
             "debt-projection"
-          ]
+          ],
+          "source": {}
         },
         {
           "id": "debt-mcp",
@@ -185,9 +203,11 @@
           "estimate": "",
           "depends_on": [
             "debt-service"
-          ]
+          ],
+          "source": {}
         }
-      ]
+      ],
+      "source": {}
     },
     {
       "id": "value-objects",
@@ -200,7 +220,8 @@
           "description": "Implement TaskStatus VO with CanTransitionTo(), ValidTransitions(), IsFinal()",
           "priority": "high",
           "estimate": "",
-          "depends_on": []
+          "depends_on": [],
+          "source": {}
         },
         {
           "id": "vo-priority",
@@ -208,7 +229,8 @@
           "description": "Implement TaskPriority VO with Compare(), IsHigherThan()",
           "priority": "high",
           "estimate": "",
-          "depends_on": []
+          "depends_on": [],
+          "source": {}
         },
         {
           "id": "vo-approval",
@@ -216,7 +238,8 @@
           "description": "Implement ApprovalStatus VO with validation",
           "priority": "medium",
           "estimate": "",
-          "depends_on": []
+          "depends_on": [],
+          "source": {}
         },
         {
           "id": "vo-integrate",
@@ -228,7 +251,8 @@
             "vo-status",
             "vo-priority",
             "vo-approval"
-          ]
+          ],
+          "source": {}
         },
         {
           "id": "vo-fsm",
@@ -239,9 +263,11 @@
           "depends_on": [
             "vo-status",
             "vo-integrate"
-          ]
+          ],
+          "source": {}
         }
-      ]
+      ],
+      "source": {}
     },
     {
       "id": "domain-events",
@@ -254,7 +280,8 @@
           "description": "Create pkg/domain/events/dispatcher.go with handler registration",
           "priority": "high",
           "estimate": "",
-          "depends_on": []
+          "depends_on": [],
+          "source": {}
         },
         {
           "id": "evt-handlers",
@@ -264,7 +291,8 @@
           "estimate": "",
           "depends_on": [
             "evt-dispatcher"
-          ]
+          ],
+          "source": {}
         },
         {
           "id": "evt-notifiers",
@@ -274,7 +302,8 @@
           "estimate": "",
           "depends_on": [
             "evt-dispatcher"
-          ]
+          ],
+          "source": {}
         },
         {
           "id": "evt-integrate",
@@ -284,7 +313,8 @@
           "estimate": "",
           "depends_on": [
             "evt-handlers"
-          ]
+          ],
+          "source": {}
         },
         {
           "id": "evt-production-wiring",
@@ -294,9 +324,11 @@
           "estimate": "",
           "depends_on": [
             "evt-integrate"
-          ]
+          ],
+          "source": {}
         }
-      ]
+      ],
+      "source": {}
     },
     {
       "id": "aggregate-consolidation",
@@ -309,7 +341,8 @@
           "description": "Create pkg/domain/project/coordinator.go with atomic operations",
           "priority": "high",
           "estimate": "",
-          "depends_on": []
+          "depends_on": [],
+          "source": {}
         },
         {
           "id": "agg-operations",
@@ -319,7 +352,8 @@
           "estimate": "",
           "depends_on": [
             "agg-coordinator"
-          ]
+          ],
+          "source": {}
         },
         {
           "id": "agg-snapshot",
@@ -329,7 +363,8 @@
           "estimate": "",
           "depends_on": [
             "agg-coordinator"
-          ]
+          ],
+          "source": {}
         },
         {
           "id": "agg-integrate",
@@ -340,9 +375,11 @@
           "depends_on": [
             "agg-operations",
             "agg-snapshot"
-          ]
+          ],
+          "source": {}
         }
-      ]
+      ],
+      "source": {}
     },
     {
       "id": "interactive-d3-mcp-app-visualizations",
@@ -355,7 +392,8 @@
           "description": "Add donut chart for project status breakdown and horizontal bars for cross-project progress in org.ts",
           "priority": "high",
           "estimate": "",
-          "depends_on": []
+          "depends_on": [],
+          "source": {}
         },
         {
           "id": "d3-forecast-refactor",
@@ -363,7 +401,8 @@
           "description": "Replace custom burndown/velocity D3 code in forecast.ts with renderLineChart from d3-charts.ts where applicable",
           "priority": "medium",
           "estimate": "",
-          "depends_on": []
+          "depends_on": [],
+          "source": {}
         },
         {
           "id": "d3-git-sync-refactor",
@@ -371,7 +410,8 @@
           "description": "Evaluate if git-sync timeline can use shared library or keep custom (document decision)",
           "priority": "low",
           "estimate": "",
-          "depends_on": []
+          "depends_on": [],
+          "source": {}
         },
         {
           "id": "d3-sync-charts",
@@ -379,7 +419,8 @@
           "description": "Add status badge donut or horizontal bars showing sync results in sync.ts",
           "priority": "medium",
           "estimate": "",
-          "depends_on": []
+          "depends_on": [],
+          "source": {}
         },
         {
           "id": "d3-interaction-polish",
@@ -391,9 +432,11 @@
             "d3-org-charts",
             "d3-forecast-refactor",
             "d3-sync-charts"
-          ]
+          ],
+          "source": {}
         }
-      ]
+      ],
+      "source": {}
     },
     {
       "id": "multi-repo-org",
@@ -406,7 +449,8 @@
           "description": "Aggregate project statuses from multiple .roady directories into a unified view",
           "priority": "high",
           "estimate": "",
-          "depends_on": []
+          "depends_on": [],
+          "source": {}
         },
         {
           "id": "org-shared-policies",
@@ -416,7 +460,8 @@
           "estimate": "",
           "depends_on": [
             "org-dashboard"
-          ]
+          ],
+          "source": {}
         },
         {
           "id": "org-cross-drift",
@@ -426,9 +471,11 @@
           "estimate": "",
           "depends_on": [
             "org-dashboard"
-          ]
+          ],
+          "source": {}
         }
-      ]
+      ],
+      "source": {}
     },
     {
       "id": "plugin-hardening",
@@ -441,7 +488,8 @@
           "description": "Automated contract tests ensuring plugins conform to Syncer interface semantics",
           "priority": "high",
           "estimate": "",
-          "depends_on": []
+          "depends_on": [],
+          "source": {}
         },
         {
           "id": "plugin-registry",
@@ -451,7 +499,8 @@
           "estimate": "",
           "depends_on": [
             "plugin-contracts"
-          ]
+          ],
+          "source": {}
         },
         {
           "id": "plugin-health",
@@ -461,9 +510,11 @@
           "estimate": "",
           "depends_on": [
             "plugin-contracts"
-          ]
+          ],
+          "source": {}
         }
-      ]
+      ],
+      "source": {}
     },
     {
       "id": "notification-integration",
@@ -476,7 +527,8 @@
           "description": "At-least-once webhook delivery with retry and dead-letter queue",
           "priority": "high",
           "estimate": "",
-          "depends_on": []
+          "depends_on": [],
+          "source": {}
         },
         {
           "id": "notif-slack",
@@ -486,7 +538,8 @@
           "estimate": "",
           "depends_on": [
             "notif-webhooks"
-          ]
+          ],
+          "source": {}
         },
         {
           "id": "notif-realtime",
@@ -494,9 +547,11 @@
           "description": "SSE or WebSocket push for live project state updates",
           "priority": "medium",
           "estimate": "",
-          "depends_on": []
+          "depends_on": [],
+          "source": {}
         }
-      ]
+      ],
+      "source": {}
     },
     {
       "id": "watch-enhancement",
@@ -509,7 +564,8 @@
           "description": "Replace polling with efficient OS-level file notifications",
           "priority": "high",
           "estimate": "",
-          "depends_on": []
+          "depends_on": [],
+          "source": {}
         },
         {
           "id": "watch-auto-sync",
@@ -519,7 +575,8 @@
           "estimate": "",
           "depends_on": [
             "watch-fsnotify"
-          ]
+          ],
+          "source": {}
         },
         {
           "id": "watch-patterns",
@@ -529,9 +586,11 @@
           "estimate": "",
           "depends_on": [
             "watch-fsnotify"
-          ]
+          ],
+          "source": {}
         }
-      ]
+      ],
+      "source": {}
     },
     {
       "id": "developer-experience",
@@ -544,7 +603,8 @@
           "description": "Cobra shell completions for bash, zsh, fish, and powershell",
           "priority": "high",
           "estimate": "",
-          "depends_on": []
+          "depends_on": [],
+          "source": {}
         },
         {
           "id": "dx-error-messages",
@@ -552,7 +612,8 @@
           "description": "Structured CLI error types with actionable hints and suggestions",
           "priority": "high",
           "estimate": "",
-          "depends_on": []
+          "depends_on": [],
+          "source": {}
         },
         {
           "id": "dx-config-wizard",
@@ -562,7 +623,8 @@
           "estimate": "",
           "depends_on": [
             "dx-error-messages"
-          ]
+          ],
+          "source": {}
         },
         {
           "id": "dx-onboarding",
@@ -573,9 +635,11 @@
           "depends_on": [
             "dx-config-wizard",
             "dx-shell-completions"
-          ]
+          ],
+          "source": {}
         }
-      ]
+      ],
+      "source": {}
     },
     {
       "id": "api-sdk-stability",
@@ -588,7 +652,8 @@
           "description": "Versioned MCP tool schema with backward-compatible evolution",
           "priority": "high",
           "estimate": "",
-          "depends_on": []
+          "depends_on": [],
+          "source": {}
         },
         {
           "id": "sdk-go-client",
@@ -596,7 +661,8 @@
           "description": "Public Go client package wrapping MCP JSON-RPC calls",
           "priority": "high",
           "estimate": "",
-          "depends_on": []
+          "depends_on": [],
+          "source": {}
         },
         {
           "id": "sdk-openapi",
@@ -606,7 +672,8 @@
           "estimate": "",
           "depends_on": [
             "sdk-mcp-schema"
-          ]
+          ],
+          "source": {}
         },
         {
           "id": "sdk-client-helpers",
@@ -616,9 +683,11 @@
           "estimate": "",
           "depends_on": [
             "sdk-go-client"
-          ]
+          ],
+          "source": {}
         }
-      ]
+      ],
+      "source": {}
     },
     {
       "id": "multi-user-collaboration",
@@ -631,7 +700,8 @@
           "description": "Add Assignee field to Task, assign/unassign via CLI and MCP",
           "priority": "high",
           "estimate": "",
-          "depends_on": []
+          "depends_on": [],
+          "source": {}
         },
         {
           "id": "collab-team-roles",
@@ -641,7 +711,8 @@
           "estimate": "",
           "depends_on": [
             "collab-task-assignment"
-          ]
+          ],
+          "source": {}
         },
         {
           "id": "collab-conflict-resolution",
@@ -651,7 +722,8 @@
           "estimate": "",
           "depends_on": [
             "collab-task-assignment"
-          ]
+          ],
+          "source": {}
         },
         {
           "id": "collab-shared-workspaces",
@@ -662,9 +734,256 @@
           "depends_on": [
             "collab-conflict-resolution",
             "collab-team-roles"
-          ]
+          ],
+          "source": {}
         }
-      ]
+      ],
+      "source": {}
+    },
+    {
+      "id": "expert-review-refinements",
+      "title": "Expert Review Refinements (v0.9.0)",
+      "description": "Cross-functional UX/Product/AI/GTM review identified four high-leverage,\nnon-breaking refinements to sharpen the new-user activation moment and\nreduce CLI cognitive load. Defers breaking changes (MCP tool consolidation,\nprovider interface refactor, eval harness) to a separate v0.10.0 release.\n",
+      "requirements": [
+        {
+          "id": "err-cli-help-groups",
+          "title": "Group CLI --help output by user intent",
+          "description": "Reorder Cobra command listing in `roady --help` into groups\n(Get Started, Track \u0026 Report, Integrate, Admin) using cobra\ncommand groups so the golden path surfaces above the noise.\nPure presentation, no API breakage.\n",
+          "priority": "high",
+          "estimate": "",
+          "depends_on": [],
+          "source": {}
+        },
+        {
+          "id": "err-init-interactive-default",
+          "title": "Make `roady init` interactive by default",
+          "description": "When `roady init` runs without --template or in a TTY, default\nto the existing wizard flow. Add --non-interactive flag for CI.\nPrints next-step CTA on completion (run `roady setup \u003ctool\u003e`).\n",
+          "priority": "high",
+          "estimate": "",
+          "depends_on": [],
+          "source": {}
+        },
+        {
+          "id": "err-demo-command",
+          "title": "Add `roady demo` command",
+          "description": "New top-level command that scaffolds a pre-seeded .roady/ with\nan intentional spec/plan/state divergence and runs drift detect\nso a new user sees the product's core value in \u003c60 seconds with\nzero prerequisites. Exits cleanly, suggests `roady drift accept`.\n",
+          "priority": "high",
+          "estimate": "",
+          "depends_on": [],
+          "source": {}
+        },
+        {
+          "id": "err-status-empty-state-cta",
+          "title": "Empty-state CTAs on `roady status`",
+          "description": "When `roady status` runs against an uninitialized or empty\nproject, replace the bare warning with an actionable next-step\nladder: init -\u003e spec analyze -\u003e plan generate -\u003e task ready.\nDetects which step is missing and points there.\n",
+          "priority": "medium",
+          "estimate": "",
+          "depends_on": [
+            "err-init-interactive-default"
+          ],
+          "source": {}
+        }
+      ],
+      "source": {}
+    },
+    {
+      "id": "ai-quality-telemetry",
+      "title": "AI Quality \u0026 Telemetry (v0.10.0)",
+      "description": "Foundational quality bar for Roady's AI features. Adds a regression\neval harness over the planning pipeline so model swaps and prompt\nedits surface measurable behavior changes instead of silent drift.\nNon-breaking; complements but does not replace the heuristic plan\ngenerator.\n",
+      "requirements": [
+        {
+          "id": "aqt-eval-fixtures",
+          "title": "Eval fixture corpus for spec -\u003e plan",
+          "description": "Add an `evals/fixtures/` directory with 2-3 representative spec\ninputs (small CLI, web API, multi-feature) and corresponding\ngolden plan structures (task IDs + dependency edges) used to\nanchor regression tests for the heuristic and AI planners.\n",
+          "priority": "high",
+          "estimate": "",
+          "depends_on": [],
+          "source": {}
+        },
+        {
+          "id": "aqt-eval-runner",
+          "title": "Eval runner test harness",
+          "description": "Add `evals/runner_test.go` that loads each fixture, invokes the\nheuristic PlanService against it, and asserts the produced task\nIDs and dependency closure match the golden. Runs under standard\n`go test ./evals/...` and is wired into CI naturally.\n",
+          "priority": "high",
+          "estimate": "",
+          "depends_on": [
+            "aqt-eval-fixtures"
+          ],
+          "source": {}
+        },
+        {
+          "id": "aqt-eval-readme",
+          "title": "Eval harness documentation",
+          "description": "Document how to add a new fixture, how to update goldens after\nan intentional planner change, and the policy for AI-provider\nevals (mock provider in CI, optional matrix run locally).\n",
+          "priority": "medium",
+          "estimate": "",
+          "depends_on": [
+            "aqt-eval-runner"
+          ],
+          "source": {}
+        },
+        {
+          "id": "aqt-task-origin",
+          "title": "Task.Origin provenance field",
+          "description": "Add an Origin field on planning.Task (\"heuristic\" | \"ai\" | \"human\")\nwith a default of \"heuristic\" so existing data stays valid. The\nheuristic planner tags every task it emits as \"heuristic\"; the AI\nplanning service tags AI-produced tasks as \"ai\". Status/plan\nreadouts surface the origin so reviewers can scrutinise AI tasks.\n",
+          "priority": "high",
+          "estimate": "",
+          "depends_on": [],
+          "source": {}
+        },
+        {
+          "id": "aqt-completion-confidence",
+          "title": "CompletionResponse confidence and source refs",
+          "description": "Extend ai.CompletionResponse with optional Confidence (0..1) and\nSourceRefs ([]SourceRef{Doc, Span}) fields. Provider impls fill\nthese where supported; callers may ignore. Non-breaking — additive\nstruct fields only.\n",
+          "priority": "medium",
+          "estimate": "",
+          "depends_on": [],
+          "source": {}
+        },
+        {
+          "id": "aqt-mcp-tasks-namespace",
+          "title": "Consolidate task-listing MCP tools into roady_tasks",
+          "description": "Add a parameterised roady_tasks MCP tool that supersedes\nroady_get_ready_tasks / roady_get_in_progress_tasks /\nroady_get_blocked_tasks. Take a status enum parameter\n(ready|in_progress|blocked|all). Keep the legacy tools registered\nas deprecation aliases that delegate to the new handler so agents\nalready coded against them keep working.\n",
+          "priority": "high",
+          "estimate": "",
+          "depends_on": [],
+          "source": {}
+        },
+        {
+          "id": "aqt-cost-estimate",
+          "title": "Pre-flight roady_cost_estimate MCP tool",
+          "description": "Add an MCP tool that estimates input/output tokens and USD cost\nfor the planned AI operations (generate_plan, smart_decompose,\nreview_spec, explain_drift, query) before they run. Estimates use\ncurrent spec size, the configured AI provider, and a model\npricing table for common providers (Anthropic, OpenAI, Gemini,\nOllama). Lets agents and humans decide whether to proceed before\nburning tokens.\n",
+          "priority": "medium",
+          "estimate": "",
+          "depends_on": [
+            "aqt-completion-confidence"
+          ],
+          "source": {}
+        },
+        {
+          "id": "aqt-mcp-naming-aliases",
+          "title": "Standardise MCP tool names with deprecation aliases",
+          "description": "Add canonical aliases for two off-pattern tool names while\nkeeping the originals registered. roady_smart_decompose gets a\nroady_plan_decompose alias. roady_sticky_drift gets a\nroady_drift_recurring alias. Both legacy names get a DEPRECATED\nmarker in their description. Pure additive change.\n",
+          "priority": "medium",
+          "estimate": "",
+          "depends_on": [
+            "aqt-mcp-tasks-namespace"
+          ],
+          "source": {}
+        },
+        {
+          "id": "aqt-notify-namespace",
+          "title": "Unify outbound notifications under roady notify",
+          "description": "Add a top-level roady notify command with add/list/test/remove\nsubcommands that share the messaging-adapter implementation\ntoday fragmented across roady messaging and roady webhook notif.\nExisting commands stay registered as deprecation aliases that\nprint a one-line migration hint and delegate to the same\nhandlers. No data migration; both legacy paths keep working.\n",
+          "priority": "medium",
+          "estimate": "",
+          "depends_on": [
+            "aqt-mcp-naming-aliases"
+          ],
+          "source": {}
+        },
+        {
+          "id": "aqt-eval-ai-matrix",
+          "title": "Eval matrix over AI planner with programmable mock provider",
+          "description": "Extend evals/ to cover the AI planning pipeline (DecomposeSpec)\nusing a programmable mock provider that returns canned JSON.\nAssert tasks parse, the Origin field is set to \"ai\", required\nfields populate, and feature coverage is preserved. Lays the\ngroundwork for an opt-in real-provider matrix gated on a build\ntag so CI never spends tokens.\n",
+          "priority": "medium",
+          "estimate": "",
+          "depends_on": [
+            "aqt-task-origin",
+            "aqt-eval-runner"
+          ],
+          "source": {}
+        },
+        {
+          "id": "aqt-eval-drift-corpus",
+          "title": "Drift detector precision and recall corpus",
+          "description": "Add a synthetic-divergence corpus to evals/. Each scenario\nstages a spec/plan/state trio with a known mismatch (intent\ndrift via lock divergence, plan drift via missing requirement,\nno drift in the healthy baseline). The runner asserts the\nDriftService report contains exactly the expected issue\ncategories — locking down precision (no false positives on\nhealthy state) and recall (all known mismatches surface).\n",
+          "priority": "medium",
+          "estimate": "",
+          "depends_on": [
+            "aqt-eval-runner"
+          ],
+          "source": {}
+        },
+        {
+          "id": "aqt-source-citations",
+          "title": "Wire source-doc citations through spec analyze to tasks",
+          "description": "Add an optional Source{Doc,Line} on spec.Feature and spec.Requirement\ncaptured during AnalyzeDirectory parsing (markdown file path +\nheading line number). Heuristic planner copies the originating\nfeature's Source onto each emitted task so the plan carries\ntraceability back to the doc that motivated it. Status output\nshows a \"from doc:line\" annotation when present.\n",
+          "priority": "medium",
+          "estimate": "",
+          "depends_on": [
+            "aqt-task-origin"
+          ],
+          "source": {}
+        },
+        {
+          "id": "aqt-ai-progress-cancel",
+          "title": "AI command progress feedback and clean cancellation",
+          "description": "Wrap each AI-backed CLI invocation (plan generate --ai, plan\nsmart-decompose, plan prioritize, drift explain, query) in a\nshared helper that prints an elapsed-time tick every few\nseconds while the provider is working and translates SIGINT\ninto a context cancellation so users can abort runaway calls\nwithout leaking the request. Doherty Threshold mitigation;\nno provider interface change.\n",
+          "priority": "medium",
+          "estimate": "",
+          "depends_on": [],
+          "source": {}
+        },
+        {
+          "id": "aqt-streaming-contract",
+          "title": "OnToken streaming callback on CompletionRequest",
+          "description": "Add an optional OnToken func(chunk string) field on\nai.CompletionRequest so streaming-capable providers can emit\ntoken chunks as they arrive. Non-streaming providers ignore\nthe field; existing callers are unaffected (additive only).\nAdd a streaming-capable mock provider used by tests to lock\nthe contract. Real per-provider SSE wiring lands separately.\n",
+          "priority": "medium",
+          "estimate": "",
+          "depends_on": [
+            "aqt-completion-confidence"
+          ],
+          "source": {}
+        },
+        {
+          "id": "aqt-mcp-streaming-bridge",
+          "title": "Bridge AI streaming to MCP progress notifications",
+          "description": "Wire an MCP-side helper that, when a ProgressToken is supplied\non the request context, installs an OnToken callback (via\nai.WithOnToken) that forwards each streamed chunk as an MCP\nprogress notification. Apply to every AI-backed MCP handler:\nexplain_drift, explain_spec, query, suggest_priorities,\nreview_spec, smart_decompose. Clients that subscribe to the\nprogress token see token-by-token output; clients that don't\nsee no behavioural change.\n",
+          "priority": "high",
+          "estimate": "",
+          "depends_on": [
+            "aqt-streaming-end-to-end"
+          ],
+          "source": {}
+        },
+        {
+          "id": "aqt-eval-ai-build-tag",
+          "title": "EVAL_AI build-tag harness for opt-in real-provider matrix",
+          "description": "Add a //go:build evals_ai gated test file that exercises the\nreal Anthropic / OpenAI / Gemini / Ollama providers against a\nshared spec when the corresponding API key env vars are set.\nDocumented in evals/README. Default builds skip it; opt-in\nwith `go test -tags evals_ai ./evals/...` for local validation.\n",
+          "priority": "medium",
+          "estimate": "",
+          "depends_on": [
+            "aqt-eval-ai-matrix"
+          ],
+          "source": {}
+        },
+        {
+          "id": "aqt-ai-task-source-population",
+          "title": "AI tasks inherit source citations from spec features",
+          "description": "Today the heuristic planner copies spec.Feature.Source / spec.Requirement.Source\nonto each emitted task, but tasks produced by the AI planner\n(DecomposeSpec) never carry Source because the JSON the model\nreturns has no source field. Post-process the AI task list and\nbackfill TaskSource by looking up the originating Feature (and\noptionally Requirement) by ID. Same goes for the coverage\nfallback path. Result: every task in the plan, regardless of\norigin, carries provenance back to the doc that motivated it.\n",
+          "priority": "high",
+          "estimate": "",
+          "depends_on": [
+            "aqt-source-citations",
+            "aqt-task-origin"
+          ],
+          "source": {}
+        },
+        {
+          "id": "aqt-streaming-end-to-end",
+          "title": "Real provider streaming wired end-to-end",
+          "description": "Replace the contract-only streaming with real implementations:\n(a) Anthropic SSE messages endpoint with content_block_delta\nparsing, (b) OpenAI Chat Completions SSE delta parsing,\n(c) Gemini streamGenerateContent with alt=sse, (d) Ollama\nNDJSON Stream:true. Each provider emits via OnToken when set,\nfalls back to its existing buffered behaviour otherwise, and\npopulates Confidence from the natural stop signal where one\nexists. Wire ai.WithOnToken / OnTokenFromContext through\nAIPlanningService so a single CLI/MCP layer setter rides\nthrough all nine AI call sites. CLI withAIProgress installs\nthe sink, prints streamed tokens to stderr, and steps the\nelapsed-time ticker out of the way once tokens flow. Locked\nby httptest-backed unit tests for each provider plus an\nevals/streaming_runner_test end-to-end check.\n",
+          "priority": "high",
+          "estimate": "",
+          "depends_on": [
+            "aqt-streaming-contract",
+            "aqt-ai-progress-cancel"
+          ],
+          "source": {}
+        }
+      ],
+      "source": {}
     },
     {
       "id": "ai-powered-workflows",
@@ -677,7 +996,8 @@
           "description": "AI spec quality review with completeness scoring",
           "priority": "high",
           "estimate": "",
-          "depends_on": []
+          "depends_on": [],
+          "source": {}
         },
         {
           "id": "ai-auto-prioritize",
@@ -687,7 +1007,8 @@
           "estimate": "",
           "depends_on": [
             "ai-spec-review"
-          ]
+          ],
+          "source": {}
         },
         {
           "id": "ai-smart-decompose",
@@ -697,7 +1018,8 @@
           "estimate": "",
           "depends_on": [
             "ai-auto-prioritize"
-          ]
+          ],
+          "source": {}
         },
         {
           "id": "ai-natural-language",
@@ -707,9 +1029,11 @@
           "estimate": "",
           "depends_on": [
             "ai-spec-review"
-          ]
+          ],
+          "source": {}
         }
-      ]
+      ],
+      "source": {}
     }
   ],
   "constraints": [
@@ -730,5 +1054,5 @@
       "description": "All new CLI commands should have corresponding MCP tools"
     }
   ],
-  "version": "0.8.0"
+  "version": "0.10.0"
 }

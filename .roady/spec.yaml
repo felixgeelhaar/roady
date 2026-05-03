@@ -1,7 +1,7 @@
 id: horizons-8
-title: 'Roady v0.8.0: Developer Platform'
+title: 'Roady v0.10.0: AI Quality & Telemetry'
 description: |
-    Roady planning system — v0.8.0 roadmap:
+    Roady planning system roadmap:
     - v0.5.0 (complete): Horizons 5 & 6 — predictive analytics, domain hardening, event sourcing.
     - v0.6.0 (complete): Multi-repo org dashboard, plugin contracts, notification webhooks, fsnotify watch,
       coordinator integration into CLI/MCP with snapshot and task queries.
@@ -9,7 +9,14 @@ description: |
       Slack/realtime notifications, watch auto-sync and patterns.
     - v0.8.0 (complete): Developer experience polish, API/SDK stability, multi-user collaboration,
       AI-powered workflows, interactive D3 MCP app visualizations.
-    Released as v0.6.0 (bundling v0.6.0–v0.8.0 features).
+    - v0.9.0 (complete): Expert-review-driven refinements — sharpen onboarding, reduce CLI
+      cognitive load, ship a pre-seeded demo, fix empty-state UX.
+    - v0.10.0 (complete): AI quality and telemetry — eval harness over the planning
+      pipeline (heuristic + AI mock + drift corpus), Task.Origin provenance, source-doc
+      citations through spec analyze, CompletionResponse confidence + sources +
+      streaming OnToken contract, MCP tool consolidation (roady_tasks +
+      roady_cost_estimate), naming standardisation aliases, roady notify namespace
+      unification, AI command progress feedback with SIGINT cancellation.
 features:
     - id: predictive-velocity
       title: Predictive Velocity Analytics
@@ -499,6 +506,298 @@ features:
           depends_on:
             - collab-conflict-resolution
             - collab-team-roles
+    - id: expert-review-refinements
+      title: Expert Review Refinements (v0.9.0)
+      description: |
+        Cross-functional UX/Product/AI/GTM review identified four high-leverage,
+        non-breaking refinements to sharpen the new-user activation moment and
+        reduce CLI cognitive load. Defers breaking changes (MCP tool consolidation,
+        provider interface refactor, eval harness) to a separate v0.10.0 release.
+      requirements:
+        - id: err-cli-help-groups
+          title: Group CLI --help output by user intent
+          description: |
+            Reorder Cobra command listing in `roady --help` into groups
+            (Get Started, Track & Report, Integrate, Admin) using cobra
+            command groups so the golden path surfaces above the noise.
+            Pure presentation, no API breakage.
+          priority: high
+          estimate: ""
+          depends_on: []
+        - id: err-init-interactive-default
+          title: Make `roady init` interactive by default
+          description: |
+            When `roady init` runs without --template or in a TTY, default
+            to the existing wizard flow. Add --non-interactive flag for CI.
+            Prints next-step CTA on completion (run `roady setup <tool>`).
+          priority: high
+          estimate: ""
+          depends_on: []
+        - id: err-demo-command
+          title: Add `roady demo` command
+          description: |
+            New top-level command that scaffolds a pre-seeded .roady/ with
+            an intentional spec/plan/state divergence and runs drift detect
+            so a new user sees the product's core value in <60 seconds with
+            zero prerequisites. Exits cleanly, suggests `roady drift accept`.
+          priority: high
+          estimate: ""
+          depends_on: []
+        - id: err-status-empty-state-cta
+          title: Empty-state CTAs on `roady status`
+          description: |
+            When `roady status` runs against an uninitialized or empty
+            project, replace the bare warning with an actionable next-step
+            ladder: init -> spec analyze -> plan generate -> task ready.
+            Detects which step is missing and points there.
+          priority: medium
+          estimate: ""
+          depends_on:
+            - err-init-interactive-default
+    - id: ai-quality-telemetry
+      title: AI Quality & Telemetry (v0.10.0)
+      description: |
+        Foundational quality bar for Roady's AI features. Adds a regression
+        eval harness over the planning pipeline so model swaps and prompt
+        edits surface measurable behavior changes instead of silent drift.
+        Non-breaking; complements but does not replace the heuristic plan
+        generator.
+      requirements:
+        - id: aqt-eval-fixtures
+          title: Eval fixture corpus for spec -> plan
+          description: |
+            Add an `evals/fixtures/` directory with 2-3 representative spec
+            inputs (small CLI, web API, multi-feature) and corresponding
+            golden plan structures (task IDs + dependency edges) used to
+            anchor regression tests for the heuristic and AI planners.
+          priority: high
+          estimate: ""
+          depends_on: []
+        - id: aqt-eval-runner
+          title: Eval runner test harness
+          description: |
+            Add `evals/runner_test.go` that loads each fixture, invokes the
+            heuristic PlanService against it, and asserts the produced task
+            IDs and dependency closure match the golden. Runs under standard
+            `go test ./evals/...` and is wired into CI naturally.
+          priority: high
+          estimate: ""
+          depends_on:
+            - aqt-eval-fixtures
+        - id: aqt-eval-readme
+          title: Eval harness documentation
+          description: |
+            Document how to add a new fixture, how to update goldens after
+            an intentional planner change, and the policy for AI-provider
+            evals (mock provider in CI, optional matrix run locally).
+          priority: medium
+          estimate: ""
+          depends_on:
+            - aqt-eval-runner
+        - id: aqt-task-origin
+          title: Task.Origin provenance field
+          description: |
+            Add an Origin field on planning.Task ("heuristic" | "ai" | "human")
+            with a default of "heuristic" so existing data stays valid. The
+            heuristic planner tags every task it emits as "heuristic"; the AI
+            planning service tags AI-produced tasks as "ai". Status/plan
+            readouts surface the origin so reviewers can scrutinise AI tasks.
+          priority: high
+          estimate: ""
+          depends_on: []
+        - id: aqt-completion-confidence
+          title: CompletionResponse confidence and source refs
+          description: |
+            Extend ai.CompletionResponse with optional Confidence (0..1) and
+            SourceRefs ([]SourceRef{Doc, Span}) fields. Provider impls fill
+            these where supported; callers may ignore. Non-breaking — additive
+            struct fields only.
+          priority: medium
+          estimate: ""
+          depends_on: []
+        - id: aqt-mcp-tasks-namespace
+          title: Consolidate task-listing MCP tools into roady_tasks
+          description: |
+            Add a parameterised roady_tasks MCP tool that supersedes
+            roady_get_ready_tasks / roady_get_in_progress_tasks /
+            roady_get_blocked_tasks. Take a status enum parameter
+            (ready|in_progress|blocked|all). Keep the legacy tools registered
+            as deprecation aliases that delegate to the new handler so agents
+            already coded against them keep working.
+          priority: high
+          estimate: ""
+          depends_on: []
+        - id: aqt-cost-estimate
+          title: Pre-flight roady_cost_estimate MCP tool
+          description: |
+            Add an MCP tool that estimates input/output tokens and USD cost
+            for the planned AI operations (generate_plan, smart_decompose,
+            review_spec, explain_drift, query) before they run. Estimates use
+            current spec size, the configured AI provider, and a model
+            pricing table for common providers (Anthropic, OpenAI, Gemini,
+            Ollama). Lets agents and humans decide whether to proceed before
+            burning tokens.
+          priority: medium
+          estimate: ""
+          depends_on:
+            - aqt-completion-confidence
+        - id: aqt-mcp-naming-aliases
+          title: Standardise MCP tool names with deprecation aliases
+          description: |
+            Add canonical aliases for two off-pattern tool names while
+            keeping the originals registered. roady_smart_decompose gets a
+            roady_plan_decompose alias. roady_sticky_drift gets a
+            roady_drift_recurring alias. Both legacy names get a DEPRECATED
+            marker in their description. Pure additive change.
+          priority: medium
+          estimate: ""
+          depends_on:
+            - aqt-mcp-tasks-namespace
+        - id: aqt-notify-namespace
+          title: Unify outbound notifications under roady notify
+          description: |
+            Add a top-level roady notify command with add/list/test/remove
+            subcommands that share the messaging-adapter implementation
+            today fragmented across roady messaging and roady webhook notif.
+            Existing commands stay registered as deprecation aliases that
+            print a one-line migration hint and delegate to the same
+            handlers. No data migration; both legacy paths keep working.
+          priority: medium
+          estimate: ""
+          depends_on:
+            - aqt-mcp-naming-aliases
+        - id: aqt-eval-ai-matrix
+          title: Eval matrix over AI planner with programmable mock provider
+          description: |
+            Extend evals/ to cover the AI planning pipeline (DecomposeSpec)
+            using a programmable mock provider that returns canned JSON.
+            Assert tasks parse, the Origin field is set to "ai", required
+            fields populate, and feature coverage is preserved. Lays the
+            groundwork for an opt-in real-provider matrix gated on a build
+            tag so CI never spends tokens.
+          priority: medium
+          estimate: ""
+          depends_on:
+            - aqt-task-origin
+            - aqt-eval-runner
+        - id: aqt-eval-drift-corpus
+          title: Drift detector precision and recall corpus
+          description: |
+            Add a synthetic-divergence corpus to evals/. Each scenario
+            stages a spec/plan/state trio with a known mismatch (intent
+            drift via lock divergence, plan drift via missing requirement,
+            no drift in the healthy baseline). The runner asserts the
+            DriftService report contains exactly the expected issue
+            categories — locking down precision (no false positives on
+            healthy state) and recall (all known mismatches surface).
+          priority: medium
+          estimate: ""
+          depends_on:
+            - aqt-eval-runner
+        - id: aqt-source-citations
+          title: Wire source-doc citations through spec analyze to tasks
+          description: |
+            Add an optional Source{Doc,Line} on spec.Feature and spec.Requirement
+            captured during AnalyzeDirectory parsing (markdown file path +
+            heading line number). Heuristic planner copies the originating
+            feature's Source onto each emitted task so the plan carries
+            traceability back to the doc that motivated it. Status output
+            shows a "from doc:line" annotation when present.
+          priority: medium
+          estimate: ""
+          depends_on:
+            - aqt-task-origin
+        - id: aqt-ai-progress-cancel
+          title: AI command progress feedback and clean cancellation
+          description: |
+            Wrap each AI-backed CLI invocation (plan generate --ai, plan
+            smart-decompose, plan prioritize, drift explain, query) in a
+            shared helper that prints an elapsed-time tick every few
+            seconds while the provider is working and translates SIGINT
+            into a context cancellation so users can abort runaway calls
+            without leaking the request. Doherty Threshold mitigation;
+            no provider interface change.
+          priority: medium
+          estimate: ""
+          depends_on: []
+        - id: aqt-streaming-contract
+          title: OnToken streaming callback on CompletionRequest
+          description: |
+            Add an optional OnToken func(chunk string) field on
+            ai.CompletionRequest so streaming-capable providers can emit
+            token chunks as they arrive. Non-streaming providers ignore
+            the field; existing callers are unaffected (additive only).
+            Add a streaming-capable mock provider used by tests to lock
+            the contract. Real per-provider SSE wiring lands separately.
+          priority: medium
+          estimate: ""
+          depends_on:
+            - aqt-completion-confidence
+        - id: aqt-mcp-streaming-bridge
+          title: Bridge AI streaming to MCP progress notifications
+          description: |
+            Wire an MCP-side helper that, when a ProgressToken is supplied
+            on the request context, installs an OnToken callback (via
+            ai.WithOnToken) that forwards each streamed chunk as an MCP
+            progress notification. Apply to every AI-backed MCP handler:
+            explain_drift, explain_spec, query, suggest_priorities,
+            review_spec, smart_decompose. Clients that subscribe to the
+            progress token see token-by-token output; clients that don't
+            see no behavioural change.
+          priority: high
+          estimate: ""
+          depends_on:
+            - aqt-streaming-end-to-end
+        - id: aqt-eval-ai-build-tag
+          title: EVAL_AI build-tag harness for opt-in real-provider matrix
+          description: |
+            Add a //go:build evals_ai gated test file that exercises the
+            real Anthropic / OpenAI / Gemini / Ollama providers against a
+            shared spec when the corresponding API key env vars are set.
+            Documented in evals/README. Default builds skip it; opt-in
+            with `go test -tags evals_ai ./evals/...` for local validation.
+          priority: medium
+          estimate: ""
+          depends_on:
+            - aqt-eval-ai-matrix
+        - id: aqt-ai-task-source-population
+          title: AI tasks inherit source citations from spec features
+          description: |
+            Today the heuristic planner copies spec.Feature.Source / spec.Requirement.Source
+            onto each emitted task, but tasks produced by the AI planner
+            (DecomposeSpec) never carry Source because the JSON the model
+            returns has no source field. Post-process the AI task list and
+            backfill TaskSource by looking up the originating Feature (and
+            optionally Requirement) by ID. Same goes for the coverage
+            fallback path. Result: every task in the plan, regardless of
+            origin, carries provenance back to the doc that motivated it.
+          priority: high
+          estimate: ""
+          depends_on:
+            - aqt-source-citations
+            - aqt-task-origin
+        - id: aqt-streaming-end-to-end
+          title: Real provider streaming wired end-to-end
+          description: |
+            Replace the contract-only streaming with real implementations:
+            (a) Anthropic SSE messages endpoint with content_block_delta
+            parsing, (b) OpenAI Chat Completions SSE delta parsing,
+            (c) Gemini streamGenerateContent with alt=sse, (d) Ollama
+            NDJSON Stream:true. Each provider emits via OnToken when set,
+            falls back to its existing buffered behaviour otherwise, and
+            populates Confidence from the natural stop signal where one
+            exists. Wire ai.WithOnToken / OnTokenFromContext through
+            AIPlanningService so a single CLI/MCP layer setter rides
+            through all nine AI call sites. CLI withAIProgress installs
+            the sink, prints streamed tokens to stderr, and steps the
+            elapsed-time ticker out of the way once tokens flow. Locked
+            by httptest-backed unit tests for each provider plus an
+            evals/streaming_runner_test end-to-end check.
+          priority: high
+          estimate: ""
+          depends_on:
+            - aqt-streaming-contract
+            - aqt-ai-progress-cancel
     - id: ai-powered-workflows
       title: AI-Powered Workflows
       description: |
@@ -541,4 +840,4 @@ constraints:
       description: Follow existing DDD patterns and naming conventions
     - id: cli-mcp-parity
       description: All new CLI commands should have corresponding MCP tools
-version: 0.8.0
+version: 0.10.0

@@ -1,25 +1,30 @@
 {
   "project_id": "test-refactor",
+  "version": 57,
   "task_states": {
     "task-agg-coordinator": {
       "status": "done",
       "path": "",
-      "owner": "felixgeelhaar"
+      "owner": "felixgeelhaar",
+      "elapsed_minutes": 0
     },
     "task-agg-integrate": {
       "status": "done",
       "path": "",
-      "owner": "felixgeelhaar"
+      "owner": "felixgeelhaar",
+      "elapsed_minutes": 0
     },
     "task-agg-operations": {
       "status": "done",
       "path": "",
-      "owner": "felixgeelhaar"
+      "owner": "felixgeelhaar",
+      "elapsed_minutes": 0
     },
     "task-agg-snapshot": {
       "status": "done",
       "path": "",
-      "owner": "felixgeelhaar"
+      "owner": "felixgeelhaar",
+      "elapsed_minutes": 0
     },
     "task-ai-auto-prioritize": {
       "status": "done",
@@ -27,7 +32,8 @@
       "owner": "ai-agent",
       "evidence": [
         "Added SuggestPriorities to AIPlanningService, PrioritySuggestions domain types, MCP tool roady_suggest_priorities, CLI roady plan prioritize, SDK method and types"
-      ]
+      ],
+      "elapsed_minutes": 0
     },
     "task-ai-natural-language": {
       "status": "done",
@@ -35,7 +41,8 @@
       "owner": "ai-agent",
       "evidence": [
         "Added QueryProject to AIPlanningService, MCP tool roady_query, CLI roady query command, SDK method QueryProject"
-      ]
+      ],
+      "elapsed_minutes": 0
     },
     "task-ai-smart-decompose": {
       "status": "done",
@@ -43,7 +50,8 @@
       "owner": "ai-agent",
       "evidence": [
         "Added SmartDecompose with codebase scanner, file-level suggestions, complexity estimates. CLI: roady plan smart-decompose. MCP: roady_smart_decompose. SDK method added."
-      ]
+      ],
+      "elapsed_minutes": 0
     },
     "task-ai-spec-review": {
       "status": "done",
@@ -51,7 +59,152 @@
       "owner": "ai-agent",
       "evidence": [
         "Implemented ReviewSpec in ai_planning_service.go, MCP tool roady_review_spec, CLI roady spec review, SDK method, domain types, and tests"
-      ]
+      ],
+      "elapsed_minutes": 0
+    },
+    "task-aqt-ai-progress-cancel": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar",
+      "started_at": "2026-05-03T09:55:02.392438+02:00",
+      "completed_at": "2026-05-03T09:57:30.739391+02:00",
+      "elapsed_minutes": 2
+    },
+    "task-aqt-ai-task-source-population": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar",
+      "started_at": "2026-05-03T11:40:56.130411+02:00",
+      "completed_at": "2026-05-03T11:42:38.907566+02:00",
+      "elapsed_minutes": 1
+    },
+    "task-aqt-completion-confidence": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar",
+      "started_at": "2026-05-03T00:33:24.602665+02:00",
+      "completed_at": "2026-05-03T00:34:20.634875+02:00",
+      "elapsed_minutes": 0
+    },
+    "task-aqt-cost-estimate": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar",
+      "started_at": "2026-05-03T00:37:37.726864+02:00",
+      "completed_at": "2026-05-03T00:40:19.169211+02:00",
+      "elapsed_minutes": 2
+    },
+    "task-aqt-eval-ai-build-tag": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar",
+      "started_at": "2026-05-03T11:56:42.264813+02:00",
+      "completed_at": "2026-05-03T11:57:39.452882+02:00",
+      "elapsed_minutes": 0
+    },
+    "task-aqt-eval-ai-matrix": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar",
+      "started_at": "2026-05-03T09:19:59.329772+02:00",
+      "completed_at": "2026-05-03T09:21:30.475627+02:00",
+      "elapsed_minutes": 1
+    },
+    "task-aqt-eval-drift-corpus": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar",
+      "started_at": "2026-05-03T09:35:50.370745+02:00",
+      "completed_at": "2026-05-03T09:37:10.99715+02:00",
+      "elapsed_minutes": 1
+    },
+    "task-aqt-eval-fixtures": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar",
+      "started_at": "2026-05-03T00:22:59.845271+02:00",
+      "completed_at": "2026-05-03T00:23:42.342303+02:00",
+      "elapsed_minutes": 0
+    },
+    "task-aqt-eval-readme": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar",
+      "started_at": "2026-05-03T00:24:16.680875+02:00",
+      "completed_at": "2026-05-03T00:24:40.90307+02:00",
+      "elapsed_minutes": 0
+    },
+    "task-aqt-eval-runner": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar",
+      "started_at": "2026-05-03T00:23:42.354497+02:00",
+      "completed_at": "2026-05-03T00:24:16.66813+02:00",
+      "elapsed_minutes": 0
+    },
+    "task-aqt-mcp-naming-aliases": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar",
+      "started_at": "2026-05-03T00:40:19.180773+02:00",
+      "completed_at": "2026-05-03T00:41:36.28745+02:00",
+      "elapsed_minutes": 1
+    },
+    "task-aqt-mcp-streaming-bridge": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar",
+      "started_at": "2026-05-03T11:46:55.00278+02:00",
+      "completed_at": "2026-05-03T11:56:42.249282+02:00",
+      "elapsed_minutes": 9
+    },
+    "task-aqt-mcp-tasks-namespace": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar",
+      "started_at": "2026-05-03T00:34:20.646683+02:00",
+      "completed_at": "2026-05-03T00:36:12.869888+02:00",
+      "elapsed_minutes": 1
+    },
+    "task-aqt-notify-namespace": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar",
+      "started_at": "2026-05-03T00:43:48.197403+02:00",
+      "completed_at": "2026-05-03T00:50:48.629158+02:00",
+      "elapsed_minutes": 7
+    },
+    "task-aqt-source-citations": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar",
+      "started_at": "2026-05-03T09:38:22.487476+02:00",
+      "completed_at": "2026-05-03T09:42:34.773782+02:00",
+      "elapsed_minutes": 4
+    },
+    "task-aqt-streaming-contract": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar",
+      "started_at": "2026-05-03T10:45:23.942561+02:00",
+      "completed_at": "2026-05-03T10:47:06.947153+02:00",
+      "elapsed_minutes": 1
+    },
+    "task-aqt-streaming-end-to-end": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar",
+      "started_at": "2026-05-03T11:10:37.490721+02:00",
+      "completed_at": "2026-05-03T11:10:37.501457+02:00",
+      "elapsed_minutes": 0
+    },
+    "task-aqt-task-origin": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar",
+      "started_at": "2026-05-03T00:31:13.314754+02:00",
+      "completed_at": "2026-05-03T00:33:24.588917+02:00",
+      "elapsed_minutes": 2
     },
     "task-collab-assignment": {
       "status": "done",
@@ -59,7 +212,8 @@
       "owner": "ai-agent",
       "evidence": [
         "Implemented AssignTask in TaskService, MCP tool roady_assign_task, CLI roady task assign, SDK AssignTask, actor passthrough on transition, owner in status JSON"
-      ]
+      ],
+      "elapsed_minutes": 0
     },
     "task-collab-conflict": {
       "status": "done",
@@ -67,12 +221,14 @@
       "owner": "ai-agent",
       "evidence": [
         "Added Version field to ExecutionState, optimistic locking in SaveState with ConflictError, tests for conflict detection"
-      ]
+      ],
+      "elapsed_minutes": 0
     },
     "task-collab-conflict-resolution": {
       "status": "done",
       "path": "",
-      "owner": "felixgeelhaar"
+      "owner": "felixgeelhaar",
+      "elapsed_minutes": 0
     },
     "task-collab-shared": {
       "status": "done",
@@ -80,17 +236,20 @@
       "owner": "ai-agent",
       "evidence": [
         "Added git-based workspace sync: WorkspaceSyncService with push/pull, conflict detection via stash/pop, CLI (roady workspace push/pull), MCP tools, SDK methods"
-      ]
+      ],
+      "elapsed_minutes": 0
     },
     "task-collab-shared-workspaces": {
       "status": "done",
       "path": "",
-      "owner": "felixgeelhaar"
+      "owner": "felixgeelhaar",
+      "elapsed_minutes": 0
     },
     "task-collab-task-assignment": {
       "status": "done",
       "path": "",
-      "owner": "felixgeelhaar"
+      "owner": "felixgeelhaar",
+      "elapsed_minutes": 0
     },
     "task-collab-team-roles": {
       "status": "done",
@@ -98,7 +257,8 @@
       "owner": "ai-agent",
       "evidence": [
         "Implemented team domain types, storage, service, CLI (roady team add/list/remove), MCP tools, and SDK methods"
-      ]
+      ],
+      "elapsed_minutes": 0
     },
     "task-d3-forecast-refactor": {
       "status": "done",
@@ -106,7 +266,8 @@
       "owner": "ai-agent",
       "evidence": [
         "Added renderGauge from d3-charts.ts for confidence display. Kept custom burndown (multi-series) and velocity (vertical bars) as shared library lacks multi-series line and vertical bar charts."
-      ]
+      ],
+      "elapsed_minutes": 0
     },
     "task-d3-git-sync-refactor": {
       "status": "done",
@@ -114,7 +275,8 @@
       "owner": "ai-agent",
       "evidence": [
         "Evaluated: git-sync timeline is a vertical commit timeline with dot+label layout. Shared d3-charts.ts has no timeline chart type. Keeping custom implementation is the correct decision — adding a timeline to d3-charts.ts would be over-engineering for a single use case."
-      ]
+      ],
+      "elapsed_minutes": 0
     },
     "task-d3-interaction-polish": {
       "status": "done",
@@ -122,7 +284,8 @@
       "owner": "ai-agent",
       "evidence": [
         "Added consistent hover tooltips (matching d3-charts.ts style) to forecast velocity bars and git-sync timeline nodes. All 14 apps build successfully."
-      ]
+      ],
+      "elapsed_minutes": 0
     },
     "task-d3-org-charts": {
       "status": "done",
@@ -130,7 +293,8 @@
       "owner": "ai-agent",
       "evidence": [
         "Added donut chart (aggregate status) and horizontal bars (per-project progress) to org.ts using shared d3-charts.ts"
-      ]
+      ],
+      "elapsed_minutes": 0
     },
     "task-d3-sync-charts": {
       "status": "done",
@@ -138,67 +302,80 @@
       "owner": "ai-agent",
       "evidence": [
         "Added donut chart showing sync result breakdown (synced/failed/skipped) to sync.ts using shared d3-charts.ts"
-      ]
+      ],
+      "elapsed_minutes": 0
     },
     "task-debt-cli": {
       "status": "done",
       "path": "",
-      "owner": "felixgeelhaar"
+      "owner": "felixgeelhaar",
+      "elapsed_minutes": 0
     },
     "task-debt-mcp": {
       "status": "done",
       "path": "",
-      "owner": "felixgeelhaar"
+      "owner": "felixgeelhaar",
+      "elapsed_minutes": 0
     },
     "task-debt-projection": {
       "status": "done",
       "path": "",
-      "owner": "felixgeelhaar"
+      "owner": "felixgeelhaar",
+      "elapsed_minutes": 0
     },
     "task-debt-service": {
       "status": "done",
       "path": "",
-      "owner": "felixgeelhaar"
+      "owner": "felixgeelhaar",
+      "elapsed_minutes": 0
     },
     "task-debt-types": {
       "status": "done",
       "path": "",
-      "owner": "felixgeelhaar"
+      "owner": "felixgeelhaar",
+      "elapsed_minutes": 0
     },
     "task-dep-cli": {
       "status": "done",
       "path": "",
-      "owner": "felixgeelhaar"
+      "owner": "felixgeelhaar",
+      "elapsed_minutes": 0
     },
     "task-dep-mcp": {
       "status": "done",
       "path": "",
-      "owner": "felixgeelhaar"
+      "owner": "felixgeelhaar",
+      "elapsed_minutes": 0
     },
     "task-dep-resolver": {
       "status": "done",
       "path": "",
-      "owner": "felixgeelhaar"
+      "owner": "felixgeelhaar",
+      "elapsed_minutes": 0
     },
     "task-dep-service": {
       "status": "done",
       "path": "",
-      "owner": "felixgeelhaar"
+      "owner": "felixgeelhaar",
+      "elapsed_minutes": 0
     },
     "task-dep-storage": {
       "status": "done",
       "path": "",
-      "owner": "felixgeelhaar"
+      "owner": "felixgeelhaar",
+      "elapsed_minutes": 0
     },
     "task-dep-types": {
       "status": "done",
       "path": "",
-      "owner": "felixgeelhaar"
+      "owner": "felixgeelhaar",
+      "elapsed_minutes": 0
     },
     "task-drift-history": {
       "status": "done",
       "path": "",
-      "owner": "felixgeelhaar"
+      "owner": "felixgeelhaar",
+      "elapsed_minutes": 0
     },
     "task-dx-config-wizard": {
       "status": "done",
@@ -206,12 +383,14 @@
       "owner": "ai-agent",
       "evidence": [
         "Added roady config wizard CLI command with interactive stdin-based setup for ai.yaml and policy.yaml configuration"
-      ]
+      ],
+      "elapsed_minutes": 0
     },
     "task-dx-error-messages": {
       "status": "done",
       "path": "",
-      "owner": "ai-agent"
+      "owner": "ai-agent",
+      "elapsed_minutes": 0
     },
     "task-dx-onboarding": {
       "status": "done",
@@ -219,107 +398,160 @@
       "owner": "ai-agent",
       "evidence": [
         "Added starter templates (minimal, web-api, cli-tool, library), --template flag, guided onboarding with --interactive, next-steps walkthrough"
-      ]
+      ],
+      "elapsed_minutes": 0
     },
     "task-dx-shell-completions": {
       "status": "done",
       "path": "",
-      "owner": "felixgeelhaar"
+      "owner": "felixgeelhaar",
+      "elapsed_minutes": 0
+    },
+    "task-err-cli-help-groups": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar",
+      "started_at": "2026-05-03T00:01:58.443038+02:00",
+      "completed_at": "2026-05-03T00:04:01.686957+02:00",
+      "elapsed_minutes": 2
+    },
+    "task-err-demo-command": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar",
+      "started_at": "2026-05-03T00:05:54.003437+02:00",
+      "completed_at": "2026-05-03T00:10:20.141817+02:00",
+      "elapsed_minutes": 4
+    },
+    "task-err-init-interactive-default": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar",
+      "started_at": "2026-05-03T00:04:01.698736+02:00",
+      "completed_at": "2026-05-03T00:05:53.992639+02:00",
+      "elapsed_minutes": 1
+    },
+    "task-err-status-empty-state-cta": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar",
+      "started_at": "2026-05-03T00:10:20.155766+02:00",
+      "completed_at": "2026-05-03T00:19:02.398439+02:00",
+      "elapsed_minutes": 8
     },
     "task-evt-dispatcher": {
       "status": "done",
       "path": "",
-      "owner": "felixgeelhaar"
+      "owner": "felixgeelhaar",
+      "elapsed_minutes": 0
     },
     "task-evt-handlers": {
       "status": "done",
       "path": "",
-      "owner": "felixgeelhaar"
+      "owner": "felixgeelhaar",
+      "elapsed_minutes": 0
     },
     "task-evt-integrate": {
       "status": "done",
       "path": "",
-      "owner": "felixgeelhaar"
+      "owner": "felixgeelhaar",
+      "elapsed_minutes": 0
     },
     "task-evt-notifiers": {
       "status": "done",
       "path": "",
-      "owner": "felixgeelhaar"
+      "owner": "felixgeelhaar",
+      "elapsed_minutes": 0
     },
     "task-evt-production-wiring": {
       "status": "done",
       "path": "",
-      "owner": "felixgeelhaar"
+      "owner": "felixgeelhaar",
+      "elapsed_minutes": 0
     },
     "task-notif-realtime": {
       "status": "done",
       "path": "",
-      "owner": "felixgeelhaar"
+      "owner": "felixgeelhaar",
+      "elapsed_minutes": 0
     },
     "task-notif-slack": {
       "status": "done",
       "path": "",
-      "owner": "felixgeelhaar"
+      "owner": "felixgeelhaar",
+      "elapsed_minutes": 0
     },
     "task-notif-webhooks": {
       "status": "done",
       "path": "",
-      "owner": "felixgeelhaar"
+      "owner": "felixgeelhaar",
+      "elapsed_minutes": 0
     },
     "task-org-cross-drift": {
       "status": "done",
       "path": "",
-      "owner": "felixgeelhaar"
+      "owner": "felixgeelhaar",
+      "elapsed_minutes": 0
     },
     "task-org-dashboard": {
       "status": "done",
       "path": "",
-      "owner": "felixgeelhaar"
+      "owner": "felixgeelhaar",
+      "elapsed_minutes": 0
     },
     "task-org-shared-policies": {
       "status": "done",
       "path": "",
-      "owner": "felixgeelhaar"
+      "owner": "felixgeelhaar",
+      "elapsed_minutes": 0
     },
     "task-plugin-contracts": {
       "status": "done",
       "path": "",
-      "owner": "felixgeelhaar"
+      "owner": "felixgeelhaar",
+      "elapsed_minutes": 0
     },
     "task-plugin-health": {
       "status": "done",
       "path": "",
-      "owner": "felixgeelhaar"
+      "owner": "felixgeelhaar",
+      "elapsed_minutes": 0
     },
     "task-plugin-registry": {
       "status": "done",
       "path": "",
-      "owner": "felixgeelhaar"
+      "owner": "felixgeelhaar",
+      "elapsed_minutes": 0
     },
     "task-pv-cli": {
       "status": "done",
       "path": "",
-      "owner": "felixgeelhaar"
+      "owner": "felixgeelhaar",
+      "elapsed_minutes": 0
     },
     "task-pv-mcp": {
       "status": "done",
       "path": "",
-      "owner": "felixgeelhaar"
+      "owner": "felixgeelhaar",
+      "elapsed_minutes": 0
     },
     "task-pv-projection": {
       "status": "done",
       "path": "",
-      "owner": "felixgeelhaar"
+      "owner": "felixgeelhaar",
+      "elapsed_minutes": 0
     },
     "task-pv-service": {
       "status": "done",
       "path": "",
-      "owner": "felixgeelhaar"
+      "owner": "felixgeelhaar",
+      "elapsed_minutes": 0
     },
     "task-pv-types": {
       "status": "done",
       "path": "",
-      "owner": "felixgeelhaar"
+      "owner": "felixgeelhaar",
+      "elapsed_minutes": 0
     },
     "task-sdk-client-helpers": {
       "status": "done",
@@ -327,7 +559,8 @@
       "owner": "ai-agent",
       "evidence": [
         "Added pkg/sdk/helpers.go with typed request/response helpers: StatusTyped, TransitionTaskTyped, DebtReportTyped, DebtSummaryTyped, DebtTrendTyped, DepsGraphTyped, OrgStatusTyped, OrgPolicyTyped, CheckPolicyTyped"
-      ]
+      ],
+      "elapsed_minutes": 0
     },
     "task-sdk-go-client": {
       "status": "done",
@@ -335,7 +568,8 @@
       "owner": "ai-agent",
       "evidence": [
         "pkg/sdk/ — doc.go, options.go, errors.go, types.go, client.go, client_test.go"
-      ]
+      ],
+      "elapsed_minutes": 0
     },
     "task-sdk-mcp-schema": {
       "status": "done",
@@ -343,7 +577,8 @@
       "owner": "ai-agent",
       "evidence": [
         "Implemented SchemaInfo types, GetSchema(), Compatible(), version.go, and tests in pkg/sdk/"
-      ]
+      ],
+      "elapsed_minutes": 0
     },
     "task-sdk-openapi": {
       "status": "done",
@@ -351,48 +586,57 @@
       "owner": "ai-agent",
       "evidence": [
         "Added openapi.go with GenerateOpenAPI() that introspects MCP tools, openapi_test.go, CLI roady openapi command, and Server.OpenAPI() method"
-      ]
+      ],
+      "elapsed_minutes": 0
     },
     "task-vo-approval": {
       "status": "done",
       "path": "",
-      "owner": "felixgeelhaar"
+      "owner": "felixgeelhaar",
+      "elapsed_minutes": 0
     },
     "task-vo-fsm": {
       "status": "done",
       "path": "",
-      "owner": "felixgeelhaar"
+      "owner": "felixgeelhaar",
+      "elapsed_minutes": 0
     },
     "task-vo-integrate": {
       "status": "done",
       "path": "",
-      "owner": "felixgeelhaar"
+      "owner": "felixgeelhaar",
+      "elapsed_minutes": 0
     },
     "task-vo-priority": {
       "status": "done",
       "path": "",
-      "owner": "felixgeelhaar"
+      "owner": "felixgeelhaar",
+      "elapsed_minutes": 0
     },
     "task-vo-status": {
       "status": "done",
       "path": "",
-      "owner": "felixgeelhaar"
+      "owner": "felixgeelhaar",
+      "elapsed_minutes": 0
     },
     "task-watch-auto-sync": {
       "status": "done",
       "path": "",
-      "owner": "felixgeelhaar"
+      "owner": "felixgeelhaar",
+      "elapsed_minutes": 0
     },
     "task-watch-fsnotify": {
       "status": "done",
       "path": "",
-      "owner": "felixgeelhaar"
+      "owner": "felixgeelhaar",
+      "elapsed_minutes": 0
     },
     "task-watch-patterns": {
       "status": "done",
       "path": "",
-      "owner": "felixgeelhaar"
+      "owner": "felixgeelhaar",
+      "elapsed_minutes": 0
     }
   },
-  "updated_at": "2026-02-01T12:36:11.55652+01:00"
+  "updated_at": "2026-05-03T11:57:39.452882+02:00"
 }
