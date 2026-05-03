@@ -23,7 +23,7 @@ func notifyList(out io.Writer) error {
 
 	config, err := services.Workspace.Repo.LoadMessagingConfig()
 	if err != nil || config == nil || len(config.Adapters) == 0 {
-		fmt.Fprintln(out, "No notification adapters configured.")
+		_, _ = fmt.Fprintln(out, "No notification adapters configured.")
 		return nil
 	}
 
@@ -31,7 +31,7 @@ func notifyList(out io.Writer) error {
 	if err != nil {
 		return err
 	}
-	fmt.Fprintln(out, string(data))
+	_, _ = fmt.Fprintln(out, string(data))
 	return nil
 }
 
@@ -65,7 +65,7 @@ func notifyAdd(out io.Writer, name, adapterType, url string) error {
 		return err
 	}
 
-	fmt.Fprintf(out, "Added %s adapter %q -> %s\n", adapterType, name, url)
+	_, _ = fmt.Fprintf(out, "Added %s adapter %q -> %s\n", adapterType, name, url)
 	return nil
 }
 
@@ -106,12 +106,12 @@ func notifyTest(out io.Writer, name string) error {
 
 	for _, adapter := range registry.Adapters() {
 		if sendErr := adapter.Send(context.Background(), testEvent); sendErr != nil {
-			fmt.Fprintf(out, "Failed to send test to %q: %v\n", adapter.Name(), sendErr)
+			_, _ = fmt.Fprintf(out, "Failed to send test to %q: %v\n", adapter.Name(), sendErr)
 			return nil
 		}
 	}
 
-	fmt.Fprintf(out, "Test event sent to adapter %q\n", name)
+	_, _ = fmt.Fprintf(out, "Test event sent to adapter %q\n", name)
 	return nil
 }
 
@@ -146,6 +146,6 @@ func notifyRemove(out io.Writer, name string) error {
 		return err
 	}
 
-	fmt.Fprintf(out, "Removed adapter %q\n", name)
+	_, _ = fmt.Fprintf(out, "Removed adapter %q\n", name)
 	return nil
 }

@@ -131,8 +131,7 @@ type taskSummary struct{ id, feature string }
 
 func summariseTasks(tasks interface{}) string {
 	out := []taskSummary{}
-	switch v := tasks.(type) {
-	case []goldenTask:
+	if v, ok := tasks.([]goldenTask); ok {
 		for _, t := range v {
 			out = append(out, taskSummary{t.ID, t.FeatureID})
 		}

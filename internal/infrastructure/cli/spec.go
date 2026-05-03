@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 
 	"github.com/felixgeelhaar/roady/internal/infrastructure/wiring"
 	"github.com/felixgeelhaar/roady/pkg/application"
@@ -281,12 +282,14 @@ func readStdin() string {
 		if err != nil && err != io.EOF {
 			break
 		}
-		lines = append(lines, line)
+		if line != "" {
+			lines = append(lines, line)
+		}
 		if err == io.EOF {
 			break
 		}
 	}
-	return ""
+	return strings.Join(lines, "")
 }
 
 func init() {

@@ -69,11 +69,11 @@ func pathExists(path string) bool {
 
 func writeEmptyStateText(cmd *cobra.Command, step emptyStateStep) {
 	out := cmd.OutOrStdout()
-	fmt.Fprintln(out, step.Reason)
-	fmt.Fprintln(out)
-	fmt.Fprintf(out, "Next: %s\n", step.Command)
+	_, _ = fmt.Fprintln(out, step.Reason)
+	_, _ = fmt.Fprintln(out)
+	_, _ = fmt.Fprintf(out, "Next: %s\n", step.Command)
 	if step.Hint != "" {
-		fmt.Fprintf(out, "Hint: %s\n", step.Hint)
+		_, _ = fmt.Fprintf(out, "Hint: %s\n", step.Hint)
 	}
 }
 

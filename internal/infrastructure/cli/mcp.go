@@ -40,7 +40,7 @@ var mcpCmd = &cobra.Command{
 		// don't corrupt the JSON-RPC stream on stdout.
 		if transport == "stdio" || transport == "" {
 			if f, err := redirectStderr(); err == nil && f != nil {
-				defer f.Close()
+				defer f.Close() //nolint:errcheck // best-effort close on stderr redirect
 			}
 		}
 

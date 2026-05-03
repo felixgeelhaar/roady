@@ -50,7 +50,7 @@ func runDemo(cmd *cobra.Command, args []string) error {
 	}
 
 	out := cmd.OutOrStdout()
-	fmt.Fprintf(out, "Scaffolding Roady demo in %s\n\n", abs)
+	_, _ = fmt.Fprintf(out, "Scaffolding Roady demo in %s\n\n", abs)
 
 	ws := wiring.NewWorkspace(abs)
 	if err := ws.Repo.Initialize(); err != nil {
@@ -66,7 +66,7 @@ func runDemo(cmd *cobra.Command, args []string) error {
 	}); err != nil {
 		// Audit failure is informational here — the demo is meant to be
 		// disposable. Surface but don't abort.
-		fmt.Fprintf(out, "(warning) audit log failed: %v\n", err)
+		_, _ = fmt.Fprintf(out, "(warning) audit log failed: %v\n", err)
 	}
 
 	// BuildAppServices returns a non-nil services value alongside a warning
@@ -82,35 +82,35 @@ func runDemo(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("detect drift in demo: %w", err)
 	}
 
-	fmt.Fprintln(out, "Running `roady drift detect`...")
-	fmt.Fprintln(out)
+	_, _ = fmt.Fprintln(out, "Running `roady drift detect`...")
+	_, _ = fmt.Fprintln(out)
 	if len(report.Issues) == 0 {
-		fmt.Fprintln(out, "  (no drift detected — demo seed may need refresh)")
+		_, _ = fmt.Fprintln(out, "  (no drift detected — demo seed may need refresh)")
 	} else {
-		fmt.Fprintf(out, "Detected %d drift issues:\n", len(report.Issues))
+		_, _ = fmt.Fprintf(out, "Detected %d drift issues:\n", len(report.Issues))
 		for _, issue := range report.Issues {
-			fmt.Fprintf(out, "  - [%s] (%s/%s) %s\n",
+			_, _ = fmt.Fprintf(out, "  - [%s] (%s/%s) %s\n",
 				issue.Severity, issue.Type, issue.Category, issue.Message)
 			if issue.Hint != "" {
-				fmt.Fprintf(out, "      hint: %s\n", issue.Hint)
+				_, _ = fmt.Fprintf(out, "      hint: %s\n", issue.Hint)
 			}
 		}
 	}
 
-	fmt.Fprintln(out)
-	fmt.Fprintln(out, "What happened:")
-	fmt.Fprintln(out, "  1. A spec was generated with two features.")
-	fmt.Fprintln(out, "  2. A spec.lock.json snapshot was saved (intent baseline).")
-	fmt.Fprintln(out, "  3. The spec was edited to add a third feature — without re-locking.")
-	fmt.Fprintln(out, "  4. Roady detected the drift between intent and current spec.")
-	fmt.Fprintln(out)
-	fmt.Fprintln(out, "Try next:")
-	fmt.Fprintf(out, "  cd %s\n", target)
-	fmt.Fprintln(out, "  roady drift detect       # see the same report")
-	fmt.Fprintln(out, "  roady drift accept       # accept the drift, re-lock the spec")
-	fmt.Fprintln(out, "  roady status             # full project view")
-	fmt.Fprintln(out, "  roady setup claude-code  # connect an AI agent")
-	fmt.Fprintln(out)
+	_, _ = fmt.Fprintln(out)
+	_, _ = fmt.Fprintln(out, "What happened:")
+	_, _ = fmt.Fprintln(out, "  1. A spec was generated with two features.")
+	_, _ = fmt.Fprintln(out, "  2. A spec.lock.json snapshot was saved (intent baseline).")
+	_, _ = fmt.Fprintln(out, "  3. The spec was edited to add a third feature — without re-locking.")
+	_, _ = fmt.Fprintln(out, "  4. Roady detected the drift between intent and current spec.")
+	_, _ = fmt.Fprintln(out)
+	_, _ = fmt.Fprintln(out, "Try next:")
+	_, _ = fmt.Fprintf(out, "  cd %s\n", target)
+	_, _ = fmt.Fprintln(out, "  roady drift detect       # see the same report")
+	_, _ = fmt.Fprintln(out, "  roady drift accept       # accept the drift, re-lock the spec")
+	_, _ = fmt.Fprintln(out, "  roady status             # full project view")
+	_, _ = fmt.Fprintln(out, "  roady setup claude-code  # connect an AI agent")
+	_, _ = fmt.Fprintln(out)
 	return nil
 }
 

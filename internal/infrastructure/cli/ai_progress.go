@@ -55,9 +55,9 @@ func withAIProgress(parent context.Context, label string, fn func(ctx context.Co
 	var streaming atomic.Bool
 	onToken := func(chunk string) {
 		if streaming.CompareAndSwap(false, true) {
-			fmt.Fprintf(out, "%s ... streaming\n", label)
+			_, _ = fmt.Fprintf(out, "%s ... streaming\n", label)
 		}
-		fmt.Fprint(out, chunk)
+		_, _ = fmt.Fprint(out, chunk)
 	}
 
 	ctx, cancel := context.WithCancel(domainai.WithOnToken(parent, onToken))
@@ -67,7 +67,7 @@ func withAIProgress(parent context.Context, label string, fn func(ctx context.Co
 	signal.Notify(sigCh, os.Interrupt, syscall.SIGTERM)
 	defer signal.Stop(sigCh)
 
-	fmt.Fprintf(out, "%s ... working\n", label)
+	_, _ = fmt.Fprintf(out, "%s ... working\n", label)
 
 	done := make(chan error, 1)
 	start := time.Now()
@@ -84,10 +84,10 @@ func withAIProgress(parent context.Context, label string, fn func(ctx context.Co
 			elapsed := int(time.Since(start).Seconds())
 			if streaming.Load() {
 				// End the streamed line cleanly.
-				fmt.Fprintln(out)
+				_, _ = fmt.Fprintln(out)
 			}
 			if err == nil {
-				fmt.Fprintf(out, "%s ... done in %ds\n", label, elapsed)
+				_, _ = fmt.Fprintf(out, "%s ... done in %ds\n", label, elapsed)
 				return nil
 			}
 			if errors.Is(err, context.Canceled) || errors.Is(err, errAIOperationCancelled) {
@@ -101,10 +101,10 @@ func withAIProgress(parent context.Context, label string, fn func(ctx context.Co
 			if streaming.Load() {
 				continue
 			}
-			fmt.Fprintf(out, "%s ... %ds elapsed\n", label, int(time.Since(start).Seconds()))
+			_, _ = fmt.Fprintf(out, "%s ... %ds elapsed\n", label, int(time.Since(start).Seconds()))
 
 		case <-sigCh:
-			fmt.Fprintln(out, "Cancelling — waiting for provider to release...")
+			_, _ = fmt.Fprintln(out, "Cancelling — waiting for provider to release...")
 			cancel()
 			select {
 			case <-done:
