@@ -1,6 +1,6 @@
 {
   "project_id": "test-refactor",
-  "version": 70,
+  "version": 81,
   "task_states": {
     "task-agg-coordinator": {
       "status": "done",
@@ -555,6 +555,14 @@
       "completed_at": "2026-05-03T12:32:48.601032+02:00",
       "elapsed_minutes": 0
     },
+    "task-pos-validated-against": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar",
+      "started_at": "2026-05-03T13:16:15.699683+02:00",
+      "completed_at": "2026-05-03T13:19:33.835255+02:00",
+      "elapsed_minutes": 3
+    },
     "task-pos-vs-doc": {
       "status": "done",
       "path": "",
@@ -570,6 +578,38 @@
       "started_at": "2026-05-03T12:32:48.613153+02:00",
       "completed_at": "2026-05-03T12:35:13.088648+02:00",
       "elapsed_minutes": 2
+    },
+    "task-pos-website-commands-trim": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar",
+      "started_at": "2026-05-03T13:09:16.017747+02:00",
+      "completed_at": "2026-05-03T13:11:35.423591+02:00",
+      "elapsed_minutes": 2
+    },
+    "task-pos-website-hero-cta": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar",
+      "started_at": "2026-05-03T13:13:34.324742+02:00",
+      "completed_at": "2026-05-03T13:16:15.6841+02:00",
+      "elapsed_minutes": 2
+    },
+    "task-pos-website-integrations-reframe": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar",
+      "started_at": "2026-05-03T13:00:32.226274+02:00",
+      "completed_at": "2026-05-03T13:09:16.005983+02:00",
+      "elapsed_minutes": 8
+    },
+    "task-pos-website-mcp-refresh": {
+      "status": "done",
+      "path": "",
+      "owner": "felixgeelhaar",
+      "started_at": "2026-05-03T13:11:35.437473+02:00",
+      "completed_at": "2026-05-03T13:13:34.312114+02:00",
+      "elapsed_minutes": 1
     },
     "task-pv-cli": {
       "status": "done",
@@ -686,5 +726,5 @@
       "elapsed_minutes": 0
     }
   },
-  "updated_at": "2026-05-03T12:35:13.088648+02:00"
+  "updated_at": "2026-05-03T13:19:33.835255+02:00"
 }

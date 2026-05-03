@@ -1,149 +1,135 @@
 ---
-// MCP Integration Section - New feature highlight
+// MCP Integration Section.
+//
+// REFRESHED for v0.11. Tool list now uses the canonical v0.10 names
+// (roady_tasks, roady_plan_decompose, roady_drift_recurring,
+// roady_cost_estimate); deprecated names removed. AI-Interaction example
+// uses a real tool. D3 visualisation sub-block collapsed into a single
+// callout (was a feature-museum pattern in disguise).
 ---
 
 <section id="mcp" class="py-24 bg-gradient-to-b from-[#0B0E14] to-violet-900/10">
-  <div class="max-w-7xl mx-auto px-6">
-    <div class="text-center mb-16">
+  <div class="max-w-6xl mx-auto px-6">
+    <div class="text-center mb-12">
       <span class="inline-block px-4 py-1 mb-4 text-xs font-semibold uppercase tracking-widest text-violet-400 bg-violet-500/10 rounded-full border border-violet-500/20">
         AI-First
       </span>
-      <h2 class="text-4xl font-bold text-white mb-4">Model Context Protocol</h2>
+      <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">Native to Claude Code, Codex, Cursor, Gemini</h2>
       <p class="text-gray-400 max-w-2xl mx-auto">
-        Roady speaks MCP natively. Connect it to Claude, Cursor, or any MCP-compatible AI agent for seamless project coordination — with interactive D3.js visualizations built into every tool.
+        Every Roady operation is an MCP tool. Your agent reads and writes the same
+        plan-of-record you see in <code class="mono text-violet-400">roady status</code>.
+        One <code class="mono text-violet-400">roady setup</code> command per supported tool.
       </p>
     </div>
 
-    <div class="grid lg:grid-cols-2 gap-12 items-center">
-      <!-- MCP Tools List -->
+    <div class="grid lg:grid-cols-2 gap-10 items-start">
+      <!-- The tools the agent actually calls -->
       <div class="space-y-6">
         <div class="glass p-6 rounded-2xl">
           <h3 class="text-white font-semibold mb-4 flex items-center">
             <i data-lucide="cpu" class="w-5 h-5 text-violet-400 mr-2"></i>
-            Available MCP Tools
+            What the agent calls
           </h3>
           <div class="grid grid-cols-2 gap-3 text-sm">
             <div class="px-3 py-2 bg-black/30 rounded-lg">
-              <code class="text-violet-300 mono">roady_get_spec</code>
+              <code class="text-violet-300 mono">roady_tasks</code>
+              <p class="text-xs text-gray-500 mt-1">List tasks by status (ready / in_progress / blocked / all)</p>
             </div>
             <div class="px-3 py-2 bg-black/30 rounded-lg">
-              <code class="text-violet-300 mono">roady_generate_plan</code>
-            </div>
-            <div class="px-3 py-2 bg-black/30 rounded-lg">
-              <code class="text-violet-300 mono">roady_detect_drift</code>
+              <code class="text-violet-300 mono">roady_get_plan</code>
+              <p class="text-xs text-gray-500 mt-1">Read the approved plan</p>
             </div>
             <div class="px-3 py-2 bg-black/30 rounded-lg">
               <code class="text-violet-300 mono">roady_transition_task</code>
+              <p class="text-xs text-gray-500 mt-1">Start / complete / block / verify</p>
             </div>
             <div class="px-3 py-2 bg-black/30 rounded-lg">
-              <code class="text-violet-300 mono">roady_review_spec</code>
+              <code class="text-violet-300 mono">roady_detect_drift</code>
+              <p class="text-xs text-gray-500 mt-1">Has reality diverged from intent?</p>
             </div>
             <div class="px-3 py-2 bg-black/30 rounded-lg">
-              <code class="text-violet-300 mono">roady_smart_decompose</code>
+              <code class="text-violet-300 mono">roady_plan_decompose</code>
+              <p class="text-xs text-gray-500 mt-1">Codebase-aware AI decomposition</p>
             </div>
             <div class="px-3 py-2 bg-black/30 rounded-lg">
-              <code class="text-violet-300 mono">roady_assign_task</code>
+              <code class="text-violet-300 mono">roady_drift_recurring</code>
+              <p class="text-xs text-gray-500 mt-1">Drift unresolved &gt; 7 days</p>
+            </div>
+            <div class="px-3 py-2 bg-black/30 rounded-lg">
+              <code class="text-violet-300 mono">roady_cost_estimate</code>
+              <p class="text-xs text-gray-500 mt-1">Token + USD pre-flight before AI ops</p>
             </div>
             <div class="px-3 py-2 bg-black/30 rounded-lg">
               <code class="text-violet-300 mono">roady_query</code>
-            </div>
-            <div class="px-3 py-2 bg-black/30 rounded-lg">
-              <code class="text-violet-300 mono">roady_cost_report</code>
-            </div>
-            <div class="px-3 py-2 bg-black/30 rounded-lg">
-              <code class="text-violet-300 mono">roady_cost_budget</code>
+              <p class="text-xs text-gray-500 mt-1">NL question over project state</p>
             </div>
           </div>
-        </div>
-
-        <div class="glass p-6 rounded-2xl">
-          <h3 class="text-white font-semibold mb-4 flex items-center">
-            <i data-lucide="bar-chart-3" class="w-5 h-5 text-cyan-400 mr-2"></i>
-            Interactive D3 Visualizations
-          </h3>
-          <div class="grid grid-cols-2 gap-3 text-sm">
-            <div class="px-3 py-2 bg-black/30 rounded-lg">
-              <span class="text-cyan-300">Donut Charts</span>
-              <p class="text-xs text-gray-500 mt-1">Status & debt breakdowns</p>
-            </div>
-            <div class="px-3 py-2 bg-black/30 rounded-lg">
-              <span class="text-cyan-300">Force DAGs</span>
-              <p class="text-xs text-gray-500 mt-1">Plan & dependency graphs</p>
-            </div>
-            <div class="px-3 py-2 bg-black/30 rounded-lg">
-              <span class="text-cyan-300">Arc Gauges</span>
-              <p class="text-xs text-gray-500 mt-1">Usage & compliance</p>
-            </div>
-            <div class="px-3 py-2 bg-black/30 rounded-lg">
-              <span class="text-cyan-300">Bar & Line</span>
-              <p class="text-xs text-gray-500 mt-1">Drift severity & trends</p>
-            </div>
-            <div class="px-3 py-2 bg-black/30 rounded-lg">
-              <span class="text-cyan-300">Tree Diagrams</span>
-              <p class="text-xs text-gray-500 mt-1">Spec feature hierarchy</p>
-            </div>
-            <div class="px-3 py-2 bg-black/30 rounded-lg">
-              <span class="text-cyan-300">Burndown</span>
-              <p class="text-xs text-gray-500 mt-1">Forecast & velocity</p>
-            </div>
-          </div>
+          <p class="text-xs text-gray-500 mt-4">
+            Plus 30+ more &mdash; <code class="mono text-violet-400">roady openapi</code> emits the full schema. Streamed AI responses arrive as MCP progress notifications when the client subscribes.
+          </p>
         </div>
 
         <div class="glass p-6 rounded-2xl">
           <h3 class="text-white font-semibold mb-4 flex items-center">
             <i data-lucide="settings-2" class="w-5 h-5 text-emerald-400 mr-2"></i>
-            Transport Options
+            Transports
           </h3>
-          <div class="space-y-3">
-            <div class="flex items-center justify-between">
-              <span class="text-gray-400">stdio</span>
+          <div class="space-y-2">
+            <div class="flex items-center justify-between text-sm">
+              <span class="text-gray-400">stdio (Claude Code, OpenCode)</span>
               <code class="text-xs mono text-emerald-300 bg-black/30 px-2 py-1 rounded">roady mcp</code>
             </div>
-            <div class="flex items-center justify-between">
+            <div class="flex items-center justify-between text-sm">
               <span class="text-gray-400">HTTP</span>
-              <code class="text-xs mono text-emerald-300 bg-black/30 px-2 py-1 rounded">roady mcp --transport http --addr :8080</code>
+              <code class="text-xs mono text-emerald-300 bg-black/30 px-2 py-1 rounded">--transport http</code>
             </div>
-            <div class="flex items-center justify-between">
+            <div class="flex items-center justify-between text-sm">
               <span class="text-gray-400">WebSocket</span>
-              <code class="text-xs mono text-emerald-300 bg-black/30 px-2 py-1 rounded">roady mcp --transport ws --addr :8080</code>
-            </div>
-            <div class="flex items-center justify-between">
-              <span class="text-gray-400">gRPC</span>
-              <code class="text-xs mono text-emerald-300 bg-black/30 px-2 py-1 rounded">roady mcp --transport grpc --addr :50051</code>
+              <code class="text-xs mono text-emerald-300 bg-black/30 px-2 py-1 rounded">--transport ws</code>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Code Example -->
-      <div class="glass rounded-3xl p-2 shadow-2xl overflow-hidden">
-        <div class="bg-[#0B0E14] rounded-2xl p-6 mono text-xs leading-relaxed overflow-x-auto">
-          <div class="flex space-x-2 mb-4">
-            <div class="w-3 h-3 bg-red-500/50 rounded-full"></div>
-            <div class="w-3 h-3 bg-yellow-500/50 rounded-full"></div>
-            <div class="w-3 h-3 bg-green-500/50 rounded-full"></div>
+      <!-- One-line setup + a real interaction -->
+      <div class="space-y-6">
+        <div class="glass rounded-3xl p-2 shadow-2xl overflow-hidden">
+          <div class="bg-[#0B0E14] rounded-2xl p-6 mono text-xs leading-relaxed overflow-x-auto">
+            <div class="flex space-x-2 mb-4">
+              <div class="w-3 h-3 bg-red-500/50 rounded-full"></div>
+              <div class="w-3 h-3 bg-yellow-500/50 rounded-full"></div>
+              <div class="w-3 h-3 bg-green-500/50 rounded-full"></div>
+            </div>
+            <div class="text-gray-500 mb-2"># One-command setup, per supported AI tool</div>
+            <pre class="text-violet-300"><code>roady setup claude-code
+roady setup claude-desktop
+roady setup opencode
+roady setup openai
+roady setup gemini</code></pre>
+            <div class="mt-6 pt-4 border-t border-white/10">
+              <div class="text-gray-500 mb-2">// Real interaction inside Claude Code</div>
+              <div class="text-violet-400">You:</div>
+              <div class="text-gray-300 ml-4">"What's blocked, and why?"</div>
+              <div class="text-emerald-400 mt-3">Tool call:</div>
+              <pre class="text-gray-300 ml-4"><code>roady_tasks &#123; status: "blocked" &#125;</code></pre>
+              <div class="text-emerald-400 mt-3">Tool call:</div>
+              <pre class="text-gray-300 ml-4"><code>roady_drift_recurring &#123;&#125;</code></pre>
+              <div class="text-violet-400 mt-3">Claude:</div>
+              <div class="text-gray-300 ml-4">2 blocked tasks. Both depend on auth-signup, which is in_progress for 4 days &mdash; flagged as recurring drift. Want me to break it down?</div>
+            </div>
           </div>
-          <div class="text-gray-500 mb-2">// Claude Desktop config (~/.claude/mcp.json)</div>
-          <pre class="text-gray-300"><code>{`{
-  "mcpServers": {
-    "roady": {
-      "command": "roady",
-      "args": ["mcp"],
-      "env": {
-        "ROADY_ROOT": "/path/to/project"
-      }
-    }
-  }
-}`}</code></pre>
-          <div class="mt-6 pt-4 border-t border-white/10">
-            <div class="text-gray-500 mb-2">// Example AI interaction</div>
-            <div class="text-violet-400">AI:</div>
-            <div class="text-gray-300 ml-4">"What tasks are blocked?"</div>
-            <div class="text-emerald-400 mt-2">Tool call:</div>
-            <div class="text-gray-300 ml-4">roady_status {"{"} status: "blocked" {"}"}</div>
-            <div class="text-emerald-400 mt-2">Response:</div>
-            <div class="text-gray-300 ml-4">2 tasks blocked: auth-api, db-migration</div>
-          </div>
+        </div>
+
+        <div class="glass p-6 rounded-2xl">
+          <h3 class="text-white font-semibold mb-2 flex items-center">
+            <i data-lucide="bar-chart-3" class="w-4 h-4 text-cyan-400 mr-2"></i>
+            Visualisations come along for free
+          </h3>
+          <p class="text-sm text-gray-400">
+            Every MCP tool that returns structured data ships with an interactive D3
+            view (donut, force-directed graph, gauge, line chart, tree). Renders inside
+            Claude Code's tool panel automatically &mdash; no separate dashboard install.
+          </p>
         </div>
       </div>
     </div>

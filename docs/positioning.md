@@ -36,6 +36,26 @@ It is the durable state record that intent, plans, and execution operate
 against. We are claiming this category before agent runtimes (Claude
 Code, Cursor, Codex) bake their own opinionated, lock-in versions of it.
 
+### Validated against
+
+> **Status: hypothesis, not finding.**
+>
+> "Planning memory for AI coding agents" is a working category claim,
+> not a tested one. Treat it as load-bearing only after running it past
+> the ICP and recording the response.
+>
+> | Audience | Date | Phrase tested | Result |
+> | --- | --- | --- | --- |
+> | _r/ClaudeAI_ | _pending_ | "planning memory" / "spec-of-record" / "AI-native plan-of-record" | _pending_ |
+> | _r/cursor_ | _pending_ | (same) | _pending_ |
+> | _MCP Discord_ | _pending_ | (same) | _pending_ |
+> | _10 ICP interviews_ | _pending_ | (same) | _pending_ |
+>
+> Re-evaluate the category claim once at least three rows have data.
+> If the ICP keeps reaching for "Claude.md for plans" or
+> "AI-native backlog" instead, rewrite the hero before painting the
+> phrase on more permanent surfaces (slides, paid ads, conf talks).
+
 ## The alternatives — what users compare us to
 
 | If they were not using Roady, they would be using... | And the gap is... |

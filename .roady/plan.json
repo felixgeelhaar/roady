@@ -1097,6 +1097,71 @@
       "source": {}
     },
     {
+      "id": "task-pos-website-integrations-reframe",
+      "title": "Reframe IntegrationsSection so it does not contradict ICP (Positioning \u0026 Narrative (v0.11.0))",
+      "description": "ICP excludes hand-managed Jira shops yet website front-pages\nLinear/Jira \"Official Plugins\". Either delete from index or\nreframe as \"Bring your existing tracker along\" sub-section so\nthe AI-native dev does not bounce.\n",
+      "priority": "high",
+      "estimate": "",
+      "depends_on": [
+        "task-pos-website-align"
+      ],
+      "feature_id": "positioning-narrative",
+      "origin": "heuristic",
+      "source": {}
+    },
+    {
+      "id": "task-pos-website-commands-trim",
+      "title": "Trim CommandsSection to the actual workflow (Positioning \u0026 Narrative (v0.11.0))",
+      "description": "7 groups x ~28 commands defeats the README cleanup two\nsections later. Replace with the 5-step workflow snippet\nthat mirrors README and link out to docs/advanced.md for\nthe rest.\n",
+      "priority": "high",
+      "estimate": "",
+      "depends_on": [
+        "task-pos-website-align"
+      ],
+      "feature_id": "positioning-narrative",
+      "origin": "heuristic",
+      "source": {}
+    },
+    {
+      "id": "task-pos-website-mcp-refresh",
+      "title": "Refresh MCPSection to canonical v0.10 tool names (Positioning \u0026 Narrative (v0.11.0))",
+      "description": "Replace deprecated tool names (roady_smart_decompose,\nroady_get_*_tasks) with canonical (roady_plan_decompose,\nroady_drift_recurring, roady_tasks). Add roady_cost_estimate.\nFix the AI Interaction example. Collapse the D3 viz sub-block.\n",
+      "priority": "high",
+      "estimate": "",
+      "depends_on": [
+        "task-pos-website-align"
+      ],
+      "feature_id": "positioning-narrative",
+      "origin": "heuristic",
+      "source": {}
+    },
+    {
+      "id": "task-pos-website-hero-cta",
+      "title": "Hero primary CTA + Roady Cloud waitlist capture (Positioning \u0026 Narrative (v0.11.0))",
+      "description": "Replace the three GitHub-leaking Quick Links with one primary\non-site CTA (anchor to actual-workflow section) and one\nsecondary email capture for the Roady Cloud waitlist that the\nROADMAP teases. Stop leaking visitors before the value prop\nsinks in.\n",
+      "priority": "high",
+      "estimate": "",
+      "depends_on": [
+        "task-pos-website-align"
+      ],
+      "feature_id": "positioning-narrative",
+      "origin": "heuristic",
+      "source": {}
+    },
+    {
+      "id": "task-pos-validated-against",
+      "title": "Mark category claim as hypothesis until tested (Positioning \u0026 Narrative (v0.11.0))",
+      "description": "Add an explicit \"Validated against\" line to docs/positioning.md\nso the team treats \"planning memory for AI coding agents\" as a\nhypothesis until tested in r/ClaudeAI / r/cursor / MCP Discord\nwith the ICP. Anti-self-deception guard.\n",
+      "priority": "medium",
+      "estimate": "",
+      "depends_on": [
+        "task-pos-doc"
+      ],
+      "feature_id": "positioning-narrative",
+      "origin": "heuristic",
+      "source": {}
+    },
+    {
       "id": "task-ai-spec-review",
       "title": "AI spec quality review (AI-Powered Workflows)",
       "description": "AI spec quality review with completeness scoring",
@@ -1147,16 +1212,6 @@
       "source": {}
     },
     {
-      "id": "task-collab-assignment",
-      "title": "Task assignment with Assignee field (Multi-User Collaboration)",
-      "description": "Add Assignee field to Task domain entity, implement assign/unassign operations in CLI and MCP, persist in plan.json and state.json.",
-      "priority": "high",
-      "estimate": "",
-      "depends_on": [],
-      "feature_id": "multi-user-collaboration",
-      "source": {}
-    },
-    {
       "id": "task-collab-shared",
       "title": "Remote workspace sync (Multi-User Collaboration)",
       "description": "Remote workspace sync for shared project state. Git-based or server-based sync of .roady directory, conflict resolution strategy, pull/push commands.",
@@ -1166,6 +1221,16 @@
         "task-collab-conflict",
         "task-collab-team-roles"
       ],
+      "feature_id": "multi-user-collaboration",
+      "source": {}
+    },
+    {
+      "id": "task-collab-assignment",
+      "title": "Task assignment with Assignee field (Multi-User Collaboration)",
+      "description": "Add Assignee field to Task domain entity, implement assign/unassign operations in CLI and MCP, persist in plan.json and state.json.",
+      "priority": "high",
+      "estimate": "",
+      "depends_on": [],
       "feature_id": "multi-user-collaboration",
       "source": {}
     },
@@ -1184,5 +1249,5 @@
   ],
   "approval_status": "approved",
   "created_at": "2026-01-31T18:00:00+01:00",
-  "updated_at": "2026-05-03T12:28:48.824351+02:00"
+  "updated_at": "2026-05-03T13:00:24.888146+02:00"
 }

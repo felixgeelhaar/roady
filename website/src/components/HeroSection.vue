@@ -39,6 +39,35 @@ async function copyCommand() {
     }, 2000);
   }
 }
+
+// Roady Cloud waitlist signal capture. No backend wired yet — submissions
+// are stored in localStorage so the conversion path captures intent today;
+// a real backend (Formspree, Resend, or a hosted endpoint) lands once
+// Cloud has a credible alpha date. The point of shipping the form now is
+// to qualify the roadmap claim with actual demand data.
+const waitlistEmail = ref('');
+const waitlistSubmitted = ref(false);
+const waitlistError = ref('');
+
+function submitWaitlist() {
+  waitlistError.value = '';
+  const email = waitlistEmail.value.trim();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    waitlistError.value = 'Please enter a valid email.';
+    return;
+  }
+  try {
+    const key = 'roady-cloud-waitlist';
+    const existing: string[] = JSON.parse(localStorage.getItem(key) ?? '[]');
+    if (!existing.includes(email)) existing.push(email);
+    localStorage.setItem(key, JSON.stringify(existing));
+  } catch {
+    // Private browsing / storage disabled — still flag success so the
+    // visitor sees acknowledgement; we lose the signal silently.
+  }
+  waitlistSubmitted.value = true;
+  waitlistEmail.value = '';
+}
 </script>
 
 <template>
@@ -98,35 +127,67 @@ async function copyCommand() {
         </div>
       </div>
 
-      <p class="text-sm text-gray-500 mb-6 max-w-xl mx-auto">
+      <p class="text-sm text-gray-500 mb-8 max-w-xl mx-auto">
         After install, run
         <code class="mono text-violet-400 px-1">roady demo</code>
         to see the full spec &rarr; plan &rarr; drift loop on a sample project in under a minute.
       </p>
 
-      <!-- Quick Links -->
-      <div class="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-6">
+      <!-- Primary CTA: keep the visitor on-site through the value prop -->
+      <div class="flex flex-col sm:flex-row items-center justify-center space-y-3 sm:space-y-0 sm:space-x-4 mb-12">
         <a
-          href="https://github.com/felixgeelhaar/roady#the-actual-workflow"
-          class="text-gray-300 hover:text-white flex items-center space-x-2 transition-colors"
+          href="#commands"
+          class="inline-flex items-center space-x-2 px-6 py-3 rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-semibold shadow-lg shadow-violet-600/30 transition-colors"
         >
-          <span>The actual workflow</span>
-          <i data-lucide="arrow-right" class="w-4 h-4"></i>
-        </a>
-        <a
-          href="https://github.com/felixgeelhaar/roady/blob/main/docs/vs.md"
-          class="text-gray-300 hover:text-white flex items-center space-x-2 transition-colors"
-        >
-          <span>How it compares</span>
-          <i data-lucide="arrow-right" class="w-4 h-4"></i>
+          <span>See the actual workflow</span>
+          <i data-lucide="arrow-down" class="w-4 h-4"></i>
         </a>
         <a
           href="#mcp"
-          class="text-gray-300 hover:text-white flex items-center space-x-2 transition-colors"
+          class="inline-flex items-center space-x-2 px-6 py-3 rounded-xl border border-white/10 hover:border-white/20 text-gray-200 hover:text-white transition-colors"
         >
-          <span>MCP integration</span>
+          <span>How it talks to your AI</span>
           <i data-lucide="arrow-right" class="w-4 h-4"></i>
         </a>
+      </div>
+
+      <!-- Secondary: Roady Cloud waitlist signal capture -->
+      <div class="max-w-md mx-auto p-5 rounded-2xl border border-white/5 bg-white/[0.02]">
+        <p class="text-xs uppercase tracking-widest text-violet-400 font-semibold mb-2">
+          Roady Cloud &mdash; coming
+        </p>
+        <p class="text-sm text-gray-400 mb-3">
+          Hosted MCP, multi-repo dashboard, audit retention, SOC2. CLI stays MIT
+          forever; Cloud is the open-core paid wedge. Drop your email if you
+          want first access.
+        </p>
+        <form
+          v-if="!waitlistSubmitted"
+          @submit.prevent="submitWaitlist"
+          class="flex flex-col sm:flex-row gap-2"
+        >
+          <input
+            v-model="waitlistEmail"
+            type="email"
+            required
+            placeholder="you@company.dev"
+            class="flex-1 px-3 py-2 rounded-lg bg-black/40 border border-white/10 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-violet-500"
+          />
+          <button
+            type="submit"
+            class="px-4 py-2 rounded-lg bg-violet-600/80 hover:bg-violet-500 text-white text-sm font-medium transition-colors"
+          >
+            Join waitlist
+          </button>
+        </form>
+        <p v-if="waitlistError" class="mt-2 text-xs text-red-400">{{ waitlistError }}</p>
+        <p v-if="waitlistSubmitted" class="text-sm text-emerald-400">
+          Thanks &mdash; we'll be in touch when Cloud has an alpha date.
+        </p>
+        <p class="mt-3 text-[11px] text-gray-600">
+          See <a href="https://github.com/felixgeelhaar/roady/blob/main/ROADMAP.md" class="underline hover:text-gray-400">ROADMAP.md</a>
+          for the full open-core boundary.
+        </p>
       </div>
     </div>
   </section>

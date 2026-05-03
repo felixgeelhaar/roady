@@ -1053,6 +1053,61 @@
             "pos-doc"
           ],
           "source": {}
+        },
+        {
+          "id": "pos-website-integrations-reframe",
+          "title": "Reframe IntegrationsSection so it does not contradict ICP",
+          "description": "ICP excludes hand-managed Jira shops yet website front-pages\nLinear/Jira \"Official Plugins\". Either delete from index or\nreframe as \"Bring your existing tracker along\" sub-section so\nthe AI-native dev does not bounce.\n",
+          "priority": "high",
+          "estimate": "",
+          "depends_on": [
+            "pos-website-align"
+          ],
+          "source": {}
+        },
+        {
+          "id": "pos-website-commands-trim",
+          "title": "Trim CommandsSection to the actual workflow",
+          "description": "7 groups x ~28 commands defeats the README cleanup two\nsections later. Replace with the 5-step workflow snippet\nthat mirrors README and link out to docs/advanced.md for\nthe rest.\n",
+          "priority": "high",
+          "estimate": "",
+          "depends_on": [
+            "pos-website-align"
+          ],
+          "source": {}
+        },
+        {
+          "id": "pos-website-mcp-refresh",
+          "title": "Refresh MCPSection to canonical v0.10 tool names",
+          "description": "Replace deprecated tool names (roady_smart_decompose,\nroady_get_*_tasks) with canonical (roady_plan_decompose,\nroady_drift_recurring, roady_tasks). Add roady_cost_estimate.\nFix the AI Interaction example. Collapse the D3 viz sub-block.\n",
+          "priority": "high",
+          "estimate": "",
+          "depends_on": [
+            "pos-website-align"
+          ],
+          "source": {}
+        },
+        {
+          "id": "pos-website-hero-cta",
+          "title": "Hero primary CTA + Roady Cloud waitlist capture",
+          "description": "Replace the three GitHub-leaking Quick Links with one primary\non-site CTA (anchor to actual-workflow section) and one\nsecondary email capture for the Roady Cloud waitlist that the\nROADMAP teases. Stop leaking visitors before the value prop\nsinks in.\n",
+          "priority": "high",
+          "estimate": "",
+          "depends_on": [
+            "pos-website-align"
+          ],
+          "source": {}
+        },
+        {
+          "id": "pos-validated-against",
+          "title": "Mark category claim as hypothesis until tested",
+          "description": "Add an explicit \"Validated against\" line to docs/positioning.md\nso the team treats \"planning memory for AI coding agents\" as a\nhypothesis until tested in r/ClaudeAI / r/cursor / MCP Discord\nwith the ICP. Anti-self-deception guard.\n",
+          "priority": "medium",
+          "estimate": "",
+          "depends_on": [
+            "pos-doc"
+          ],
+          "source": {}
         }
       ],
       "source": {}
