@@ -49,7 +49,10 @@ jobs:
         go build -v -o dist/roady-plugin-mock ./cmd/roady-plugin-mock
 
     - name: Test
-      run: go test -v -coverprofile=coverage.out ./...
+      # -coverpkg=./... rolls cross-package coverage into the profile so
+      # tests in evals/ that exercise pkg/application count toward the
+      # application domain threshold (matches local pre-commit numbers).
+      run: go test -v -coverprofile=coverage.out -coverpkg=./... ./...
 
     - name: Install coverctl
       run: go install github.com/felixgeelhaar/coverctl/cmd/coverctl@latest
