@@ -106,5 +106,5 @@ for the one-time GitHub repo settings the release pipeline depends on
 
 *Built with `cobra`, `bubbletea`, `mcp-go`, `fortify`. Domain-driven Go
 with `pkg/domain` / `pkg/application` / `internal/infrastructure`.
-Architecture notes in [`docs/architecture.md`](docs/architecture.md) (or
-the existing DDD docs in `docs/ddd-*.md`).*
+Architecture notes in the DDD docs ([`docs/ddd-insights.md`](docs/ddd-insights.md),
+[`docs/ddd-refactor-spec.md`](docs/ddd-refactor-spec.md)).*
