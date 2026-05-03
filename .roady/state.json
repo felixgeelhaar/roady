@@ -1,6 +1,6 @@
 {
   "project_id": "test-refactor",
-  "version": 85,
+  "version": 86,
   "task_states": {
     "task-agg-coordinator": {
       "status": "done",
@@ -564,11 +564,12 @@
       "elapsed_minutes": 4
     },
     "task-pos-v010-release": {
-      "status": "in_progress",
+      "status": "done",
       "path": "",
       "owner": "felixgeelhaar",
       "started_at": "2026-05-03T13:52:28.783805+02:00",
-      "elapsed_minutes": 0
+      "completed_at": "2026-05-03T14:12:46.79685+02:00",
+      "elapsed_minutes": 20
     },
     "task-pos-validated-against": {
       "status": "done",
@@ -741,5 +742,5 @@
       "elapsed_minutes": 0
     }
   },
-  "updated_at": "2026-05-03T13:52:28.783805+02:00"
+  "updated_at": "2026-05-03T14:12:46.79685+02:00"
 }
