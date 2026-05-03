@@ -8,6 +8,7 @@ import (
 
 	"github.com/felixgeelhaar/roady/internal/infrastructure/wiring"
 	"github.com/felixgeelhaar/roady/pkg/application"
+	"github.com/mattn/go-isatty"
 	"github.com/spf13/cobra"
 )
 
@@ -54,13 +55,12 @@ var (
 	initTemplate       string
 )
 
-// stdinIsTTY is overridable in tests.
+// stdinIsTTY is overridable in tests. Uses go-isatty so /dev/null and
+// pipes correctly report as non-TTY (the file-mode ModeCharDevice check
+// previously used returned true for /dev/null on Linux, which broke CI
+// e2e tests by silently triggering the interactive wizard).
 var stdinIsTTY = func() bool {
-	fi, err := os.Stdin.Stat()
-	if err != nil {
-		return false
-	}
-	return fi.Mode()&os.ModeCharDevice != 0
+	return isatty.IsTerminal(os.Stdin.Fd()) || isatty.IsCygwinTerminal(os.Stdin.Fd())
 }
 
 // shouldRunInteractive picks the wizard when the user clearly wants it
