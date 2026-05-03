@@ -1,0 +1,17 @@
+# Expected plan structure produced by the deterministic heuristic planner
+# (1 requirement = 1 task; task ID = "task-" + requirement ID; dependencies
+# are mapped via the same prefix). Update this file deliberately when the
+# planner's contract changes.
+spec_id: cli-tool
+tasks:
+  - id: task-greet-parse
+    feature_id: greet
+    depends_on: []
+  - id: task-greet-render
+    feature_id: greet
+    depends_on:
+      - task-greet-parse
+  - id: task-greet-test
+    feature_id: greet
+    depends_on:
+      - task-greet-render

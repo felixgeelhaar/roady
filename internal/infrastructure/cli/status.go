@@ -70,6 +70,7 @@ type taskJSONOutput struct {
 	Title    string `json:"title"`
 	Status   string `json:"status"`
 	Priority string `json:"priority"`
+	Origin   string `json:"origin,omitempty"`
 	Unlocked bool   `json:"unlocked,omitempty"`
 }
 
@@ -79,6 +80,14 @@ type driftJSONOutput struct {
 }
 
 func runStatusCmd(cmd *cobra.Command, args []string) error {
+	if hint, ok := emptyStateHintForCurrentDir(); ok {
+		if statusJSON {
+			return writeEmptyStateJSON(cmd, hint)
+		}
+		writeEmptyStateText(cmd, hint)
+		return nil
+	}
+
 	services, err := loadServicesForCurrentDir()
 	if err != nil {
 		return err
@@ -159,6 +168,7 @@ func outputStatusJSON(productSpec *spec.ProductSpec, plan *planning.Plan, state 
 				Title:    t.Title,
 				Status:   string(status),
 				Priority: string(t.Priority),
+				Origin:   string(t.NormalisedOrigin()),
 				Unlocked: isTaskUnlocked(t, state, plan),
 			})
 		}
@@ -220,7 +230,23 @@ func outputStatusText(cmd *cobra.Command, productSpec *spec.ProductSpec, plan *p
 	for _, t := range sortedTasks {
 		status := getTaskStatus(t.ID, state)
 		prefix := getStatusPrefix(status)
-		fmt.Printf("%s [%-11s] %-40s (Priority: %s)\n", prefix, status, t.Title, t.Priority)
+		origin := t.NormalisedOrigin()
+		marker := ""
+		if origin == planning.OriginAI {
+			// Flag AI-proposed tasks so reviewers can give them extra
+			// scrutiny in the task overview.
+			marker = " [AI]"
+		}
+		// Append a "from doc:line" annotation when the task carries
+		// provenance from a source document (e.g. spec analyze output).
+		if !t.Source.IsZero() {
+			if t.Source.Line > 0 {
+				marker += fmt.Sprintf(" from %s:%d", t.Source.Doc, t.Source.Line)
+			} else {
+				marker += fmt.Sprintf(" from %s", t.Source.Doc)
+			}
+		}
+		fmt.Printf("%s [%-11s] %-40s (Priority: %s)%s\n", prefix, status, t.Title, t.Priority, marker)
 	}
 
 	if len(filteredTasks) == 0 && hasActiveFilters() {

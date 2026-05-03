@@ -9,6 +9,9 @@ dist/
 # Local Roady State
 .roady/
 
+# Stray deadletter artifact written when webhook tests run in cwd
+deadletters.jsonl
+
 # Coverage and Reports
 .cover/
 !.cover/history.json

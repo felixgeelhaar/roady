@@ -42,6 +42,45 @@ const (
 	PriorityHigh   TaskPriority = "high"
 )
 
+// TaskOrigin records who or what produced a task. Persisted on Task so
+// reviewers can scrutinise AI-produced tasks differently from heuristic or
+// human-authored ones.
+type TaskOrigin string
+
+const (
+	// OriginHeuristic marks tasks emitted by the deterministic 1-requirement
+	// = 1-task planner. Empty string deserialises to this value as a
+	// backward-compatible default for plans persisted before the field
+	// existed.
+	OriginHeuristic TaskOrigin = "heuristic"
+	// OriginAI marks tasks proposed by an AI provider via the AI planning
+	// service or smart-decompose.
+	OriginAI TaskOrigin = "ai"
+	// OriginHuman marks tasks written or amended by a human operator (e.g.,
+	// directly editing plan.json or via a future `roady task add`).
+	OriginHuman TaskOrigin = "human"
+)
+
+// NormalisedOrigin returns the canonical origin for a task, defaulting to
+// heuristic when the field is empty so legacy plan.json files keep working.
+func (t Task) NormalisedOrigin() TaskOrigin {
+	if t.Origin == "" {
+		return OriginHeuristic
+	}
+	return t.Origin
+}
+
+// TaskSource records the document and line from which the originating spec
+// element was derived. Optional; an empty struct means no provenance was
+// recorded.
+type TaskSource struct {
+	Doc  string `json:"doc,omitempty" yaml:"doc,omitempty"`
+	Line int    `json:"line,omitempty" yaml:"line,omitempty"`
+}
+
+// IsZero reports whether no source has been recorded for the task.
+func (s TaskSource) IsZero() bool { return s.Doc == "" && s.Line == 0 }
+
 // Task is a unit of work (structural intent).
 type Task struct {
 	ID          string       `json:"id" yaml:"id"`
@@ -51,6 +90,8 @@ type Task struct {
 	Estimate    string       `json:"estimate" yaml:"estimate"`     // e.g., "4h", "1d"
 	DependsOn   []string     `json:"depends_on" yaml:"depends_on"` // IDs of tasks this task depends on
 	FeatureID   string       `json:"feature_id" yaml:"feature_id"` // Link to the feature in the spec
+	Origin      TaskOrigin   `json:"origin,omitempty" yaml:"origin,omitempty"`
+	Source      TaskSource   `json:"source,omitempty" yaml:"source,omitempty"`
 }
 
 // Hash returns a deterministic hash of the plan structure.

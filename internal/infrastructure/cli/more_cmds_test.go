@@ -518,8 +518,11 @@ func TestStatusCmd_NoPlan(t *testing.T) {
 			t.Fatalf("status failed: %v", err)
 		}
 	})
-	if !strings.Contains(output, "No plan generated yet") {
-		t.Fatalf("expected no plan output, got:\n%s", output)
+	if !strings.Contains(output, "no plan has been generated") {
+		t.Fatalf("expected no-plan empty-state output, got:\n%s", output)
+	}
+	if !strings.Contains(output, "roady plan generate") {
+		t.Fatalf("expected next-step CTA pointing at `roady plan generate`, got:\n%s", output)
 	}
 }
 

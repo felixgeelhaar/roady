@@ -31,7 +31,7 @@ func TestMessagingListCmd_NoConfig(t *testing.T) {
 		}
 	})
 
-	if !strings.Contains(output, "No messaging adapters configured") {
+	if !strings.Contains(output, "No notification adapters configured") {
 		t.Fatalf("expected no-config message, got:\n%s", output)
 	}
 }

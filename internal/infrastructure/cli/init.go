@@ -29,7 +29,7 @@ var initCmd = &cobra.Command{
 			projectName = args[0]
 		}
 
-		if initInteractive {
+		if shouldRunInteractive() {
 			return runOnboarding(service, projectName)
 		}
 
@@ -43,14 +43,52 @@ var initCmd = &cobra.Command{
 		}
 
 		fmt.Printf("Successfully initialized roady project: %s\n", projectName)
+		printNextSteps()
 		return nil
 	},
 }
 
 var (
-	initInteractive bool
-	initTemplate    string
+	initInteractive    bool
+	initNonInteractive bool
+	initTemplate       string
 )
+
+// stdinIsTTY is overridable in tests.
+var stdinIsTTY = func() bool {
+	fi, err := os.Stdin.Stat()
+	if err != nil {
+		return false
+	}
+	return fi.Mode()&os.ModeCharDevice != 0
+}
+
+// shouldRunInteractive picks the wizard when the user clearly wants it
+// (--interactive), or when running in a TTY without an explicit template or
+// --non-interactive flag. CI and piped invocations stay non-interactive.
+func shouldRunInteractive() bool {
+	if initInteractive {
+		return true
+	}
+	if initNonInteractive {
+		return false
+	}
+	if initTemplate != "" {
+		return false
+	}
+	return stdinIsTTY()
+}
+
+func printNextSteps() {
+	fmt.Println()
+	fmt.Println("Next steps:")
+	fmt.Println("  1. Connect your AI tool:    roady setup claude-code")
+	fmt.Println("  2. Edit your spec:           roady spec show")
+	fmt.Println("  3. Generate a plan:          roady plan generate")
+	fmt.Println("  4. Approve the plan:         roady plan approve")
+	fmt.Println("  5. Start your first task:    roady task start <task-id>")
+	fmt.Println()
+}
 
 func runOnboarding(service *application.InitService, projectName string) error {
 	reader := bufio.NewReader(os.Stdin)
@@ -97,10 +135,11 @@ func runOnboarding(service *application.InitService, projectName string) error {
 
 	// Step 4: Next steps walkthrough
 	fmt.Println("Next steps:")
-	fmt.Println("  1. Edit your spec:       roady spec show")
-	fmt.Println("  2. Generate a plan:       roady plan generate")
-	fmt.Println("  3. Approve the plan:      roady plan approve")
-	fmt.Println("  4. Start your first task: roady task start <task-id>")
+	fmt.Println("  1. Connect your AI tool:    roady setup claude-code")
+	fmt.Println("  2. Edit your spec:           roady spec show")
+	fmt.Println("  3. Generate a plan:          roady plan generate")
+	fmt.Println("  4. Approve the plan:         roady plan approve")
+	fmt.Println("  5. Start your first task:    roady task start <task-id>")
 	fmt.Println()
 	fmt.Println("Optional:")
 	fmt.Println("  - Configure AI:           roady config wizard")
@@ -116,7 +155,11 @@ func readLine(reader *bufio.Reader) string {
 }
 
 func init() {
-	initCmd.Flags().BoolVar(&initInteractive, "interactive", false, "Guided onboarding with template selection")
-	initCmd.Flags().StringVar(&initTemplate, "template", "", "Starter template (minimal, web-api, cli-tool, library)")
+	initCmd.Flags().BoolVar(&initInteractive, "interactive", false,
+		"Force the guided onboarding wizard")
+	initCmd.Flags().BoolVar(&initNonInteractive, "non-interactive", false,
+		"Skip the wizard even when stdin is a TTY (use in CI/scripts)")
+	initCmd.Flags().StringVar(&initTemplate, "template", "",
+		"Starter template (minimal, web-api, cli-tool, library)")
 	RootCmd.AddCommand(initCmd)
 }

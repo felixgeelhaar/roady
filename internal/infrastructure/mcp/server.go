@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/felixgeelhaar/mcp-go"
+	"github.com/felixgeelhaar/roady/internal/infrastructure/config"
 	"github.com/felixgeelhaar/roady/internal/infrastructure/wiring"
 	"github.com/felixgeelhaar/roady/pkg/application"
 	"github.com/felixgeelhaar/roady/pkg/domain/billing"
@@ -297,6 +298,22 @@ type GetInProgressTasksArgs struct {
 	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
 }
 
+// TasksArgs supersedes the three legacy roady_get_*_tasks tools by adding a
+// single status enum parameter. Existing tools delegate to the same handler
+// for backward compatibility.
+type TasksArgs struct {
+	Status      string `json:"status,omitempty" jsonschema:"description=Which tasks to return: ready (unlocked + pending), in_progress, blocked, or all. Defaults to ready.,enum=ready,enum=in_progress,enum=blocked,enum=all"`
+	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
+}
+
+// CostEstimateArgs are the inputs for roady_cost_estimate. Operation defaults
+// to generate_plan when omitted; project_path is server root unless
+// overridden.
+type CostEstimateArgs struct {
+	Operation   string `json:"operation,omitempty" jsonschema:"description=AI operation to estimate. Defaults to generate_plan.,enum=generate_plan,enum=smart_decompose,enum=review_spec,enum=explain_drift,enum=query"`
+	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
+}
+
 type SmartDecomposeArgs struct {
 	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
 }
@@ -465,9 +482,15 @@ func (s *Server) registerTools() {
 		UIResource("ui://roady/debt").
 		Handler(s.handleDebtSummary)
 
-	// Tool: roady_sticky_drift (Horizon 5)
+	// Tool: roady_drift_recurring (v0.10.0 - canonical name for sticky drift)
+	s.mcpServer.Tool("roady_drift_recurring").
+		Description("Return drift items that have remained unresolved for more than 7 days. Canonical name; supersedes roady_sticky_drift.").
+		UIResource("ui://roady/debt").
+		Handler(s.handleStickyDrift)
+
+	// Tool: roady_sticky_drift (deprecated; use roady_drift_recurring)
 	s.mcpServer.Tool("roady_sticky_drift").
-		Description("Get sticky debt items (unresolved drift for more than 7 days)").
+		Description("DEPRECATED: use roady_drift_recurring. Returns sticky debt items unresolved for more than 7 days.").
 		UIResource("ui://roady/debt").
 		Handler(s.handleStickyDrift)
 
@@ -543,21 +566,37 @@ func (s *Server) registerTools() {
 		UIResource("ui://roady/status").
 		Handler(s.handleGetSnapshot)
 
-	// Tool: roady_get_ready_tasks (v0.6.0 - Coordinator)
+	// Tool: roady_cost_estimate (v0.10.0 - pre-flight cost projection)
+	s.mcpServer.Tool("roady_cost_estimate").
+		Description("Estimate input/output tokens and USD cost for an AI operation (generate_plan, smart_decompose, review_spec, explain_drift, query) before running it.").
+		UIResource("ui://roady/cost").
+		Handler(s.handleCostEstimate)
+
+	// Tool: roady_tasks (v0.10.0 - unified task listing)
+	// Supersedes roady_get_ready_tasks, roady_get_blocked_tasks, and
+	// roady_get_in_progress_tasks. Takes a status enum (ready, in_progress,
+	// blocked, all). The legacy tools below remain registered as deprecation
+	// aliases that delegate to the same handler.
+	s.mcpServer.Tool("roady_tasks").
+		Description("List tasks by status. Pass status=ready (default), in_progress, blocked, or all. Supersedes roady_get_*_tasks.").
+		UIResource("ui://roady/status").
+		Handler(s.handleTasks)
+
+	// Tool: roady_get_ready_tasks (deprecated; use roady_tasks status=ready)
 	s.mcpServer.Tool("roady_get_ready_tasks").
-		Description("Get tasks that are ready to start (unlocked and pending)").
+		Description("DEPRECATED: use roady_tasks with status=ready. Returns tasks that are ready to start.").
 		UIResource("ui://roady/status").
 		Handler(s.handleGetReadyTasks)
 
-	// Tool: roady_get_blocked_tasks (v0.6.0 - Coordinator)
+	// Tool: roady_get_blocked_tasks (deprecated; use roady_tasks status=blocked)
 	s.mcpServer.Tool("roady_get_blocked_tasks").
-		Description("Get tasks that are currently blocked").
+		Description("DEPRECATED: use roady_tasks with status=blocked. Returns blocked tasks.").
 		UIResource("ui://roady/status").
 		Handler(s.handleGetBlockedTasks)
 
-	// Tool: roady_get_in_progress_tasks (v0.6.0 - Coordinator)
+	// Tool: roady_get_in_progress_tasks (deprecated; use roady_tasks status=in_progress)
 	s.mcpServer.Tool("roady_get_in_progress_tasks").
-		Description("Get tasks that are currently in progress").
+		Description("DEPRECATED: use roady_tasks with status=in_progress. Returns in-progress tasks.").
 		UIResource("ui://roady/status").
 		Handler(s.handleGetInProgressTasks)
 
@@ -573,9 +612,15 @@ func (s *Server) registerTools() {
 		UIResource("ui://roady/workspace").
 		Handler(s.handleWorkspacePull)
 
-	// Tool: roady_smart_decompose (v0.8.0)
+	// Tool: roady_plan_decompose (v0.10.0 - canonical name)
+	s.mcpServer.Tool("roady_plan_decompose").
+		Description("AI-powered context-aware task decomposition using codebase structure analysis. Canonical name; supersedes roady_smart_decompose.").
+		UIResource("ui://roady/plan").
+		Handler(s.handleSmartDecompose)
+
+	// Tool: roady_smart_decompose (deprecated; use roady_plan_decompose)
 	s.mcpServer.Tool("roady_smart_decompose").
-		Description("AI-powered context-aware task decomposition using codebase structure analysis").
+		Description("DEPRECATED: use roady_plan_decompose. AI-powered context-aware task decomposition.").
 		UIResource("ui://roady/plan").
 		Handler(s.handleSmartDecompose)
 
@@ -772,6 +817,7 @@ func (s *Server) handleExplainDrift(ctx context.Context, args ExplainDriftArgs) 
 	if err != nil {
 		return "", mcpErr("Failed to detect drift. Ensure both spec and plan exist.")
 	}
+	ctx = withMCPStreaming(ctx)
 	result, err := svc.AI.ExplainDrift(ctx, report)
 	if err != nil {
 		return "", mcpErr("Failed to generate drift explanation. Check your AI provider configuration.")
@@ -840,6 +886,7 @@ func (s *Server) handleExplainSpec(ctx context.Context, args ExplainSpecArgs) (s
 	if err := requireAI(svc); err != nil {
 		return "", err
 	}
+	ctx = withMCPStreaming(ctx)
 	result, err := svc.AI.ExplainSpec(ctx)
 	if err != nil {
 		return "", mcpErr("Failed to explain spec. Check your AI provider configuration.")
@@ -863,6 +910,7 @@ func (s *Server) handleQuery(ctx context.Context, args QueryArgs) (string, error
 	if err := requireAI(svc); err != nil {
 		return "", err
 	}
+	ctx = withMCPStreaming(ctx)
 	answer, err := svc.AI.QueryProject(ctx, args.Question)
 	if err != nil {
 		return "", mcpErr("Failed to answer query. Check your AI provider configuration.")
@@ -878,6 +926,7 @@ func (s *Server) handleSuggestPriorities(ctx context.Context, args SuggestPriori
 	if err := requireAI(svc); err != nil {
 		return nil, err
 	}
+	ctx = withMCPStreaming(ctx)
 	suggestions, err := svc.AI.SuggestPriorities(ctx)
 	if err != nil {
 		return nil, mcpErr("Failed to suggest priorities. Check your AI provider configuration and ensure a plan exists.")
@@ -893,6 +942,7 @@ func (s *Server) handleReviewSpec(ctx context.Context, args ReviewSpecArgs) (any
 	if err := requireAI(svc); err != nil {
 		return nil, err
 	}
+	ctx = withMCPStreaming(ctx)
 	review, err := svc.AI.ReviewSpec(ctx)
 	if err != nil {
 		return nil, mcpErr("Failed to review spec. Check your AI provider configuration.")
@@ -1465,40 +1515,122 @@ func (s *Server) handleGetSnapshot(ctx context.Context, args GetSnapshotArgs) (a
 	}, nil
 }
 
-func (s *Server) handleGetReadyTasks(ctx context.Context, args GetReadyTasksArgs) (any, error) {
+// handleCostEstimate returns a pre-flight token + USD projection for one of
+// the AI operations Roady can launch. Configuration (provider, model) is
+// read from .roady/ai.yaml and overridden by env vars at provider load time;
+// here we only need provider/model identifiers, not a live provider.
+func (s *Server) handleCostEstimate(ctx context.Context, args CostEstimateArgs) (any, error) {
 	svc, err := s.servicesForPath(args.ProjectPath)
 	if err != nil {
 		return nil, mcpErr("Failed to load project at the given path.")
 	}
-	tasks, err := svc.Plan.GetReadyTasks(ctx)
-	if err != nil {
-		return nil, mcpErr("Failed to get ready tasks. Ensure a plan and state exist.")
+
+	root := s.root
+	if args.ProjectPath != "" {
+		root = args.ProjectPath
 	}
-	return tasks, nil
+
+	provider, model := resolveProviderModel(root, svc.Provider)
+	estimator := application.NewCostEstimator(svc.Workspace.Repo, provider, model)
+	estimate, err := estimator.Estimate(args.Operation)
+	if err != nil {
+		return nil, mcpErr(err.Error())
+	}
+	return estimate, nil
+}
+
+// resolveProviderModel determines (provider, model) for cost estimation.
+// Preference order: live wired provider's ID (split on ":"), then ai.yaml,
+// then ROADY_AI_* env vars. Returns ("", "") when no source is configured;
+// the estimator treats that as "pricing unknown" and reports zero cost.
+func resolveProviderModel(root string, p domainProviderLike) (string, string) {
+	if p != nil {
+		id := p.ID()
+		if before, after, ok := strings.Cut(id, ":"); ok {
+			return before, after
+		}
+		if id != "" {
+			return id, ""
+		}
+	}
+	if cfg, err := config.LoadAIConfig(root); err == nil && cfg != nil {
+		return cfg.Provider, cfg.Model
+	}
+	return "", ""
+}
+
+// domainProviderLike is the minimal subset of ai.Provider needed here, kept
+// as a local interface so the helper is independently testable.
+type domainProviderLike interface {
+	ID() string
+}
+
+// handleTasks is the unified task-listing handler introduced in v0.10.0.
+// The legacy per-status handlers below delegate to it so the response shape
+// stays identical and a single code path serves both old and new tool names.
+func (s *Server) handleTasks(ctx context.Context, args TasksArgs) (any, error) {
+	svc, err := s.servicesForPath(args.ProjectPath)
+	if err != nil {
+		return nil, mcpErr("Failed to load project at the given path.")
+	}
+
+	status := args.Status
+	if status == "" {
+		status = "ready"
+	}
+
+	switch status {
+	case "ready":
+		tasks, err := svc.Plan.GetReadyTasks(ctx)
+		if err != nil {
+			return nil, mcpErr("Failed to get ready tasks. Ensure a plan and state exist.")
+		}
+		return tasks, nil
+	case "in_progress":
+		tasks, err := svc.Plan.GetInProgressTasks(ctx)
+		if err != nil {
+			return nil, mcpErr("Failed to get in-progress tasks. Ensure a plan and state exist.")
+		}
+		return tasks, nil
+	case "blocked":
+		tasks, err := svc.Plan.GetBlockedTasks(ctx)
+		if err != nil {
+			return nil, mcpErr("Failed to get blocked tasks. Ensure a plan and state exist.")
+		}
+		return tasks, nil
+	case "all":
+		ready, err := svc.Plan.GetReadyTasks(ctx)
+		if err != nil {
+			return nil, mcpErr("Failed to load tasks. Ensure a plan and state exist.")
+		}
+		inProgress, err := svc.Plan.GetInProgressTasks(ctx)
+		if err != nil {
+			return nil, mcpErr("Failed to load tasks. Ensure a plan and state exist.")
+		}
+		blocked, err := svc.Plan.GetBlockedTasks(ctx)
+		if err != nil {
+			return nil, mcpErr("Failed to load tasks. Ensure a plan and state exist.")
+		}
+		return map[string]any{
+			"ready":       ready,
+			"in_progress": inProgress,
+			"blocked":     blocked,
+		}, nil
+	default:
+		return nil, mcpErr("Invalid status. Use ready, in_progress, blocked, or all.")
+	}
+}
+
+func (s *Server) handleGetReadyTasks(ctx context.Context, args GetReadyTasksArgs) (any, error) {
+	return s.handleTasks(ctx, TasksArgs{Status: "ready", ProjectPath: args.ProjectPath})
 }
 
 func (s *Server) handleGetBlockedTasks(ctx context.Context, args GetBlockedTasksArgs) (any, error) {
-	svc, err := s.servicesForPath(args.ProjectPath)
-	if err != nil {
-		return nil, mcpErr("Failed to load project at the given path.")
-	}
-	tasks, err := svc.Plan.GetBlockedTasks(ctx)
-	if err != nil {
-		return nil, mcpErr("Failed to get blocked tasks. Ensure a plan and state exist.")
-	}
-	return tasks, nil
+	return s.handleTasks(ctx, TasksArgs{Status: "blocked", ProjectPath: args.ProjectPath})
 }
 
 func (s *Server) handleGetInProgressTasks(ctx context.Context, args GetInProgressTasksArgs) (any, error) {
-	svc, err := s.servicesForPath(args.ProjectPath)
-	if err != nil {
-		return nil, mcpErr("Failed to load project at the given path.")
-	}
-	tasks, err := svc.Plan.GetInProgressTasks(ctx)
-	if err != nil {
-		return nil, mcpErr("Failed to get in-progress tasks. Ensure a plan and state exist.")
-	}
-	return tasks, nil
+	return s.handleTasks(ctx, TasksArgs{Status: "in_progress", ProjectPath: args.ProjectPath})
 }
 
 // --- Workspace Sync Handlers ---
@@ -1555,6 +1687,7 @@ func (s *Server) handleSmartDecompose(ctx context.Context, args SmartDecomposeAr
 	if args.ProjectPath != "" {
 		root = args.ProjectPath
 	}
+	ctx = withMCPStreaming(ctx)
 	result, err := svc.AI.SmartDecompose(ctx, root)
 	if err != nil {
 		return nil, mcpErr(fmt.Sprintf("smart decompose failed: %s", err))

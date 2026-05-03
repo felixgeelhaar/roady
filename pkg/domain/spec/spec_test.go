@@ -145,3 +145,26 @@ func TestProductSpec_HashWithFeatures(t *testing.T) {
 		t.Error("specs with different feature count should produce different hashes")
 	}
 }
+
+func TestSource_StringAndIsZero(t *testing.T) {
+	cases := []struct {
+		name    string
+		src     spec.Source
+		isZero  bool
+		want    string
+	}{
+		{"zero", spec.Source{}, true, ""},
+		{"doc only", spec.Source{Doc: "docs/x.md"}, false, "docs/x.md"},
+		{"doc and line", spec.Source{Doc: "docs/x.md", Line: 7}, false, "docs/x.md:7"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := tc.src.IsZero(); got != tc.isZero {
+				t.Errorf("IsZero() = %v, want %v", got, tc.isZero)
+			}
+			if got := tc.src.String(); got != tc.want {
+				t.Errorf("String() = %q, want %q", got, tc.want)
+			}
+		})
+	}
+}

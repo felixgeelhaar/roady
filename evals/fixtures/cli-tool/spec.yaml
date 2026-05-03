@@ -1,0 +1,30 @@
+id: cli-tool
+title: CLI Tool
+description: Single-feature command-line tool eval fixture.
+version: 0.1.0
+features:
+  - id: greet
+    title: Greet
+    description: Print a greeting to a named user.
+    requirements:
+      - id: greet-parse
+        title: Parse user name flag
+        description: Parse the --name flag and validate it is non-empty.
+        priority: high
+        estimate: ""
+        depends_on: []
+      - id: greet-render
+        title: Render greeting
+        description: Print "Hello, <name>!" to stdout.
+        priority: high
+        estimate: ""
+        depends_on:
+          - greet-parse
+      - id: greet-test
+        title: End-to-end test
+        description: Cover the happy path with an integration test.
+        priority: medium
+        estimate: ""
+        depends_on:
+          - greet-render
+constraints: []

@@ -1,0 +1,37 @@
+id: multi-feature
+title: Multi-Feature App
+description: Three features illustrating the requirement-less feature fallback.
+version: 0.1.0
+features:
+  - id: empty-feature
+    title: Stub Feature
+    description: Feature carrying no requirements; planner should emit one stub task.
+    requirements: []
+  - id: dashboard
+    title: Dashboard
+    description: Two requirements with an internal dependency.
+    requirements:
+      - id: dash-data
+        title: Aggregate dashboard data
+        description: Compute per-user counts.
+        priority: medium
+        estimate: ""
+        depends_on: []
+      - id: dash-render
+        title: Render dashboard
+        description: Render to HTML.
+        priority: medium
+        estimate: ""
+        depends_on:
+          - dash-data
+  - id: notif
+    title: Notifications
+    description: Single requirement.
+    requirements:
+      - id: notif-email
+        title: Send email
+        description: Send a templated email.
+        priority: low
+        estimate: ""
+        depends_on: []
+constraints: []

@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 
@@ -26,7 +27,12 @@ var driftExplainCmd = &cobra.Command{
 			return MapError(fmt.Errorf("failed to detect drift: %w", err))
 		}
 
-		explanation, err := services.AI.ExplainDrift(cmd.Context(), report)
+		var explanation string
+		err = withAIProgress(cmd.Context(), "AI drift explanation", func(ctx context.Context) error {
+			s, eerr := services.AI.ExplainDrift(ctx, report)
+			explanation = s
+			return eerr
+		})
 		if err != nil {
 			return MapError(fmt.Errorf("failed to explain drift: %w", err))
 		}

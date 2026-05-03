@@ -119,3 +119,108 @@ func TestHandleGetInProgressTasks(t *testing.T) {
 		t.Fatal("expected non-nil result")
 	}
 }
+
+func TestHandleTasks_StatusDispatch(t *testing.T) {
+	server := setupCoordinatorTestServer(t)
+	ctx := context.Background()
+
+	cases := []string{"", "ready", "in_progress", "blocked"}
+	for _, status := range cases {
+		t.Run("status="+status, func(t *testing.T) {
+			result, err := server.handleTasks(ctx, TasksArgs{Status: status})
+			if err != nil {
+				t.Fatalf("handleTasks(%q): %v", status, err)
+			}
+			if result == nil {
+				t.Fatalf("handleTasks(%q): nil result", status)
+			}
+		})
+	}
+}
+
+func TestHandleTasks_All(t *testing.T) {
+	server := setupCoordinatorTestServer(t)
+	ctx := context.Background()
+
+	result, err := server.handleTasks(ctx, TasksArgs{Status: "all"})
+	if err != nil {
+		t.Fatalf("handleTasks(all): %v", err)
+	}
+	bucket, ok := result.(map[string]any)
+	if !ok {
+		t.Fatalf("expected map result, got %T", result)
+	}
+	for _, key := range []string{"ready", "in_progress", "blocked"} {
+		if _, ok := bucket[key]; !ok {
+			t.Errorf("expected %q key in result, missing", key)
+		}
+	}
+}
+
+func TestHandleTasks_InvalidStatus(t *testing.T) {
+	server := setupCoordinatorTestServer(t)
+	if _, err := server.handleTasks(context.Background(), TasksArgs{Status: "bogus"}); err == nil {
+		t.Fatal("expected error for invalid status")
+	}
+}
+
+func TestServer_RegistersCanonicalAndDeprecatedToolNames(t *testing.T) {
+	server := setupCoordinatorTestServer(t)
+	tools := server.mcpServer.Tools()
+
+	registered := make(map[string]bool, len(tools))
+	for _, tool := range tools {
+		registered[tool.Name] = true
+	}
+
+	expected := []string{
+		// Canonical task-listing tool plus its three deprecation aliases.
+		"roady_tasks",
+		"roady_get_ready_tasks",
+		"roady_get_blocked_tasks",
+		"roady_get_in_progress_tasks",
+		// Canonical decompose + deprecation alias.
+		"roady_plan_decompose",
+		"roady_smart_decompose",
+		// Canonical recurring-drift + deprecation alias.
+		"roady_drift_recurring",
+		"roady_sticky_drift",
+		// Cost estimator (new in v0.10).
+		"roady_cost_estimate",
+	}
+
+	for _, name := range expected {
+		if !registered[name] {
+			t.Errorf("expected tool %q to be registered", name)
+		}
+	}
+}
+
+func TestHandleCostEstimate_DefaultsAndDispatch(t *testing.T) {
+	server := setupCoordinatorTestServer(t)
+	ctx := context.Background()
+
+	t.Run("default_operation", func(t *testing.T) {
+		result, err := server.handleCostEstimate(ctx, CostEstimateArgs{})
+		if err != nil {
+			t.Fatalf("handleCostEstimate: %v", err)
+		}
+		if result == nil {
+			t.Fatal("expected non-nil estimate")
+		}
+	})
+
+	t.Run("explicit_operation", func(t *testing.T) {
+		for _, op := range []string{"generate_plan", "smart_decompose", "review_spec", "explain_drift", "query"} {
+			if _, err := server.handleCostEstimate(ctx, CostEstimateArgs{Operation: op}); err != nil {
+				t.Errorf("handleCostEstimate(%q): %v", op, err)
+			}
+		}
+	})
+
+	t.Run("invalid_operation", func(t *testing.T) {
+		if _, err := server.handleCostEstimate(ctx, CostEstimateArgs{Operation: "bogus"}); err == nil {
+			t.Fatal("expected error for unknown operation")
+		}
+	})
+}

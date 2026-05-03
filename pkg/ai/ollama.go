@@ -1,6 +1,7 @@
 package ai
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"encoding/json"
@@ -13,7 +14,9 @@ import (
 )
 
 type OllamaProvider struct {
-	Model string
+	Model      string
+	baseURL    string       // overridable for tests; "" => http://localhost:11434
+	httpClient *http.Client // overridable for tests; nil => http.DefaultClient
 }
 
 func NewOllamaProvider(model string) *OllamaProvider {
@@ -21,6 +24,14 @@ func NewOllamaProvider(model string) *OllamaProvider {
 		model = "llama3"
 	}
 	return &OllamaProvider{Model: model}
+}
+
+// NewOllamaProviderWithClient lets tests inject an httptest server.
+func NewOllamaProviderWithClient(model, baseURL string, client *http.Client) *OllamaProvider {
+	if model == "" {
+		model = "llama3"
+	}
+	return &OllamaProvider{Model: model, baseURL: baseURL, httpClient: client}
 }
 
 func (p *OllamaProvider) ID() string {
@@ -51,18 +62,24 @@ func (p *OllamaProvider) Complete(ctx context.Context, req ai.CompletionRequest)
 		return nil, fmt.Errorf("invalid temperature")
 	}
 
-	url := "http://localhost:11434/api/generate"
+	url := p.baseURL
+	if url == "" {
+		url = "http://localhost:11434"
+	}
+	url = strings.TrimRight(url, "/") + "/api/generate"
 
 	format := ""
 	if strings.Contains(req.Prompt, "JSON") || strings.Contains(req.System, "JSON") {
 		format = "json"
 	}
 
+	streaming := req.IsStreaming()
+
 	body, err := json.Marshal(ollamaRequest{
 		Model:  p.Model,
 		Prompt: req.Prompt,
 		System: req.System,
-		Stream: false,
+		Stream: streaming,
 		Format: format,
 	})
 	if err != nil {
@@ -75,7 +92,11 @@ func (p *OllamaProvider) Complete(ctx context.Context, req ai.CompletionRequest)
 	}
 	hReq.Header.Set("Content-Type", "application/json")
 
-	resp, err := http.DefaultClient.Do(hReq)
+	client := p.httpClient
+	if client == nil {
+		client = http.DefaultClient
+	}
+	resp, err := client.Do(hReq)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to Ollama API: %w", err)
 	}
@@ -83,6 +104,10 @@ func (p *OllamaProvider) Complete(ctx context.Context, req ai.CompletionRequest)
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("ollama API error: status %d", resp.StatusCode)
+	}
+
+	if streaming {
+		return p.consumeNDJSON(ctx, resp, req.OnToken)
 	}
 
 	var oResp ollamaResponse
@@ -96,6 +121,57 @@ func (p *OllamaProvider) Complete(ctx context.Context, req ai.CompletionRequest)
 		Usage: ai.TokenUsage{
 			InputTokens:  len(req.Prompt) / 4,
 			OutputTokens: len(oResp.Response) / 4,
+		},
+	}, nil
+}
+
+// consumeNDJSON reads Ollama's newline-delimited JSON stream. Each line is
+// an ollamaResponse; the final one has Done=true.
+func (p *OllamaProvider) consumeNDJSON(ctx context.Context, resp *http.Response, onToken func(string)) (*ai.CompletionResponse, error) {
+	scanner := bufio.NewScanner(resp.Body)
+	scanner.Buffer(make([]byte, 0, 64*1024), 1024*1024)
+
+	var assembled strings.Builder
+
+	for scanner.Scan() {
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		default:
+		}
+
+		line := strings.TrimSpace(scanner.Text())
+		if line == "" {
+			continue
+		}
+		var chunk ollamaResponse
+		if err := json.Unmarshal([]byte(line), &chunk); err != nil {
+			continue
+		}
+		if chunk.Response != "" {
+			assembled.WriteString(chunk.Response)
+			if onToken != nil {
+				onToken(chunk.Response)
+			}
+		}
+		if chunk.Done {
+			break
+		}
+	}
+	if err := scanner.Err(); err != nil {
+		return nil, fmt.Errorf("ollama stream read: %w", err)
+	}
+	if assembled.Len() == 0 {
+		return nil, fmt.Errorf("ollama stream returned no content")
+	}
+
+	text := strings.TrimSpace(assembled.String())
+	return &ai.CompletionResponse{
+		Text:  text,
+		Model: p.Model,
+		Usage: ai.TokenUsage{
+			InputTokens:  0, // Ollama doesn't return token counts on the stream.
+			OutputTokens: len(text) / 4,
 		},
 	}, nil
 }

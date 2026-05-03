@@ -48,6 +48,8 @@ func (s *PlanService) GeneratePlan(ctx context.Context) (*planning.Plan, error) 
 	// Default Heuristic: 1 Requirement = 1 Task
 	heuristicTasks := make([]planning.Task, 0)
 	for _, feat := range spec.Features {
+		featSource := planning.TaskSource{Doc: feat.Source.Doc, Line: feat.Source.Line}
+
 		if len(feat.Requirements) == 0 {
 			// Fallback if no requirements
 			heuristicTasks = append(heuristicTasks, planning.Task{
@@ -56,6 +58,8 @@ func (s *PlanService) GeneratePlan(ctx context.Context) (*planning.Plan, error) 
 				Description: fmt.Sprintf("Implement the feature: %s. %s", feat.Title, feat.Description),
 				FeatureID:   feat.ID,
 				DependsOn:   []string{},
+				Origin:      planning.OriginHeuristic,
+				Source:      featSource,
 			})
 			continue
 		}
@@ -71,6 +75,13 @@ func (s *PlanService) GeneratePlan(ctx context.Context) (*planning.Plan, error) 
 				taskDeps[i] = fmt.Sprintf("task-%s", d)
 			}
 
+			// Prefer the requirement's own source when present; fall
+			// back to the feature heading the requirement lives under.
+			source := planning.TaskSource{Doc: req.Source.Doc, Line: req.Source.Line}
+			if (planning.TaskSource{}) == source {
+				source = featSource
+			}
+
 			heuristicTasks = append(heuristicTasks, planning.Task{
 				ID:          fmt.Sprintf("task-%s", req.ID),
 				Title:       fmt.Sprintf("%s (%s)", req.Title, feat.Title),
@@ -79,6 +90,8 @@ func (s *PlanService) GeneratePlan(ctx context.Context) (*planning.Plan, error) 
 				Estimate:    req.Estimate,
 				FeatureID:   feat.ID,
 				DependsOn:   taskDeps,
+				Origin:      planning.OriginHeuristic,
+				Source:      source,
 			})
 		}
 	}

@@ -138,6 +138,46 @@ func TestSpecService_AnalyzeDirectory(t *testing.T) {
 	}
 }
 
+func TestSpecService_AnalyzeDirectory_RecordsSourceCitations(t *testing.T) {
+	tempDir, _ := os.MkdirTemp("", "roady-spec-source-*")
+	defer func() { _ = os.RemoveAll(tempDir) }()
+	repo := storage.NewFilesystemRepository(tempDir)
+	_ = repo.Initialize()
+	service := application.NewSpecService(repo)
+
+	docPath := filepath.Join(tempDir, "auth.md")
+	body := "# App\n\nIntro line.\n\n## User Authentication\nDescription.\n\n## Dashboard\nDesc.\n"
+	if err := os.WriteFile(docPath, []byte(body), 0600); err != nil {
+		t.Fatal(err)
+	}
+
+	productSpec, err := service.AnalyzeDirectory(tempDir)
+	if err != nil {
+		t.Fatalf("AnalyzeDirectory: %v", err)
+	}
+	if len(productSpec.Features) != 2 {
+		t.Fatalf("expected 2 features, got %d", len(productSpec.Features))
+	}
+
+	for _, f := range productSpec.Features {
+		if f.Source.IsZero() {
+			t.Errorf("feature %q lost source citation", f.ID)
+		}
+		if f.Source.Doc == "" || f.Source.Line <= 0 {
+			t.Errorf("feature %q invalid source: %+v", f.ID, f.Source)
+		}
+	}
+
+	// Heading lines in the fixture: "## User Authentication" is line 5,
+	// "## Dashboard" is line 8.
+	wantLines := map[string]int{"user-authentication": 5, "dashboard": 8}
+	for _, f := range productSpec.Features {
+		if want, ok := wantLines[f.ID]; ok && f.Source.Line != want {
+			t.Errorf("feature %q line = %d, want %d", f.ID, f.Source.Line, want)
+		}
+	}
+}
+
 func TestSpecService_AddFeature(t *testing.T) {
 	tempDir, _ := os.MkdirTemp("", "roady-spec-add-*")
 	defer func() { _ = os.RemoveAll(tempDir) }()

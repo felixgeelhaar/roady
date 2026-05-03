@@ -126,3 +126,78 @@ func TestTokenUsage_Fields(t *testing.T) {
 		t.Errorf("total tokens = %d, want 300", total)
 	}
 }
+
+func TestCompletionResponse_HasConfidence(t *testing.T) {
+	cases := []struct {
+		name string
+		resp *CompletionResponse
+		want bool
+	}{
+		{"nil response", nil, false},
+		{"zero confidence", &CompletionResponse{}, false},
+		{"low confidence", &CompletionResponse{Confidence: 0.1}, true},
+		{"high confidence", &CompletionResponse{Confidence: 0.92}, true},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := tc.resp.HasConfidence(); got != tc.want {
+				t.Errorf("HasConfidence() = %v, want %v", got, tc.want)
+			}
+		})
+	}
+}
+
+func TestSourceRef_PreservesFields(t *testing.T) {
+	ref := SourceRef{Doc: "docs/auth.md", Span: "lines 12-18", Note: "from MUST clause"}
+	if ref.Doc != "docs/auth.md" || ref.Span != "lines 12-18" || ref.Note != "from MUST clause" {
+		t.Errorf("SourceRef did not round-trip: %+v", ref)
+	}
+}
+
+func TestWithOnToken_RoundTrip(t *testing.T) {
+	ctx := context.Background()
+	if OnTokenFromContext(ctx) != nil {
+		t.Fatal("expected nil from empty context")
+	}
+
+	var got string
+	withCb := WithOnToken(ctx, func(s string) { got = s })
+	cb := OnTokenFromContext(withCb)
+	if cb == nil {
+		t.Fatal("expected callback in context")
+	}
+	cb("hello")
+	if got != "hello" {
+		t.Errorf("callback not invoked correctly, got=%q", got)
+	}
+}
+
+func TestWithOnToken_NilFnReturnsParent(t *testing.T) {
+	ctx := context.Background()
+	out := WithOnToken(ctx, nil)
+	if OnTokenFromContext(out) != nil {
+		t.Error("nil callback should not install anything")
+	}
+}
+
+func TestCompletionRequest_IsStreaming(t *testing.T) {
+	if (CompletionRequest{}).IsStreaming() {
+		t.Error("zero-value request should not be streaming")
+	}
+	streaming := CompletionRequest{OnToken: func(string) {}}
+	if !streaming.IsStreaming() {
+		t.Error("request with OnToken should be streaming")
+	}
+}
+
+func TestCompletionResponse_OptionalFieldsBackwardCompatible(t *testing.T) {
+	// Existing callers ignore the new fields; constructing without them
+	// must still succeed and behave as "unknown".
+	resp := &CompletionResponse{Text: "ok", Model: "x", Usage: TokenUsage{InputTokens: 1, OutputTokens: 2}}
+	if resp.HasConfidence() {
+		t.Error("expected HasConfidence false for legacy response")
+	}
+	if len(resp.Sources) != 0 {
+		t.Errorf("expected nil Sources, got %v", resp.Sources)
+	}
+}

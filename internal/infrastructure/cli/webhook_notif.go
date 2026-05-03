@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/felixgeelhaar/roady/pkg/domain/events"
@@ -13,9 +14,18 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// webhookNotifDeprecationHint is printed before each `webhook notif`
+// invocation to point users at the canonical `roady notify` namespace.
+const webhookNotifDeprecationHint = "Note: `roady webhook notif` is deprecated; use `roady notify` instead."
+
+func webhookNotifDeprecation(_ *cobra.Command, _ []string) {
+	fmt.Fprintln(os.Stderr, webhookNotifDeprecationHint)
+}
+
 var webhookNotifCmd = &cobra.Command{
-	Use:   "notif",
-	Short: "Manage outgoing webhook notifications",
+	Use:              "notif",
+	Short:            "DEPRECATED: use `roady notify`. Manage outgoing webhook notifications.",
+	PersistentPreRun: webhookNotifDeprecation,
 }
 
 var webhookNotifAddCmd = &cobra.Command{

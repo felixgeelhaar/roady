@@ -1,0 +1,41 @@
+id: web-api
+title: Tasks API
+description: Minimal REST API with auth and a tasks resource.
+version: 0.1.0
+features:
+  - id: auth
+    title: Authentication
+    description: Email + password authentication.
+    requirements:
+      - id: auth-signup
+        title: Sign up
+        description: Register a new user account.
+        priority: high
+        estimate: ""
+        depends_on: []
+      - id: auth-login
+        title: Log in
+        description: Issue a session token on successful login.
+        priority: high
+        estimate: ""
+        depends_on:
+          - auth-signup
+  - id: tasks
+    title: Tasks Resource
+    description: CRUD for user-owned tasks.
+    requirements:
+      - id: tasks-list
+        title: List tasks
+        description: Return tasks owned by the authenticated user.
+        priority: high
+        estimate: ""
+        depends_on:
+          - auth-login
+      - id: tasks-create
+        title: Create task
+        description: Persist a new task with a title.
+        priority: high
+        estimate: ""
+        depends_on:
+          - auth-login
+constraints: []

@@ -125,8 +125,10 @@ func (s *SpecService) parseMarkdownFile(path string) (*spec.ProductSpec, error) 
 
 	var currentFeature *spec.Feature
 	var descriptionBuilder strings.Builder
+	lineNum := 0
 
 	for scanner.Scan() {
+		lineNum++
 		line := strings.TrimSpace(scanner.Text())
 
 		switch {
@@ -142,8 +144,9 @@ func (s *SpecService) parseMarkdownFile(path string) (*spec.ProductSpec, error) 
 			title := strings.TrimSpace(strings.TrimPrefix(line, "## "))
 			id := strings.ToLower(strings.ReplaceAll(title, " ", "-"))
 			currentFeature = &spec.Feature{
-				ID:    id,
-				Title: title,
+				ID:     id,
+				Title:  title,
+				Source: spec.Source{Doc: cleanPath, Line: lineNum},
 			}
 		default:
 			if currentFeature != nil {

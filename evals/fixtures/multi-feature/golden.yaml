@@ -1,0 +1,15 @@
+spec_id: multi-feature
+tasks:
+  - id: task-empty-feature
+    feature_id: empty-feature
+    depends_on: []
+  - id: task-dash-data
+    feature_id: dashboard
+    depends_on: []
+  - id: task-dash-render
+    feature_id: dashboard
+    depends_on:
+      - task-dash-data
+  - id: task-notif-email
+    feature_id: notif
+    depends_on: []

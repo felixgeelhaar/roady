@@ -56,6 +56,18 @@ func (s *AIPlanningService) GetAuditLogger() domain.AuditLogger {
 	return s.audit
 }
 
+// complete is the single point through which AIPlanningService talks to the
+// underlying provider. It auto-installs any streaming callback registered
+// on the context (via ai.WithOnToken) so a CLI or MCP layer can opt into
+// token streaming once and have every nested AI call honour it without
+// service-method signature churn.
+func (s *AIPlanningService) complete(ctx context.Context, req ai.CompletionRequest) (*ai.CompletionResponse, error) {
+	if req.OnToken == nil {
+		req.OnToken = ai.OnTokenFromContext(ctx)
+	}
+	return s.provider.Complete(ctx, req)
+}
+
 func (s *AIPlanningService) DecomposeSpec(ctx context.Context) (*planning.Plan, error) {
 	// 1. Check Policy & Budget
 	cfg, err := s.repo.LoadPolicy()
@@ -184,9 +196,15 @@ Features to decompose:
 				Title:       fmt.Sprintf("Implement %s", f.Title),
 				Description: "Fallback task generated because AI response missed feature coverage.",
 				FeatureID:   f.ID,
+				Origin:      planning.OriginHeuristic,
+				Source:      planning.TaskSource{Doc: f.Source.Doc, Line: f.Source.Line},
 			})
 		}
 	}
+
+	// Backfill source provenance on every task that didn't carry one out
+	// of the AI parser (the JSON the model returns has no source field).
+	populateTaskSources(cleanTasks, productSpec)
 
 	// Lock the spec content to this new plan to resolve Intent Drift
 	if err := s.repo.SaveSpecLock(productSpec); err != nil {
@@ -196,8 +214,48 @@ Features to decompose:
 	return s.planSvc.UpdatePlan(cleanTasks)
 }
 
+// populateTaskSources walks the supplied tasks in place and fills any
+// empty Source field by looking up the originating Feature (and, when the
+// task ID matches "task-<requirement-id>", the Requirement). Tasks that
+// already carry a source are left untouched so authored or imported
+// values are not overwritten.
+func populateTaskSources(tasks []planning.Task, productSpec *spec.ProductSpec) {
+	if productSpec == nil {
+		return
+	}
+	featureSources := make(map[string]planning.TaskSource, len(productSpec.Features))
+	requirementSources := make(map[string]planning.TaskSource)
+	for _, f := range productSpec.Features {
+		featureSources[f.ID] = planning.TaskSource{Doc: f.Source.Doc, Line: f.Source.Line}
+		for _, r := range f.Requirements {
+			if r.Source.IsZero() {
+				continue
+			}
+			requirementSources[r.ID] = planning.TaskSource{Doc: r.Source.Doc, Line: r.Source.Line}
+		}
+	}
+
+	for i := range tasks {
+		if !tasks[i].Source.IsZero() {
+			continue
+		}
+		// Tasks named "task-<reqID>" should prefer the requirement's own
+		// source; everything else falls back to the feature.
+		reqID := strings.TrimPrefix(tasks[i].ID, "task-")
+		if reqID != tasks[i].ID {
+			if src, ok := requirementSources[reqID]; ok && !src.IsZero() {
+				tasks[i].Source = src
+				continue
+			}
+		}
+		if src, ok := featureSources[tasks[i].FeatureID]; ok && !src.IsZero() {
+			tasks[i].Source = src
+		}
+	}
+}
+
 func (s *AIPlanningService) completeDecomposition(ctx context.Context, prompt string, attempt int) (*ai.CompletionResponse, error) {
-	resp, err := s.provider.Complete(ctx, ai.CompletionRequest{
+	resp, err := s.complete(ctx, ai.CompletionRequest{
 		Prompt:      prompt,
 		System:      "You are an expert technical lead. You return a JSON array of technical tasks. You ensure that every feature ID provided is represented in the result.",
 		Temperature: 0.2,
@@ -273,6 +331,9 @@ func (s *AIPlanningService) parseTasksFromResponse(text string) ([]planning.Task
 				if _, hasTitle := generic["title"]; hasTitle {
 					var single planning.Task
 					if err := json.Unmarshal([]byte(cleanJSON), &single); err == nil && isValid(single) {
+						if single.Origin == "" {
+							single.Origin = planning.OriginAI
+						}
 						tasks = []planning.Task{single}
 					}
 				}
@@ -340,8 +401,19 @@ func (s *AIPlanningService) parseTasksFromResponse(text string) ([]planning.Task
 			// Try single object
 			var single planning.Task
 			if err := json.Unmarshal([]byte(cleanJSON), &single); err == nil && isValid(single) {
+				if single.Origin == "" {
+					single.Origin = planning.OriginAI
+				}
 				tasks = []planning.Task{single}
 			}
+		}
+	}
+
+	// Tag any tasks the AI emitted without an explicit origin so consumers
+	// can filter and scrutinise them.
+	for i := range tasks {
+		if tasks[i].Origin == "" {
+			tasks[i].Origin = planning.OriginAI
 		}
 	}
 
@@ -394,6 +466,7 @@ func normalizeTaskMap(raw map[string]interface{}, index int) planning.Task {
 		Priority:    planning.TaskPriority(priority),
 		Estimate:    estimate,
 		FeatureID:   featureID,
+		Origin:      planning.OriginAI,
 	}
 }
 
@@ -565,7 +638,7 @@ Features:
 		prompt += fmt.Sprintf("- Feature: %s (ID: %s)\n  Description: %s\n", f.Title, f.ID, f.Description)
 	}
 
-	resp, err := s.provider.Complete(ctx, ai.CompletionRequest{
+	resp, err := s.complete(ctx, ai.CompletionRequest{
 		Prompt: prompt,
 		System: "You are a Technical Architect. You take messy, multi-document specifications and reconcile them into a clean, high-integrity ProductSpec JSON. You respond ONLY with the reconciled JSON.",
 	})
@@ -628,7 +701,7 @@ func (s *AIPlanningService) ExplainSpec(ctx context.Context) (string, error) {
 		}
 	}
 
-	resp, err := s.provider.Complete(ctx, ai.CompletionRequest{
+	resp, err := s.complete(ctx, ai.CompletionRequest{
 		Prompt: prompt,
 		System: "You are an expert technical lead. Provide a clear, concise, and professional explanation.",
 	})
@@ -698,7 +771,7 @@ Features:
 	}
 
 	// 4. Call AI
-	resp, err := s.provider.Complete(ctx, ai.CompletionRequest{
+	resp, err := s.complete(ctx, ai.CompletionRequest{
 		Prompt:      prompt,
 		System:      "You are an expert technical lead reviewing a product specification for quality. Return structured JSON only.",
 		Temperature: 0.2,
@@ -785,7 +858,7 @@ Only include tasks whose priority should change. If all priorities are appropria
 	}
 
 	// 4. Call AI
-	resp, err := s.provider.Complete(ctx, ai.CompletionRequest{
+	resp, err := s.complete(ctx, ai.CompletionRequest{
 		Prompt:      prompt,
 		System:      "You are an expert technical lead analyzing task priorities. Return structured JSON only.",
 		Temperature: 0.2,
@@ -864,7 +937,7 @@ func (s *AIPlanningService) QueryProject(ctx context.Context, question string) (
 	prompt := fmt.Sprintf("%s\nUser question: %s", context, question)
 
 	// 4. Call AI
-	resp, err := s.provider.Complete(ctx, ai.CompletionRequest{
+	resp, err := s.complete(ctx, ai.CompletionRequest{
 		Prompt:      prompt,
 		System:      "You are a project management assistant. Answer questions about the project based on the provided context. Be concise and specific. If the answer cannot be determined from the context, say so.",
 		Temperature: 0.3,
@@ -917,7 +990,7 @@ func (s *AIPlanningService) ExplainDrift(ctx context.Context, report *drift.Repo
 
 	prompt += "\nProvide a concise analysis and actionable next steps."
 
-	resp, err := s.provider.Complete(ctx, ai.CompletionRequest{
+	resp, err := s.complete(ctx, ai.CompletionRequest{
 		Prompt: prompt,
 		System: "You are an expert technical lead. You help developers align reality with their plans and specifications.",
 	})
@@ -1010,7 +1083,7 @@ Return this exact JSON structure:
 LLM OUTPUT TO PARSE:
 ` + rawText
 
-	resp, err := s.provider.Complete(ctx, ai.CompletionRequest{
+	resp, err := s.complete(ctx, ai.CompletionRequest{
 		Prompt:      prompt,
 		System:      "You are an expert technical lead. Parse unstructured LLM output into structured JSON. You ensure every requirement becomes a task. Return ONLY valid JSON.",
 		Temperature: 0.2,
@@ -1124,7 +1197,7 @@ Features to decompose:
 
 	prompt += "\nExisting codebase structure:\n" + fileTree + "\n"
 
-	resp, err := s.provider.Complete(ctx, ai.CompletionRequest{
+	resp, err := s.complete(ctx, ai.CompletionRequest{
 		Prompt: prompt,
 		System: "You are an expert software architect. Analyze the codebase structure and decompose features into concrete, file-level engineering tasks.",
 	})

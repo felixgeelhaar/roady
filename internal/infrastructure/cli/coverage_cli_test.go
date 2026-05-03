@@ -2571,8 +2571,8 @@ func TestCov_MessagingListCmd_WithAdapters(t *testing.T) {
 		}
 	})
 
-	// With no config, should say "No messaging adapters configured"
-	if !strings.Contains(output, "No messaging adapters configured") {
+	// With no config, should say "No notification adapters configured"
+	if !strings.Contains(output, "No notification adapters configured") {
 		t.Fatalf("expected no adapters message, got:\n%s", output)
 	}
 }

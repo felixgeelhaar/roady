@@ -1,0 +1,17 @@
+spec_id: web-api
+tasks:
+  - id: task-auth-signup
+    feature_id: auth
+    depends_on: []
+  - id: task-auth-login
+    feature_id: auth
+    depends_on:
+      - task-auth-signup
+  - id: task-tasks-list
+    feature_id: tasks
+    depends_on:
+      - task-auth-login
+  - id: task-tasks-create
+    feature_id: tasks
+    depends_on:
+      - task-auth-login

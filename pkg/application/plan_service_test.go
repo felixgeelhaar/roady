@@ -355,6 +355,59 @@ func TestPlanService_GeneratePlanWithRequirements(t *testing.T) {
 	}
 }
 
+func TestPlanService_PropagatesSourceFromSpec(t *testing.T) {
+	tempDir, _ := os.MkdirTemp("", "roady-plan-source-*")
+	defer func() { _ = os.RemoveAll(tempDir) }()
+	repo := storage.NewFilesystemRepository(tempDir)
+	_ = repo.Initialize()
+	service := application.NewPlanService(repo, application.NewAuditService(repo))
+
+	featureSource := spec.Source{Doc: "docs/auth.md", Line: 12}
+	requirementSource := spec.Source{Doc: "docs/auth.md", Line: 18}
+
+	if err := repo.SaveSpec(&spec.ProductSpec{
+		ID: "spec-source",
+		Features: []spec.Feature{
+			{
+				ID:     "auth",
+				Title:  "Auth",
+				Source: featureSource,
+				Requirements: []spec.Requirement{
+					// First requirement carries its own source.
+					{ID: "auth-signup", Title: "Sign up", Source: requirementSource},
+					// Second requirement falls back to feature source.
+					{ID: "auth-login", Title: "Log in"},
+				},
+			},
+			// Empty-feature fallback path.
+			{ID: "stub", Title: "Stub", Source: spec.Source{Doc: "docs/stub.md", Line: 3}},
+		},
+	}); err != nil {
+		t.Fatalf("save spec: %v", err)
+	}
+
+	plan, err := service.GeneratePlan(context.Background())
+	if err != nil {
+		t.Fatalf("GeneratePlan: %v", err)
+	}
+
+	want := map[string]planning.TaskSource{
+		"task-auth-signup": {Doc: "docs/auth.md", Line: 18},
+		"task-auth-login":  {Doc: "docs/auth.md", Line: 12},
+		"task-stub":        {Doc: "docs/stub.md", Line: 3},
+	}
+
+	for _, task := range plan.Tasks {
+		expected, ok := want[task.ID]
+		if !ok {
+			continue
+		}
+		if task.Source != expected {
+			t.Errorf("task %q source = %+v, want %+v", task.ID, task.Source, expected)
+		}
+	}
+}
+
 func TestPlanService_UpdatePlanKeepsOrphans(t *testing.T) {
 	repo := &MockRepo{
 		Spec: &spec.ProductSpec{

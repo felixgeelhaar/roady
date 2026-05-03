@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -21,7 +22,12 @@ var queryCmd = &cobra.Command{
 		}
 
 		question := strings.Join(args, " ")
-		answer, err := services.AI.QueryProject(cmd.Context(), question)
+		var answer string
+		err = withAIProgress(cmd.Context(), "AI query", func(ctx context.Context) error {
+			a, qerr := services.AI.QueryProject(ctx, question)
+			answer = a
+			return qerr
+		})
 		if err != nil {
 			return MapError(fmt.Errorf("failed to query project: %w", err))
 		}

@@ -16,12 +16,51 @@ type ProductSpec struct {
 	Version     string       `json:"version" yaml:"version"`
 }
 
+// Source pins a spec element back to the document it was derived from.
+// Optional: Doc empty means "no source recorded" (e.g. specs authored by
+// hand or programmatically). Line is 1-based.
+type Source struct {
+	Doc  string `json:"doc,omitempty" yaml:"doc,omitempty"`
+	Line int    `json:"line,omitempty" yaml:"line,omitempty"`
+}
+
+// IsZero reports whether no source has been recorded.
+func (s Source) IsZero() bool { return s.Doc == "" && s.Line == 0 }
+
+// String returns "doc:line" when both are present, "doc" when only Doc is
+// set, or "" when no source has been recorded.
+func (s Source) String() string {
+	if s.IsZero() {
+		return ""
+	}
+	if s.Line > 0 {
+		return s.Doc + ":" + itoa(s.Line)
+	}
+	return s.Doc
+}
+
+// itoa avoids pulling strconv just for this helper.
+func itoa(n int) string {
+	if n == 0 {
+		return "0"
+	}
+	var buf [20]byte
+	i := len(buf)
+	for n > 0 {
+		i--
+		buf[i] = byte('0' + n%10)
+		n /= 10
+	}
+	return string(buf[i:])
+}
+
 // Feature represents a specific functional unit within the spec.
 type Feature struct {
 	ID           string        `json:"id" yaml:"id"`
 	Title        string        `json:"title" yaml:"title"`
 	Description  string        `json:"description" yaml:"description"`
 	Requirements []Requirement `json:"requirements" yaml:"requirements"`
+	Source       Source        `json:"source,omitempty" yaml:"source,omitempty"`
 }
 
 // Requirement represents a granular condition that a feature must satisfy.
@@ -32,6 +71,7 @@ type Requirement struct {
 	Priority    string   `json:"priority" yaml:"priority"`
 	Estimate    string   `json:"estimate" yaml:"estimate"`
 	DependsOn   []string `json:"depends_on" yaml:"depends_on"`
+	Source      Source   `json:"source,omitempty" yaml:"source,omitempty"`
 }
 
 // Constraint represents non-functional requirements or policies.

@@ -32,6 +32,7 @@ It helps individuals and teams answer:
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the RootCmd.
 func Execute() error {
+	assignCommandGroups()
 	err := RootCmd.Execute()
 	if err == nil {
 		return nil

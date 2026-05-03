@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/felixgeelhaar/roady/pkg/domain/planning"
@@ -25,7 +26,11 @@ var planGenerateCmd = &cobra.Command{
 
 		var plan *planning.Plan
 		if useAI {
-			plan, err = services.AI.DecomposeSpec(cmd.Context())
+			err = withAIProgress(cmd.Context(), "AI plan generation", func(ctx context.Context) error {
+				p, gerr := services.AI.DecomposeSpec(ctx)
+				plan = p
+				return gerr
+			})
 		} else {
 			plan, err = services.Plan.GeneratePlan(cmd.Context())
 		}
@@ -129,7 +134,12 @@ var planPrioritizeCmd = &cobra.Command{
 			return MapError(fmt.Errorf("AI service not available; configure an AI provider"))
 		}
 
-		suggestions, err := services.AI.SuggestPriorities(cmd.Context())
+		var suggestions *planning.PrioritySuggestions
+		err = withAIProgress(cmd.Context(), "AI prioritisation", func(ctx context.Context) error {
+			s, perr := services.AI.SuggestPriorities(ctx)
+			suggestions = s
+			return perr
+		})
 		if err != nil {
 			return MapError(fmt.Errorf("failed to suggest priorities: %w", err))
 		}
@@ -166,7 +176,12 @@ var planSmartDecomposeCmd = &cobra.Command{
 			return MapError(fmt.Errorf("resolve project path: %w", cErr))
 		}
 
-		result, err := services.AI.SmartDecompose(cmd.Context(), cwd)
+		var result *planning.SmartPlan
+		err = withAIProgress(cmd.Context(), "AI smart decomposition", func(ctx context.Context) error {
+			r, derr := services.AI.SmartDecompose(ctx, cwd)
+			result = r
+			return derr
+		})
 		if err != nil {
 			return MapError(fmt.Errorf("smart decompose failed: %w", err))
 		}
