@@ -929,6 +929,31 @@ features:
           estimate: ""
           depends_on:
             - pos-doc
+        - id: pos-synthetic-interview
+          title: Synthetic ICP interview + internet research findings
+          description: |
+            Run web research across r/ClaudeAI, dev.to, Medium, IBM, Wire,
+            Stack Overflow on (a) phrases the ICP uses for the pain Roady
+            solves and (b) the competitor ecosystem (CLAUDE.md, AGENTS.md,
+            spec-kit, Backlog.md, mcp-memory-service, BMAD). Synthesise a
+            synthetic interview with a representative ICP persona grounded
+            in the verbatim language found. Write findings to
+            docs/positioning.md "Validated against" so future copy is
+            informed by actual vocabulary.
+          priority: medium
+          estimate: ""
+          depends_on:
+            - pos-validated-against
+        - id: pos-v010-release
+          title: Cut and publish the v0.10.0 GitHub release
+          description: |
+            Tag v0.10.0 from current main, draft release notes summarising
+            v0.9 + v0.10 features, push tag so the existing GoReleaser CI
+            workflow builds binaries and attaches them to the release, then
+            verify the release page renders correctly.
+          priority: high
+          estimate: ""
+          depends_on: []
     - id: ai-powered-workflows
       title: AI-Powered Workflows
       description: |

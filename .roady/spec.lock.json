@@ -1108,6 +1108,26 @@
             "pos-doc"
           ],
           "source": {}
+        },
+        {
+          "id": "pos-synthetic-interview",
+          "title": "Synthetic ICP interview + internet research findings",
+          "description": "Run web research across r/ClaudeAI, dev.to, Medium, IBM, Wire,\nStack Overflow on (a) phrases the ICP uses for the pain Roady\nsolves and (b) the competitor ecosystem (CLAUDE.md, AGENTS.md,\nspec-kit, Backlog.md, mcp-memory-service, BMAD). Synthesise a\nsynthetic interview with a representative ICP persona grounded\nin the verbatim language found. Write findings to\ndocs/positioning.md \"Validated against\" so future copy is\ninformed by actual vocabulary.\n",
+          "priority": "medium",
+          "estimate": "",
+          "depends_on": [
+            "pos-validated-against"
+          ],
+          "source": {}
+        },
+        {
+          "id": "pos-v010-release",
+          "title": "Cut and publish the v0.10.0 GitHub release",
+          "description": "Tag v0.10.0 from current main, draft release notes summarising\nv0.9 + v0.10 features, push tag so the existing GoReleaser CI\nworkflow builds binaries and attaches them to the release, then\nverify the release page renders correctly.\n",
+          "priority": "high",
+          "estimate": "",
+          "depends_on": [],
+          "source": {}
         }
       ],
       "source": {}

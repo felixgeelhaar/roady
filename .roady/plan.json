@@ -1162,6 +1162,30 @@
       "source": {}
     },
     {
+      "id": "task-pos-synthetic-interview",
+      "title": "Synthetic ICP interview + internet research findings (Positioning \u0026 Narrative (v0.11.0))",
+      "description": "Run web research across r/ClaudeAI, dev.to, Medium, IBM, Wire,\nStack Overflow on (a) phrases the ICP uses for the pain Roady\nsolves and (b) the competitor ecosystem (CLAUDE.md, AGENTS.md,\nspec-kit, Backlog.md, mcp-memory-service, BMAD). Synthesise a\nsynthetic interview with a representative ICP persona grounded\nin the verbatim language found. Write findings to\ndocs/positioning.md \"Validated against\" so future copy is\ninformed by actual vocabulary.\n",
+      "priority": "medium",
+      "estimate": "",
+      "depends_on": [
+        "task-pos-validated-against"
+      ],
+      "feature_id": "positioning-narrative",
+      "origin": "heuristic",
+      "source": {}
+    },
+    {
+      "id": "task-pos-v010-release",
+      "title": "Cut and publish the v0.10.0 GitHub release (Positioning \u0026 Narrative (v0.11.0))",
+      "description": "Tag v0.10.0 from current main, draft release notes summarising\nv0.9 + v0.10 features, push tag so the existing GoReleaser CI\nworkflow builds binaries and attaches them to the release, then\nverify the release page renders correctly.\n",
+      "priority": "high",
+      "estimate": "",
+      "depends_on": [],
+      "feature_id": "positioning-narrative",
+      "origin": "heuristic",
+      "source": {}
+    },
+    {
       "id": "task-ai-spec-review",
       "title": "AI spec quality review (AI-Powered Workflows)",
       "description": "AI spec quality review with completeness scoring",
@@ -1212,19 +1236,6 @@
       "source": {}
     },
     {
-      "id": "task-collab-shared",
-      "title": "Remote workspace sync (Multi-User Collaboration)",
-      "description": "Remote workspace sync for shared project state. Git-based or server-based sync of .roady directory, conflict resolution strategy, pull/push commands.",
-      "priority": "low",
-      "estimate": "",
-      "depends_on": [
-        "task-collab-conflict",
-        "task-collab-team-roles"
-      ],
-      "feature_id": "multi-user-collaboration",
-      "source": {}
-    },
-    {
       "id": "task-collab-assignment",
       "title": "Task assignment with Assignee field (Multi-User Collaboration)",
       "description": "Add Assignee field to Task domain entity, implement assign/unassign operations in CLI and MCP, persist in plan.json and state.json.",
@@ -1245,9 +1256,22 @@
       ],
       "feature_id": "multi-user-collaboration",
       "source": {}
+    },
+    {
+      "id": "task-collab-shared",
+      "title": "Remote workspace sync (Multi-User Collaboration)",
+      "description": "Remote workspace sync for shared project state. Git-based or server-based sync of .roady directory, conflict resolution strategy, pull/push commands.",
+      "priority": "low",
+      "estimate": "",
+      "depends_on": [
+        "task-collab-conflict",
+        "task-collab-team-roles"
+      ],
+      "feature_id": "multi-user-collaboration",
+      "source": {}
     }
   ],
   "approval_status": "approved",
   "created_at": "2026-01-31T18:00:00+01:00",
-  "updated_at": "2026-05-03T13:00:24.888146+02:00"
+  "updated_at": "2026-05-03T13:48:11.002602+02:00"
 }
