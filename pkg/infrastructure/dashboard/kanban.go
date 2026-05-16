@@ -134,13 +134,14 @@ func dependenciesMet(task planning.Task, byID map[string]planning.TaskStatus) bo
 // kanbanData wraps the board plus standard PageData so templates can share
 // the layout with other dashboard pages.
 type kanbanData struct {
-	Title string
-	Board KanbanBoard
-	Error string
+	Title          string
+	Board          KanbanBoard
+	Error          string
+	ActionsEnabled bool
 }
 
 func (s *Server) handleKanban(w http.ResponseWriter, r *http.Request) {
-	data := kanbanData{Title: "Kanban"}
+	data := kanbanData{Title: "Kanban", ActionsEnabled: s.taskActions != nil}
 
 	plan, err := s.provider.GetPlan()
 	if err != nil {
