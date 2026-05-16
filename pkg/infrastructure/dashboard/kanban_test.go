@@ -162,6 +162,49 @@ func TestKanbanHTMLHandler_RendersAllColumns(t *testing.T) {
 	}
 }
 
+func TestKanbanHTMLHandler_DragDropMarkup(t *testing.T) {
+	// Drag-and-drop attributes + JS only render when task actions are wired.
+	withActions, err := NewServer(":0", &kanbanStubProvider{plan: sampleKanbanPlan(), state: sampleKanbanState()})
+	if err != nil {
+		t.Fatal(err)
+	}
+	withActions.EnableTaskActions(&fakeTaskActions{})
+
+	rec := httptest.NewRecorder()
+	withActions.handleKanban(rec, httptest.NewRequest(http.MethodGet, "/kanban", nil))
+	body := rec.Body.String()
+
+	for _, want := range []string{
+		`draggable="true"`,
+		`data-task-id=`,
+		`data-source=`,
+		`data-status=`,
+		`drag cards between columns`,
+		`TRANSITIONS`,
+	} {
+		if !strings.Contains(body, want) {
+			t.Errorf("with actions: body missing %q", want)
+		}
+	}
+
+	// Without actions: read-only board, no drag scaffolding.
+	readOnly, err := NewServer(":0", &kanbanStubProvider{plan: sampleKanbanPlan(), state: sampleKanbanState()})
+	if err != nil {
+		t.Fatal(err)
+	}
+	rec = httptest.NewRecorder()
+	readOnly.handleKanban(rec, httptest.NewRequest(http.MethodGet, "/kanban", nil))
+	body = rec.Body.String()
+
+	// `draggable="true"` also appears in the CSS selector — only check for the
+	// markup-only artifacts (data attributes + JS scaffolding + UI hint).
+	for _, banned := range []string{`data-task-id=`, `TRANSITIONS`, `drag cards between columns`} {
+		if strings.Contains(body, banned) {
+			t.Errorf("read-only board should NOT contain %q", banned)
+		}
+	}
+}
+
 func TestKanbanAPIHandler_ReturnsJSON(t *testing.T) {
 	srv, err := NewServer(":0", &kanbanStubProvider{plan: sampleKanbanPlan(), state: sampleKanbanState()})
 	if err != nil {

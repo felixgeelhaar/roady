@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added — Drag-and-drop on the Kanban board
+
+- Cards on `/kanban` are now draggable between columns. Drop a card on the target column to transition the task — no need to hunt for the right button.
+- Valid transitions (mapped to existing POST endpoints): Ready → In Progress (start), In Progress → Done (complete), In Progress → Blocked (block), Blocked → In Progress (unblock).
+- Visual feedback: target column outlines green for allowed drops, red for disallowed transitions (e.g. dragging a Done card onto Blocked is a no-op).
+- Buttons remain available — drag-and-drop is additive, not a replacement. Server reloads on drop so the board reflects the new authoritative state.
+- Vanilla HTML5 DnD; no client library. Only renders when task actions are wired (`Server.EnableTaskActions`); read-only boards stay read-only.
+
 ## [0.11.2] - 2026-05-16
 
 ### Added — Interactive Kanban (task action buttons)
