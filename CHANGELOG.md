@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added — Interactive Kanban (task action buttons)
+
+- The `/kanban` board is no longer read-only. Cards now render contextual buttons by column: **Ready → Start**, **In Progress → Complete / Block**, **Blocked → Unblock**.
+- New POST endpoints: `/actions/task/start`, `/actions/task/complete`, `/actions/task/block`, `/actions/task/unblock`. Form-encoded, sender redirected back to the referring page.
+- Wired automatically by `roady dashboard serve` via the existing `TaskService`. No extra flags.
+- Backward-compatible: if a custom server is constructed without `EnableTaskActions`, the action routes stay unregistered and the board is read-only.
+
 ## [0.11.1] - 2026-05-16
 
 Adds the cross-project Kanban view that ties together v0.11.0's nested

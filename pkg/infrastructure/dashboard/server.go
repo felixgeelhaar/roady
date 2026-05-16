@@ -34,6 +34,10 @@ type Server struct {
 	// registered. See EnableOrgKanban.
 	orgProvider   OrgKanbanProvider
 	orgRepoOpener repoOpener
+
+	// Optional task-action wiring. When set, POST /actions/task/* routes are
+	// registered and the Kanban board renders action buttons. See EnableTaskActions.
+	taskActions TaskActions
 }
 
 // NewServer creates a new dashboard server.
@@ -71,6 +75,13 @@ func (s *Server) Start() error {
 	if s.orgProvider != nil {
 		mux.HandleFunc("GET /org/kanban", s.orgKanbanHandler(s.orgProvider, s.orgRepoOpener))
 		mux.HandleFunc("GET /api/org/kanban", s.orgKanbanAPIHandler(s.orgProvider, s.orgRepoOpener))
+	}
+
+	if s.taskActions != nil {
+		mux.HandleFunc("POST /actions/task/start", s.handleTaskStart)
+		mux.HandleFunc("POST /actions/task/complete", s.handleTaskComplete)
+		mux.HandleFunc("POST /actions/task/block", s.handleTaskBlock)
+		mux.HandleFunc("POST /actions/task/unblock", s.handleTaskUnblock)
 	}
 
 	s.server = &http.Server{

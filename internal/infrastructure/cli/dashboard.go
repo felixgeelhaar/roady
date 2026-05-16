@@ -76,6 +76,9 @@ Access the dashboard in your browser at the displayed URL.`,
 		// Wire cross-project Kanban over the workspace root so /org/kanban surfaces
 		// every project (root + sub-projects under .roady/projects/<name>/).
 		server.EnableOrgKanban(application.NewOrgService(services.Workspace.Repo.Root()), nil)
+		// Wire task-action buttons (Start / Complete / Block / Unblock) on the
+		// per-project Kanban board.
+		server.EnableTaskActions(services.Task)
 
 		// Handle graceful shutdown
 		stop := make(chan os.Signal, 1)
@@ -121,6 +124,9 @@ var dashboardOpenCmd = &cobra.Command{
 		// Wire cross-project Kanban over the workspace root so /org/kanban surfaces
 		// every project (root + sub-projects under .roady/projects/<name>/).
 		server.EnableOrgKanban(application.NewOrgService(services.Workspace.Repo.Root()), nil)
+		// Wire task-action buttons (Start / Complete / Block / Unblock) on the
+		// per-project Kanban board.
+		server.EnableTaskActions(services.Task)
 
 		// Handle graceful shutdown
 		stop := make(chan os.Signal, 1)
