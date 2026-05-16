@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roady - Kanban</title>
+    <meta http-equiv="refresh" content="30">
+    <style>
+        :root {
+            --bg-primary: #1a1b26;
+            --bg-secondary: #24283b;
+            --bg-tertiary: #414868;
+            --bg-card: #2a2e44;
+            --text-primary: #c0caf5;
+            --text-secondary: #9aa5ce;
+            --text-muted: #565f89;
+            --accent-blue: #7aa2f7;
+            --accent-green: #9ece6a;
+            --accent-yellow: #e0af68;
+            --accent-red: #f7768e;
+            --accent-purple: #bb9af7;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body { height: 100%; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.5;
+        }
+        nav {
+            background: var(--bg-secondary);
+            padding: 1rem 2rem;
+            border-bottom: 1px solid var(--bg-tertiary);
+        }
+        nav a { color: var(--text-secondary); text-decoration: none; margin-right: 2rem; }
+        nav a:hover { color: var(--accent-blue); }
+        .logo { font-weight: bold; font-size: 1.25rem; color: var(--accent-blue); margin-right: 2rem; }
+
+        .kanban-header {
+            padding: 1.5rem 2rem 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .kanban-header h1 { font-size: 1.5rem; }
+        .kanban-meta { color: var(--text-muted); font-size: 0.875rem; }
+
+        .board {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(220px, 1fr));
+            gap: 0.75rem;
+            padding: 1rem 2rem 2rem;
+            align-items: start;
+            overflow-x: auto;
+        }
+        @media (max-width: 1100px) {
+            .board { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+        }
+
+        .column {
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            padding: 0.75rem;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .column-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--bg-tertiary);
+            margin-bottom: 0.25rem;
+        }
+        .column-title { font-weight: 600; font-size: 0.9rem; letter-spacing: 0.02em; text-transform: uppercase; }
+        .column-count {
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            padding: 0.1rem 0.5rem;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        /* Column accent stripes */
+        .col-backlog       .column-title { color: var(--text-secondary); }
+        .col-ready         .column-title { color: var(--accent-blue); }
+        .col-in_progress   .column-title { color: var(--accent-yellow); }
+        .col-blocked       .column-title { color: var(--accent-red); }
+        .col-done          .column-title { color: var(--accent-green); }
+
+        .card {
+            background: var(--bg-card);
+            border-left: 3px solid var(--bg-tertiary);
+            border-radius: 6px;
+            padding: 0.75rem 0.85rem;
+            font-size: 0.9rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+        }
+        .col-ready       .card { border-left-color: var(--accent-blue); }
+        .col-in_progress .card { border-left-color: var(--accent-yellow); }
+        .col-blocked     .card { border-left-color: var(--accent-red); }
+        .col-done        .card { border-left-color: var(--accent-green); }
+
+        .card-title { font-weight: 500; line-height: 1.3; word-break: break-word; }
+        .card-meta {
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .card-id { font-family: 'SF Mono', Menlo, monospace; }
+        .card-owner { color: var(--accent-purple); }
+        .card-deps { color: var(--text-muted); }
+        .card-empty { color: var(--text-muted); font-style: italic; font-size: 0.85rem; padding: 0.5rem 0; }
+
+        .error {
+            background: rgba(247, 118, 142, 0.1);
+            border: 1px solid var(--accent-red);
+            color: var(--accent-red);
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 2rem;
+        }
+        footer { margin-top: 2rem; padding: 1.5rem; text-align: center; color: var(--text-muted); font-size: 0.8rem; }
+    </style>
+</head>
+<body>
+    <nav>
+        <span class="logo">Roady</span>
+        <a href="/">Dashboard</a>
+        <a href="/tasks">Tasks</a>
+        <a href="/plan">Plan</a>
+        <a href="/kanban">Kanban</a>
+    </nav>
+
+    {{if .Error}}
+        <div class="error">{{.Error}}</div>
+    {{else}}
+        <div class="kanban-header">
+            <h1>Kanban</h1>
+            <span class="kanban-meta">
+                {{.Board.TotalTasks}} task{{if ne .Board.TotalTasks 1}}s{{end}}
+                · updated {{.Board.UpdatedAt.Format "15:04:05"}}
+                · auto-refresh 30s
+                · <a href="/api/kanban" style="color: var(--text-muted)">JSON</a>
+            </span>
+        </div>
+
+        <div class="board">
+            {{range .Board.Columns}}
+            <section class="column col-{{.Status}}">
+                <header class="column-header">
+                    <span class="column-title">{{.Name}}</span>
+                    <span class="column-count">{{.Count}}</span>
+                </header>
+
+                {{if .Tasks}}
+                    {{range .Tasks}}
+                    <article class="card">
+                        <div class="card-title">{{.Task.Title}}</div>
+                        <div class="card-meta">
+                            <span class="card-id">{{.Task.ID}}</span>
+                            {{if .Owner}}<span class="card-owner">@{{.Owner}}</span>{{end}}
+                            {{if .Task.DependsOn}}<span class="card-deps">⛓ {{len .Task.DependsOn}} dep{{if ne (len .Task.DependsOn) 1}}s{{end}}</span>{{end}}
+                        </div>
+                    </article>
+                    {{end}}
+                {{else}}
+                    <div class="card-empty">—</div>
+                {{end}}
+            </section>
+            {{end}}
+        </div>
+    {{end}}
+
+    <footer>Roady Kanban · live view, refresh every 30s · <a href="/" style="color: var(--text-muted)">Back to dashboard</a></footer>
+</body>
+</html>
