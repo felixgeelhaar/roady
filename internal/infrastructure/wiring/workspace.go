@@ -16,13 +16,27 @@ type Workspace struct {
 	Notifier *webhook.Notifier
 }
 
+// NewWorkspace constructs a workspace scoped to the root project at <root>/.roady/.
+// For a sub-project (<root>/.roady/projects/<name>/) use NewWorkspaceForProject.
 func NewWorkspace(root string) *Workspace {
-	repo := storage.NewFilesystemRepository(root)
+	ws, _ := NewWorkspaceForProject(root, "")
+	return ws
+}
 
-	// Load webhook config and create notifier if configured
+// NewWorkspaceForProject constructs a workspace scoped to a named sub-project
+// at <root>/.roady/projects/<project>/. When project is empty, behaves like
+// NewWorkspace. Returns an error if the project name is invalid.
+func NewWorkspaceForProject(root, project string) (*Workspace, error) {
+	repo, err := storage.NewFilesystemRepositoryForProject(root, project)
+	if err != nil {
+		return nil, err
+	}
+
+	// Load webhook config and create notifier if configured.
+	// Webhooks live next to the project's other files (under projects/<name>/ for sub-projects).
 	var notifier *webhook.Notifier
 	if config, err := repo.LoadWebhookConfig(); err == nil && len(config.Webhooks) > 0 {
-		dlPath := filepath.Join(root, storage.RoadyDir, storage.DeadLetterFile)
+		dlPath := filepath.Join(repo.ProjectBase(), storage.DeadLetterFile)
 		dlStore := webhook.NewDeadLetterStore(dlPath)
 		notifier = webhook.NewNotifier(config.Webhooks, dlStore)
 	}
@@ -32,5 +46,5 @@ func NewWorkspace(root string) *Workspace {
 		Audit:    application.NewAuditService(repo),
 		Usage:    application.NewUsageService(repo),
 		Notifier: notifier,
-	}
+	}, nil
 }

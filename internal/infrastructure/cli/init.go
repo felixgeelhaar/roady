@@ -20,7 +20,10 @@ var initCmd = &cobra.Command{
 		if cErr != nil {
 			return fmt.Errorf("resolve project path: %w", cErr)
 		}
-		workspace := wiring.NewWorkspace(cwd)
+		workspace, wsErr := wiring.NewWorkspaceForProject(cwd, currentSubProject())
+		if wsErr != nil {
+			return fmt.Errorf("resolve workspace: %w", wsErr)
+		}
 		repo := workspace.Repo
 		audit := workspace.Audit
 		service := application.NewInitService(repo, audit)
@@ -28,6 +31,10 @@ var initCmd = &cobra.Command{
 		projectName := "new-project"
 		if len(args) > 0 {
 			projectName = args[0]
+		} else if sub := currentSubProject(); sub != "" {
+			// Default a sub-project's display name to its directory slug
+			// when the caller did not pass an explicit name.
+			projectName = sub
 		}
 
 		if shouldRunInteractive() {

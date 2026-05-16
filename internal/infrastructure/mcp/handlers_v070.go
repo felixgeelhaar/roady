@@ -10,6 +10,7 @@ import (
 // Org policy handler
 type OrgPolicyArgs struct {
 	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the project (default: current directory)"`
+	Project     string `json:"project,omitempty" jsonschema:"description=Sub-project name under .roady/projects/<name>/ (default: root project)"`
 }
 
 func (s *Server) handleOrgPolicy(ctx context.Context, args OrgPolicyArgs) (any, error) {
@@ -36,11 +37,11 @@ func (s *Server) handleOrgDetectDrift(ctx context.Context, args GetSpecArgs) (an
 
 // Plugin handlers
 
-func (s *Server) pluginSvcForPath(projectPath string) *application.PluginService {
-	if projectPath == "" || projectPath == s.root {
+func (s *Server) pluginSvcForPath(projectPath, project string) *application.PluginService {
+	if (projectPath == "" || projectPath == s.root) && project == "" {
 		return s.pluginSvc
 	}
-	svc, err := s.servicesForPath(projectPath)
+	svc, err := s.servicesForPath(projectPath, project)
 	if err != nil {
 		return s.pluginSvc
 	}
@@ -48,7 +49,7 @@ func (s *Server) pluginSvcForPath(projectPath string) *application.PluginService
 }
 
 func (s *Server) handlePluginList(ctx context.Context, args GetSpecArgs) (any, error) {
-	plugins, err := s.pluginSvcForPath(args.ProjectPath).ListPlugins()
+	plugins, err := s.pluginSvcForPath(args.ProjectPath, args.Project).ListPlugins()
 	if err != nil {
 		return nil, mcpErr("Failed to list plugins.")
 	}
@@ -58,10 +59,11 @@ func (s *Server) handlePluginList(ctx context.Context, args GetSpecArgs) (any, e
 type PluginValidateArgs struct {
 	Name        string `json:"name" jsonschema:"description=Name of the plugin to validate"`
 	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
+	Project     string `json:"project,omitempty" jsonschema:"description=Sub-project name under .roady/projects/<name>/ (default: root project)"`
 }
 
 func (s *Server) handlePluginValidate(ctx context.Context, args PluginValidateArgs) (any, error) {
-	result, err := s.pluginSvcForPath(args.ProjectPath).ValidatePlugin(args.Name)
+	result, err := s.pluginSvcForPath(args.ProjectPath, args.Project).ValidatePlugin(args.Name)
 	if err != nil {
 		return nil, mcpErr("Failed to validate plugin.")
 	}
@@ -71,10 +73,11 @@ func (s *Server) handlePluginValidate(ctx context.Context, args PluginValidateAr
 type PluginStatusArgs struct {
 	Name        string `json:"name,omitempty" jsonschema:"description=Name of the plugin to check (omit for all)"`
 	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
+	Project     string `json:"project,omitempty" jsonschema:"description=Sub-project name under .roady/projects/<name>/ (default: root project)"`
 }
 
 func (s *Server) handlePluginStatus(ctx context.Context, args PluginStatusArgs) (any, error) {
-	psvc := s.pluginSvcForPath(args.ProjectPath)
+	psvc := s.pluginSvcForPath(args.ProjectPath, args.Project)
 	if args.Name != "" {
 		result, err := psvc.CheckHealth(args.Name)
 		if err != nil {
