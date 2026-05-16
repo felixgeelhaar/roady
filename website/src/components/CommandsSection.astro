@@ -42,7 +42,14 @@
 <span class="text-violet-400">roady git sync</span>              <span class="text-gray-500"># state moves forward automatically</span>
 
 <span class="text-gray-500"># 5. Ask the question that matters</span>
-<span class="text-violet-400">roady drift detect</span>          <span class="text-gray-500"># has reality diverged from intent?</span></code></pre>
+<span class="text-violet-400">roady drift detect</span>          <span class="text-gray-500"># has reality diverged from intent?</span>
+
+<span class="text-gray-500"># Bonus — live Kanban (since v0.12); auth-token optional, drop for localhost</span>
+<span class="text-violet-400">roady dashboard serve</span>      <span class="text-gray-500"># open http://localhost:3000/kanban</span>
+
+<span class="text-gray-500"># Bonus — multiple projects per repo (since v0.11)</span>
+<span class="text-violet-400">roady</span> -P feature-auth <span class="text-violet-400">init</span> --template minimal
+<span class="text-violet-400">roady</span> -P feature-auth <span class="text-violet-400">task ready</span></code></pre>
       </div>
     </div>
 

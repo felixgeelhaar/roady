@@ -9,7 +9,32 @@ intended **open-core boundary** for a future hosted product.
 
 ---
 
-## Now (v0.10.x — shipped)
+## Now (v0.12.x — shipped)
+
+- **Live Kanban dashboard** at `/kanban` with five status columns
+  (Backlog / Ready / In Progress / Blocked / Done) and a `/api/kanban`
+  JSON endpoint. Click or drag to drive task transitions; board
+  reloads ~200 ms after every change via Server-Sent Events.
+- **Cross-project Kanban** at `/org/kanban` merges every project under
+  the repo (root + sub-projects) into one board; cards carry their
+  origin project and drops route to the right sub-project's
+  `TaskService`.
+- **Action endpoints**: `POST /actions/task/{start,complete,block,unblock,reopen}`,
+  form-encoded, accept optional `project_path` + `project` for org
+  routing.
+- **Dashboard auth token** (`--auth-token` flag or `ROADY_DASHBOARD_TOKEN`
+  env). Bearer / Cookie / one-time `?token=` handshake. Empty = public.
+
+## Recently (v0.11.x — shipped)
+
+- **Nested sub-projects** under `.roady/projects/<name>/`. One repo
+  hosts many projects in parallel; coding agents switch context with
+  `--project / -P <name>` (CLI) or `project` (MCP). Existing flat
+  `.roady/` repos unchanged. See
+  [`docs/rfcs/0001-nested-projects.md`](docs/rfcs/0001-nested-projects.md).
+- `roady discover` and `roady org status` surface sub-projects.
+
+## Earlier (v0.10.x — shipped)
 
 - Eval harness over heuristic + AI planners + drift corpus
 - Task provenance: `Origin` (heuristic / ai / human) + source citations
@@ -26,27 +51,28 @@ intended **open-core boundary** for a future hosted product.
 - `roady demo` for <1s aha; `roady init --interactive` default in TTY;
   empty-state ladder on `roady status`
 
-## Next (v0.11.x)
+## Next (v0.13.x)
 
-- **Positioning + narrative cleanup** (this release): one-page
-  positioning doc, README hero rewrite, advanced features moved to
-  `docs/advanced.md`, competitive comparison in `docs/vs.md`, this
-  roadmap.
-- **Website refresh** to mirror the README positioning.
-- Real provider matrix run via `-tags evals_ai` documented in
-  `evals/README.md` so contributors can self-serve a confidence check.
-
-## Soon (v0.12 — v0.13)
-
+- **Cross-project task dependencies** — `@project:task-id` syntax in
+  `DependsOn` so an org-level plan can express "feature-payments task
+  X waits on feature-auth task Y".
+- **Inline-edit on Kanban actions** — owner / evidence / reason
+  prompts on the dashboard instead of the current defaults
+  (`owner=dashboard`, `evidence="completed via dashboard"`).
 - **Drift explainer follow-ups**: synthesised "explain + propose patch"
   output that lands a PR-ready diff for accepted drift.
-- **Cross-repo planning**: a single `.roady/` workspace can declare
-  member repos, share spec context, and aggregate plan state.
 - **Per-task subagent dispatch**: `roady task start` can hand a ready
   task to a subagent (Claude Code `Task` tool, Codex `agent run`, etc.)
   with the spec source attached and a deterministic completion hook.
 - **Spec-to-PR loop**: CI integration that auto-detects drift on PR
   merge and either accepts or opens a follow-up issue.
+- **Touch-device Kanban DnD** — HTML5 DnD is desktop-only today;
+  mobile users still have the buttons.
+
+## Soon (v0.14+)
+
+- **Cross-repo planning**: a single `.roady/` workspace can declare
+  member repos, share spec context, and aggregate plan state.
 
 ## Later
 
