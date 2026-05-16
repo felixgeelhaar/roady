@@ -41,7 +41,19 @@ Use 'roady dashboard serve' for the web-based dashboard.`,
 	},
 }
 
-var dashboardPort int
+var (
+	dashboardPort      int
+	dashboardAuthToken string
+)
+
+// resolveDashboardToken picks the auth token from the --auth-token flag,
+// falling back to the ROADY_DASHBOARD_TOKEN env var. Empty = public.
+func resolveDashboardToken() string {
+	if dashboardAuthToken != "" {
+		return dashboardAuthToken
+	}
+	return os.Getenv("ROADY_DASHBOARD_TOKEN")
+}
 
 var dashboardServeCmd = &cobra.Command{
 	Use:   "serve",
@@ -75,10 +87,18 @@ Access the dashboard in your browser at the displayed URL.`,
 
 		// Wire cross-project Kanban over the workspace root so /org/kanban surfaces
 		// every project (root + sub-projects under .roady/projects/<name>/).
-		server.EnableOrgKanban(application.NewOrgService(services.Workspace.Repo.Root()), nil)
-		// Wire task-action buttons (Start / Complete / Block / Unblock) on the
-		// per-project Kanban board.
+		root := services.Workspace.Repo.Root()
+		server.EnableOrgKanban(application.NewOrgService(root), nil)
+		// Wire task-action buttons (Start / Complete / Block / Unblock / Reopen)
+		// on the per-project Kanban board.
 		server.EnableTaskActions(services.Task)
+		// Wire cross-project action routing so /org/kanban DnD targets the
+		// right sub-project's TaskService.
+		server.EnableOrgTaskActions(newOrgTaskActionsResolver(root))
+		// Optional auth token gate (--auth-token flag or ROADY_DASHBOARD_TOKEN env).
+		if tok := resolveDashboardToken(); tok != "" {
+			server.EnableAuthToken(tok)
+		}
 
 		// Handle graceful shutdown
 		stop := make(chan os.Signal, 1)
@@ -123,10 +143,18 @@ var dashboardOpenCmd = &cobra.Command{
 
 		// Wire cross-project Kanban over the workspace root so /org/kanban surfaces
 		// every project (root + sub-projects under .roady/projects/<name>/).
-		server.EnableOrgKanban(application.NewOrgService(services.Workspace.Repo.Root()), nil)
-		// Wire task-action buttons (Start / Complete / Block / Unblock) on the
-		// per-project Kanban board.
+		root := services.Workspace.Repo.Root()
+		server.EnableOrgKanban(application.NewOrgService(root), nil)
+		// Wire task-action buttons (Start / Complete / Block / Unblock / Reopen)
+		// on the per-project Kanban board.
 		server.EnableTaskActions(services.Task)
+		// Wire cross-project action routing so /org/kanban DnD targets the
+		// right sub-project's TaskService.
+		server.EnableOrgTaskActions(newOrgTaskActionsResolver(root))
+		// Optional auth token gate (--auth-token flag or ROADY_DASHBOARD_TOKEN env).
+		if tok := resolveDashboardToken(); tok != "" {
+			server.EnableAuthToken(tok)
+		}
 
 		// Handle graceful shutdown
 		stop := make(chan os.Signal, 1)
@@ -173,6 +201,10 @@ func init() {
 
 	dashboardServeCmd.Flags().IntVarP(&dashboardPort, "port", "p", 3000, "Port to listen on")
 	dashboardOpenCmd.Flags().IntVarP(&dashboardPort, "port", "p", 3000, "Port to listen on")
+
+	const tokHelp = "Shared bearer token required on every request (env: ROADY_DASHBOARD_TOKEN). Empty = public."
+	dashboardServeCmd.Flags().StringVar(&dashboardAuthToken, "auth-token", "", tokHelp)
+	dashboardOpenCmd.Flags().StringVar(&dashboardAuthToken, "auth-token", "", tokHelp)
 }
 
 // dashboardDataProvider implements dashboard.DataProvider

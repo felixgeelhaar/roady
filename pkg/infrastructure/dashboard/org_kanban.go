@@ -87,10 +87,13 @@ func buildOrgKanbanBoard(prov OrgKanbanProvider, open repoOpener) OrgKanbanBoard
 
 		sub := buildKanbanBoard(plan, state)
 		// Merge sub-board tasks into the org columns, tagging each card with
-		// its project so consumers can disambiguate.
+		// its project so consumers can disambiguate and so action endpoints
+		// can route the mutation back to the right sub-project.
 		for _, sc := range sub.Columns {
 			for _, tv := range sc.Tasks {
 				tv.ProjectLabel = label
+				tv.ProjectPath = p.Path
+				tv.ProjectName = p.SubProject
 				cols[sc.Status].Tasks = append(cols[sc.Status].Tasks, tv)
 			}
 		}
