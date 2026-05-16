@@ -156,6 +156,26 @@
             margin: 1rem 2rem;
         }
         footer { margin-top: 2rem; padding: 1.5rem; text-align: center; color: var(--text-muted); font-size: 0.8rem; }
+
+        /* drag-and-drop */
+        .card[draggable="true"] { cursor: grab; }
+        .card.dragging          { opacity: 0.4; cursor: grabbing; }
+        .column.drop-allow {
+            outline: 2px dashed var(--accent-green);
+            outline-offset: -4px;
+            background: rgba(158, 206, 106, 0.06);
+        }
+        .column.drop-deny {
+            outline: 2px dashed var(--accent-red);
+            outline-offset: -4px;
+            background: rgba(247, 118, 142, 0.06);
+            cursor: not-allowed;
+        }
+        .dnd-hint {
+            color: var(--text-muted);
+            font-size: 0.78rem;
+            margin-left: 0.5rem;
+        }
     </style>
 </head>
 <body>
@@ -178,6 +198,7 @@
                 · updated {{.Board.UpdatedAt.Format "15:04:05"}}
                 · auto-refresh 30s
                 · <a href="/api/kanban" style="color: var(--text-muted)">JSON</a>
+                {{if .ActionsEnabled}}<span class="dnd-hint">· drag cards between columns</span>{{end}}
             </span>
         </div>
 
@@ -185,7 +206,7 @@
             {{$actions := .ActionsEnabled}}
             {{range .Board.Columns}}
             {{$colStatus := .Status}}
-            <section class="column col-{{.Status}}">
+            <section class="column col-{{.Status}}" data-status="{{.Status}}">
                 <header class="column-header">
                     <span class="column-title">{{.Name}}</span>
                     <span class="column-count">{{.Count}}</span>
@@ -193,7 +214,7 @@
 
                 {{if .Tasks}}
                     {{range .Tasks}}
-                    <article class="card">
+                    <article class="card" {{if $actions}}draggable="true" data-task-id="{{.Task.ID}}" data-source="{{$colStatus}}"{{end}}>
                         <div class="card-title">{{.Task.Title}}</div>
                         <div class="card-meta">
                             <span class="card-id">{{.Task.ID}}</span>
@@ -223,5 +244,83 @@
     {{end}}
 
     <footer>Roady Kanban · live view, refresh every 30s · <a href="/" style="color: var(--text-muted)">Back to dashboard</a></footer>
+
+    {{if .ActionsEnabled}}
+    <script>
+    (function () {
+        // (source column, target column) → action endpoint.
+        // Only valid Kanban transitions are wired; everything else is a no-op
+        // and the column highlights red while hovered.
+        const TRANSITIONS = {
+            "ready,in_progress":      "/actions/task/start",
+            "in_progress,done":       "/actions/task/complete",
+            "in_progress,blocked":    "/actions/task/block",
+            "blocked,in_progress":    "/actions/task/unblock",
+        };
+
+        function endpointFor(src, dst) {
+            return TRANSITIONS[src + "," + dst] || null;
+        }
+
+        function postAction(endpoint, taskId) {
+            const body = new URLSearchParams({ id: taskId });
+            return fetch(endpoint, {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: body.toString(),
+                redirect: "manual",
+            }).then(function () {
+                // Reload to get the fresh board (server templates win over
+                // optimistic client state).
+                window.location.reload();
+            });
+        }
+
+        document.querySelectorAll('.card[draggable="true"]').forEach(function (card) {
+            card.addEventListener('dragstart', function (e) {
+                card.classList.add('dragging');
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/plain', card.dataset.taskId);
+                e.dataTransfer.setData('application/x-source', card.dataset.source);
+            });
+            card.addEventListener('dragend', function () {
+                card.classList.remove('dragging');
+            });
+        });
+
+        document.querySelectorAll('.column[data-status]').forEach(function (col) {
+            col.addEventListener('dragover', function (e) {
+                e.preventDefault();
+                const dragging = document.querySelector('.card.dragging');
+                if (!dragging) return;
+                const src = dragging.dataset.source;
+                const dst = col.dataset.status;
+                if (src === dst) { return; } // no-op on self
+                if (endpointFor(src, dst)) {
+                    e.dataTransfer.dropEffect = 'move';
+                    col.classList.add('drop-allow');
+                } else {
+                    e.dataTransfer.dropEffect = 'none';
+                    col.classList.add('drop-deny');
+                }
+            });
+            col.addEventListener('dragleave', function () {
+                col.classList.remove('drop-allow', 'drop-deny');
+            });
+            col.addEventListener('drop', function (e) {
+                e.preventDefault();
+                col.classList.remove('drop-allow', 'drop-deny');
+                const taskId = e.dataTransfer.getData('text/plain');
+                const src    = e.dataTransfer.getData('application/x-source');
+                const dst    = col.dataset.status;
+                if (!taskId || src === dst) return;
+                const endpoint = endpointFor(src, dst);
+                if (!endpoint) return; // invalid transition silently ignored
+                postAction(endpoint, taskId);
+            });
+        });
+    })();
+    </script>
+    {{end}}
 </body>
 </html>
