@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added — Reopen action + DnD transition
+
+- New `TaskService.ReopenTask` + `POST /actions/task/reopen` move a Done or Verified task back to Pending.
+- Done cards on `/kanban` get a **↺ Reopen** button.
+- DnD adds Done → Backlog and Done → Ready transitions (both call reopen).
+
+### Added — Live updates over Server-Sent Events
+
+- New `GET /events` SSE stream emits a `task-changed` event after every successful task transition. The board reloads within ~200 ms of the change instead of waiting on the meta-refresh.
+- Live indicator in the header reflects connection state.
+- Meta-refresh kept as fallback (now 60 s) for browsers without `EventSource`.
+- 25 s heartbeat keeps the stream alive through proxies (Cloudflare, nginx).
+
+### Added — Cross-project Kanban actions (DnD on `/org/kanban`)
+
+- Cards on `/org/kanban` are now draggable. Drops route the mutation to the right sub-project's `TaskService` via the new `OrgTaskActions` resolver.
+- Action endpoints accept optional `project_path` and `project` form fields; absent → defaults to the server-default `TaskActions`, present → routes through `OrgTaskActions.ResolveTaskActions`.
+- Wired automatically by `roady dashboard serve`.
+
+### Added — Dashboard auth token
+
+- New `--auth-token <value>` flag on `roady dashboard serve|open` (env: `ROADY_DASHBOARD_TOKEN`) protects every dashboard request with a shared bearer token.
+- Token accepted three ways: `Authorization: Bearer <t>`, `Cookie: roady_token=<t>`, or `?token=<t>` (one-time handshake: sets the cookie, redirects to strip the secret from the URL bar).
+- Constant-time comparison; secure cookie on TLS / X-Forwarded-Proto.
+- Empty token = public (backward-compatible).
+
 ## [0.11.3] - 2026-05-16
 
 ### Added — Drag-and-drop on the Kanban board

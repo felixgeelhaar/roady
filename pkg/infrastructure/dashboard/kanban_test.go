@@ -152,7 +152,7 @@ func TestKanbanHTMLHandler_RendersAllColumns(t *testing.T) {
 		t.Fatalf("status = %d, want 200", rec.Code)
 	}
 	body := rec.Body.String()
-	for _, want := range []string{"Backlog", "Ready", "In Progress", "Blocked", "Done", "auto-refresh 30s"} {
+	for _, want := range []string{"Backlog", "Ready", "In Progress", "Blocked", "Done", `id="live-state"`} {
 		if !strings.Contains(body, want) {
 			t.Errorf("body missing %q", want)
 		}

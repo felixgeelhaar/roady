@@ -318,6 +318,45 @@ func (c *Coordinator) UnblockTask(ctx context.Context, taskID string) error {
 	return nil
 }
 
+// ReopenTask transitions a Done or Verified task back to Pending so it can
+// be picked up and started again. Useful when a completion was premature or
+// new evidence shows the task is not actually finished.
+func (c *Coordinator) ReopenTask(ctx context.Context, taskID string) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	state, err := c.stateRepo.Load(ctx)
+	if err != nil {
+		return err
+	}
+	if state == nil {
+		return ErrNoState
+	}
+
+	currentStatus := state.GetTaskStatus(taskID)
+	if !currentStatus.CanTransitionWith("reopen") {
+		return &TransitionError{
+			TaskID:     taskID,
+			FromStatus: string(currentStatus),
+			ToStatus:   string(planning.StatusPending),
+			Event:      "reopen",
+		}
+	}
+
+	state.SetTaskStatus(taskID, planning.StatusPending)
+	if err := c.stateRepo.Save(ctx, state); err != nil {
+		return err
+	}
+
+	// Fire-and-forget; reuse the unblock event since both land in Pending and
+	// signal "this task is back in flight".
+	if c.publisher != nil {
+		_ = c.publisher.PublishTaskUnblocked(ctx, taskID)
+	}
+
+	return nil
+}
+
 // VerifyTask marks a completed task as verified.
 func (c *Coordinator) VerifyTask(ctx context.Context, taskID, verifier string) error {
 	c.mu.Lock()

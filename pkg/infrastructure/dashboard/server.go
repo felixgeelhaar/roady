@@ -37,7 +37,15 @@ type Server struct {
 
 	// Optional task-action wiring. When set, POST /actions/task/* routes are
 	// registered and the Kanban board renders action buttons. See EnableTaskActions.
-	taskActions TaskActions
+	taskActions    TaskActions
+	orgTaskActions OrgTaskActions
+
+	// Optional SSE hub for live updates. Created on first /events subscription.
+	sse *sseHub
+
+	// Optional bearer-token gate for every request. When empty, the server is
+	// public. See EnableAuthToken.
+	authToken string
 }
 
 // NewServer creates a new dashboard server.
@@ -82,13 +90,25 @@ func (s *Server) Start() error {
 		mux.HandleFunc("POST /actions/task/complete", s.handleTaskComplete)
 		mux.HandleFunc("POST /actions/task/block", s.handleTaskBlock)
 		mux.HandleFunc("POST /actions/task/unblock", s.handleTaskUnblock)
+		mux.HandleFunc("POST /actions/task/reopen", s.handleTaskReopen)
+	}
+
+	// SSE live-update stream. Always registered; clients reconnect on disconnect.
+	if s.sse == nil {
+		s.sse = newSSEHub()
+	}
+	mux.HandleFunc("GET /events", s.handleEvents)
+
+	handler := http.Handler(mux)
+	if s.authToken != "" {
+		handler = authMiddleware(s.authToken, handler)
 	}
 
 	s.server = &http.Server{
 		Addr:         s.addr,
-		Handler:      mux,
+		Handler:      handler,
 		ReadTimeout:  15 * time.Second,
-		WriteTimeout: 15 * time.Second,
+		WriteTimeout: 0, // SSE needs no write timeout
 	}
 
 	log.Printf("Dashboard server starting on %s", s.addr)
@@ -120,6 +140,8 @@ type TaskView struct {
 	Owner        string
 	HasLinks     bool
 	ProjectLabel string // set on cross-project Kanban cards; empty for per-project views
+	ProjectPath  string // workspace root, set on org-kanban cards so actions can route to it
+	ProjectName  string // sub-project name (empty = root project), set on org-kanban cards
 }
 
 // DashboardStats holds summary statistics.

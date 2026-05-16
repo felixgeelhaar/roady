@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Roady - Kanban</title>
-    <meta http-equiv="refresh" content="30">
+    <!-- Fallback poll; superseded by the SSE live-update stream when available. -->
+    <meta http-equiv="refresh" content="60">
     <style>
         :root {
             --bg-primary: #1a1b26;
@@ -196,7 +197,7 @@
             <span class="kanban-meta">
                 {{.Board.TotalTasks}} task{{if ne .Board.TotalTasks 1}}s{{end}}
                 · updated {{.Board.UpdatedAt.Format "15:04:05"}}
-                · auto-refresh 30s
+                · <span id="live-state" title="Live updates via Server-Sent Events">live</span>
                 · <a href="/api/kanban" style="color: var(--text-muted)">JSON</a>
                 {{if .ActionsEnabled}}<span class="dnd-hint">· drag cards between columns</span>{{end}}
             </span>
@@ -230,6 +231,8 @@
                                 <form method="POST" action="/actions/task/block"><input type="hidden" name="id" value="{{.Task.ID}}"><button class="btn btn-block" type="submit" title="Mark blocked">⊘ Block</button></form>
                             {{else if eq $colStatus "blocked"}}
                                 <form method="POST" action="/actions/task/unblock"><input type="hidden" name="id" value="{{.Task.ID}}"><button class="btn btn-unblock" type="submit" title="Resume work">↺ Unblock</button></form>
+                            {{else if eq $colStatus "done"}}
+                                <form method="POST" action="/actions/task/reopen"><input type="hidden" name="id" value="{{.Task.ID}}"><button class="btn btn-unblock" type="submit" title="Reopen (back to backlog)">↺ Reopen</button></form>
                             {{end}}
                         </div>
                         {{end}}
@@ -256,6 +259,8 @@
             "in_progress,done":       "/actions/task/complete",
             "in_progress,blocked":    "/actions/task/block",
             "blocked,in_progress":    "/actions/task/unblock",
+            "done,backlog":           "/actions/task/reopen",
+            "done,ready":             "/actions/task/reopen",
         };
 
         function endpointFor(src, dst) {
@@ -322,5 +327,27 @@
     })();
     </script>
     {{end}}
+
+    <script>
+    // SSE live-update: subscribe to /events; on `task-changed`, reload board.
+    (function () {
+        if (!('EventSource' in window)) return;
+        const indicator = document.getElementById('live-state');
+        function setIndicator(text, color) {
+            if (!indicator) return;
+            indicator.textContent = text;
+            indicator.style.color = color;
+        }
+        try {
+            const es = new EventSource('/events');
+            es.onopen = function () { setIndicator('live', 'var(--accent-green)'); };
+            es.onerror = function () { setIndicator('reconnecting…', 'var(--accent-yellow)'); };
+            es.addEventListener('task-changed', function () {
+                // Tiny delay so multiple in-flight POSTs collapse to one reload.
+                setTimeout(function () { window.location.reload(); }, 200);
+            });
+        } catch (e) { /* swallow; meta-refresh fallback still works */ }
+    })();
+    </script>
 </body>
 </html>

@@ -298,6 +298,18 @@ func (s *TaskService) UnblockTask(ctx context.Context, taskID string) error {
 	return nil
 }
 
+// ReopenTask transitions a Done or Verified task back to Pending so it can
+// be re-planned and started again.
+func (s *TaskService) ReopenTask(ctx context.Context, taskID string) error {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	if err := s.coordinator.ReopenTask(ctx, taskID); err != nil {
+		return s.mapCoordinatorError(err, "reopen")
+	}
+	return nil
+}
+
 // VerifyTask marks a completed task as verified.
 func (s *TaskService) VerifyTask(ctx context.Context, taskID, verifier string) error {
 	if ctx == nil {

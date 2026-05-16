@@ -115,7 +115,8 @@
 
     <div class="board">
         {{range .Board.Columns}}
-        <section class="column col-{{.Status}}">
+        {{$colStatus := .Status}}
+        <section class="column col-{{.Status}}" data-status="{{.Status}}">
             <header class="column-header">
                 <span class="column-title">{{.Name}}</span>
                 <span class="column-count">{{.Count}}</span>
@@ -123,7 +124,11 @@
 
             {{if .Tasks}}
                 {{range .Tasks}}
-                <article class="card">
+                <article class="card" draggable="true"
+                         data-task-id="{{.Task.ID}}"
+                         data-source="{{$colStatus}}"
+                         data-project-path="{{.ProjectPath}}"
+                         data-project-name="{{.ProjectName}}">
                     {{if .ProjectLabel}}<div class="card-project">{{.ProjectLabel}}</div>{{end}}
                     <div class="card-title">{{.Task.Title}}</div>
                     <div class="card-meta">
@@ -140,5 +145,92 @@
     </div>
 
     <footer>Roady Org Kanban · live cross-project view · <a href="/kanban" style="color: var(--text-muted)">single project</a></footer>
+
+    <style>
+        .card[draggable="true"] { cursor: grab; }
+        .card.dragging          { opacity: 0.4; cursor: grabbing; }
+        .column.drop-allow      { outline: 2px dashed var(--accent-green); outline-offset: -4px; background: rgba(158, 206, 106, 0.06); }
+        .column.drop-deny       { outline: 2px dashed var(--accent-red);   outline-offset: -4px; background: rgba(247, 118, 142, 0.06); cursor: not-allowed; }
+    </style>
+
+    <script>
+    (function () {
+        const TRANSITIONS = {
+            "ready,in_progress":      "/actions/task/start",
+            "in_progress,done":       "/actions/task/complete",
+            "in_progress,blocked":    "/actions/task/block",
+            "blocked,in_progress":    "/actions/task/unblock",
+            "done,backlog":           "/actions/task/reopen",
+            "done,ready":             "/actions/task/reopen",
+        };
+        function endpointFor(s, d) { return TRANSITIONS[s + "," + d] || null; }
+
+        function postAction(endpoint, taskId, projectPath, projectName) {
+            const body = new URLSearchParams({ id: taskId });
+            if (projectPath) body.set("project_path", projectPath);
+            if (projectName) body.set("project", projectName);
+            return fetch(endpoint, {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: body.toString(),
+                redirect: "manual",
+            }).then(function () { window.location.reload(); });
+        }
+
+        document.querySelectorAll('.card[draggable="true"]').forEach(function (card) {
+            card.addEventListener('dragstart', function (e) {
+                card.classList.add('dragging');
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/plain', card.dataset.taskId);
+                e.dataTransfer.setData('application/x-source', card.dataset.source);
+                e.dataTransfer.setData('application/x-project-path', card.dataset.projectPath || '');
+                e.dataTransfer.setData('application/x-project-name', card.dataset.projectName || '');
+            });
+            card.addEventListener('dragend', function () { card.classList.remove('dragging'); });
+        });
+
+        document.querySelectorAll('.column[data-status]').forEach(function (col) {
+            col.addEventListener('dragover', function (e) {
+                e.preventDefault();
+                const dragging = document.querySelector('.card.dragging');
+                if (!dragging) return;
+                const src = dragging.dataset.source;
+                const dst = col.dataset.status;
+                if (src === dst) return;
+                if (endpointFor(src, dst)) {
+                    e.dataTransfer.dropEffect = 'move';
+                    col.classList.add('drop-allow');
+                } else {
+                    e.dataTransfer.dropEffect = 'none';
+                    col.classList.add('drop-deny');
+                }
+            });
+            col.addEventListener('dragleave', function () { col.classList.remove('drop-allow', 'drop-deny'); });
+            col.addEventListener('drop', function (e) {
+                e.preventDefault();
+                col.classList.remove('drop-allow', 'drop-deny');
+                const taskId = e.dataTransfer.getData('text/plain');
+                const src    = e.dataTransfer.getData('application/x-source');
+                const dst    = col.dataset.status;
+                const projectPath = e.dataTransfer.getData('application/x-project-path');
+                const projectName = e.dataTransfer.getData('application/x-project-name');
+                if (!taskId || src === dst) return;
+                const endpoint = endpointFor(src, dst);
+                if (!endpoint) return;
+                postAction(endpoint, taskId, projectPath, projectName);
+            });
+        });
+
+        // SSE live updates (shared stream with /kanban).
+        if ('EventSource' in window) {
+            try {
+                const es = new EventSource('/events');
+                es.addEventListener('task-changed', function () {
+                    setTimeout(function () { window.location.reload(); }, 200);
+                });
+            } catch (e) {}
+        }
+    })();
+    </script>
 </body>
 </html>

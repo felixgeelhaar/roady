@@ -18,17 +18,20 @@ type fakeTaskActions struct {
 	completeCalled *completeArgs
 	blockCalled    *blockArgs
 	unblockCalled  *unblockArgs
+	reopenCalled   *reopenArgs
 
 	startErr    error
 	completeErr error
 	blockErr    error
 	unblockErr  error
+	reopenErr   error
 }
 
 type startArgs struct{ id, owner, rateID string }
 type completeArgs struct{ id, evidence string }
 type blockArgs struct{ id, reason string }
 type unblockArgs struct{ id string }
+type reopenArgs struct{ id string }
 
 func (f *fakeTaskActions) StartTask(ctx context.Context, id, owner, rateID string) error {
 	f.startCalled = &startArgs{id, owner, rateID}
@@ -45,6 +48,10 @@ func (f *fakeTaskActions) BlockTask(ctx context.Context, id, reason string) erro
 func (f *fakeTaskActions) UnblockTask(ctx context.Context, id string) error {
 	f.unblockCalled = &unblockArgs{id}
 	return f.unblockErr
+}
+func (f *fakeTaskActions) ReopenTask(ctx context.Context, id string) error {
+	f.reopenCalled = &reopenArgs{id}
+	return f.reopenErr
 }
 
 func newActionsServer(t *testing.T, actions TaskActions) *Server {
