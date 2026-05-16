@@ -15,6 +15,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/felixgeelhaar/roady/internal/infrastructure/wiring"
+	"github.com/felixgeelhaar/roady/pkg/application"
 	"github.com/felixgeelhaar/roady/pkg/domain/planning"
 	"github.com/felixgeelhaar/roady/pkg/infrastructure/dashboard"
 	"github.com/spf13/cobra"
@@ -72,6 +73,10 @@ Access the dashboard in your browser at the displayed URL.`,
 			return fmt.Errorf("create server: %w", err)
 		}
 
+		// Wire cross-project Kanban over the workspace root so /org/kanban surfaces
+		// every project (root + sub-projects under .roady/projects/<name>/).
+		server.EnableOrgKanban(application.NewOrgService(services.Workspace.Repo.Root()), nil)
+
 		// Handle graceful shutdown
 		stop := make(chan os.Signal, 1)
 		signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
@@ -112,6 +117,10 @@ var dashboardOpenCmd = &cobra.Command{
 		if err != nil {
 			return fmt.Errorf("create server: %w", err)
 		}
+
+		// Wire cross-project Kanban over the workspace root so /org/kanban surfaces
+		// every project (root + sub-projects under .roady/projects/<name>/).
+		server.EnableOrgKanban(application.NewOrgService(services.Workspace.Repo.Root()), nil)
 
 		// Handle graceful shutdown
 		stop := make(chan os.Signal, 1)

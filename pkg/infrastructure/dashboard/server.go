@@ -29,6 +29,11 @@ type Server struct {
 	provider DataProvider
 	server   *http.Server
 	tmpl     *template.Template
+
+	// Optional cross-project Kanban wiring. When set, /org/kanban routes are
+	// registered. See EnableOrgKanban.
+	orgProvider   OrgKanbanProvider
+	orgRepoOpener repoOpener
 }
 
 // NewServer creates a new dashboard server.
@@ -63,6 +68,11 @@ func (s *Server) Start() error {
 	mux.HandleFunc("GET /api/state", s.handleAPIState)
 	mux.HandleFunc("GET /api/kanban", s.handleAPIKanban)
 
+	if s.orgProvider != nil {
+		mux.HandleFunc("GET /org/kanban", s.orgKanbanHandler(s.orgProvider, s.orgRepoOpener))
+		mux.HandleFunc("GET /api/org/kanban", s.orgKanbanAPIHandler(s.orgProvider, s.orgRepoOpener))
+	}
+
 	s.server = &http.Server{
 		Addr:         s.addr,
 		Handler:      mux,
@@ -94,10 +104,11 @@ type PageData struct {
 
 // TaskView combines task and state info for display.
 type TaskView struct {
-	Task     planning.Task
-	Status   planning.TaskStatus
-	Owner    string
-	HasLinks bool
+	Task         planning.Task
+	Status       planning.TaskStatus
+	Owner        string
+	HasLinks     bool
+	ProjectLabel string // set on cross-project Kanban cards; empty for per-project views
 }
 
 // DashboardStats holds summary statistics.

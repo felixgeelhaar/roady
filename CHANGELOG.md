@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added — Cross-project Kanban (`/org/kanban`)
+
+- New `/org/kanban` route on the dashboard renders every project under the workspace root — the root project plus every sub-project under `.roady/projects/<name>/` — merged into one five-column board.
+- Cards are tagged with their origin project label so it's clear which row each task belongs to.
+- New `/api/org/kanban` JSON endpoint exposes the same board for external tools.
+- Header strip lists every discovered project with task and done counts.
+- Auto-refreshes every 30s.
+
 ## [0.11.0] - 2026-05-16
 
 Adds two user-facing surfaces that lay the groundwork for an agent
