@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.12.0] - 2026-05-16
+
+Four polish features on top of v0.11.3's Kanban. All backward-compatible.
+
 ### Added — Reopen action + DnD transition
 
 - New `TaskService.ReopenTask` + `POST /actions/task/reopen` move a Done or Verified task back to Pending.
