@@ -62,6 +62,53 @@ Status, drift, and progress all show in `roady status` — including a
 `from doc:line` citation for every task so the AI's choices stay
 auditable.
 
+## Live Kanban dashboard
+
+```bash
+roady dashboard serve --port 3000
+open http://localhost:3000/kanban
+```
+
+Five status columns (Backlog · Ready · In Progress · Blocked · Done).
+Click **Start / Complete / Block / Unblock / Reopen** or drag cards
+between columns — every drop is a real task transition. The board
+reloads within ~200 ms via Server-Sent Events.
+
+`/org/kanban` merges every project under the repo into a single
+cross-project board, so one agent juggling many feature streams sees
+the whole pipeline at once.
+
+For shared / remote use:
+
+```bash
+roady dashboard serve --port 3000 --auth-token "$(openssl rand -hex 16)"
+```
+
+Token accepted via `Authorization: Bearer`, `Cookie: roady_token`, or a
+one-time `?token=<value>` handshake. See [`docs/dashboard.md`](docs/dashboard.md).
+
+## Nested sub-projects
+
+One repository can host many Roady projects in parallel:
+
+```
+repo/
+  .roady/                          # root project
+  .roady/projects/feature-auth/    # named sub-project
+  .roady/projects/feature-payments/
+```
+
+```bash
+roady -P feature-auth init --template minimal
+roady -P feature-auth task ready
+ROADY_PROJECT=feature-auth roady status
+```
+
+Tasks, spec, plan, and state are namespaced per project. Coding agents
+switch context by passing `--project / -P <name>` (CLI) or `project`
+(MCP). Existing flat `.roady/` repos stay unchanged. See
+[`docs/rfcs/0001-nested-projects.md`](docs/rfcs/0001-nested-projects.md).
+
 ## What Roady is, and is not
 
 | Roady is... | Roady is not... |
