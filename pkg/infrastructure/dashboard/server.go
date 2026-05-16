@@ -58,8 +58,10 @@ func (s *Server) Start() error {
 	mux.HandleFunc("GET /", s.handleIndex)
 	mux.HandleFunc("GET /plan", s.handlePlan)
 	mux.HandleFunc("GET /tasks", s.handleTasks)
+	mux.HandleFunc("GET /kanban", s.handleKanban)
 	mux.HandleFunc("GET /api/plan", s.handleAPIPlan)
 	mux.HandleFunc("GET /api/state", s.handleAPIState)
+	mux.HandleFunc("GET /api/kanban", s.handleAPIKanban)
 
 	s.server = &http.Server{
 		Addr:         s.addr,
