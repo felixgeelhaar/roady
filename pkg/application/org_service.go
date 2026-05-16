@@ -22,15 +22,61 @@ func NewOrgService(root string) *OrgService {
 	return &OrgService{root: root}
 }
 
-// DiscoverProjects walks the root directory tree and returns paths containing .roady directories.
+// DiscoveredProject identifies one project found during a walk.
+// SubProject is empty for the root project of a repo. For sub-projects
+// stored under <Path>/.roady/projects/<name>/, SubProject is set to <name>.
+type DiscoveredProject struct {
+	Path       string
+	SubProject string
+}
+
+// DiscoverProjects walks the root directory tree and returns paths containing
+// .roady directories. Backward-compatible shape — only root projects are
+// returned. For full sub-project discovery use DiscoverProjectsWithSub.
 func (s *OrgService) DiscoverProjects() ([]string, error) {
-	var projects []string
+	found, err := s.DiscoverProjectsWithSub()
+	if err != nil {
+		return nil, err
+	}
+	var paths []string
+	for _, p := range found {
+		if p.SubProject == "" {
+			paths = append(paths, p.Path)
+		}
+	}
+	return paths, nil
+}
+
+// DiscoverProjectsWithSub walks the root directory tree and returns every
+// project found — both the root project of each repo (where a .roady/ lives)
+// and every named sub-project under <repo>/.roady/projects/<name>/.
+func (s *OrgService) DiscoverProjectsWithSub() ([]DiscoveredProject, error) {
+	var projects []DiscoveredProject
 	err := filepath.Walk(s.root, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return nil
 		}
 		if info.IsDir() && info.Name() == ".roady" {
-			projects = append(projects, filepath.Dir(path))
+			repoRoot := filepath.Dir(path)
+			projects = append(projects, DiscoveredProject{Path: repoRoot})
+
+			// Look for sub-projects under .roady/projects/<name>/
+			projectsDir := filepath.Join(path, storage.ProjectsDir)
+			if entries, err := os.ReadDir(projectsDir); err == nil {
+				for _, entry := range entries {
+					if !entry.IsDir() {
+						continue
+					}
+					name := entry.Name()
+					if err := storage.ValidateProjectName(name); err != nil {
+						continue
+					}
+					projects = append(projects, DiscoveredProject{
+						Path:       repoRoot,
+						SubProject: name,
+					})
+				}
+			}
 			return filepath.SkipDir
 		}
 		return nil
@@ -38,9 +84,10 @@ func (s *OrgService) DiscoverProjects() ([]string, error) {
 	return projects, err
 }
 
-// AggregateMetrics collects metrics from all discovered projects.
+// AggregateMetrics collects metrics from all discovered projects, including
+// sub-projects under each repo's .roady/projects/<name>/.
 func (s *OrgService) AggregateMetrics() (*org.OrgMetrics, error) {
-	projects, err := s.DiscoverProjects()
+	projects, err := s.DiscoverProjectsWithSub()
 	if err != nil {
 		return nil, err
 	}
@@ -56,7 +103,7 @@ func (s *OrgService) AggregateMetrics() (*org.OrgMetrics, error) {
 	}
 
 	for _, p := range projects {
-		pm := s.projectMetrics(p)
+		pm := s.projectMetricsFor(p)
 		metrics.Projects = append(metrics.Projects, pm)
 		metrics.TotalTasks += pm.Total
 		metrics.TotalVerified += pm.Verified
@@ -75,23 +122,47 @@ func (s *OrgService) AggregateMetrics() (*org.OrgMetrics, error) {
 	return metrics, nil
 }
 
+// projectMetrics is the legacy single-arg form, kept for backward compatibility.
+// It scopes to the root project at <path>/.roady/.
 func (s *OrgService) projectMetrics(path string) org.ProjectMetrics {
-	repo := storage.NewFilesystemRepository(path)
+	return s.projectMetricsFor(DiscoveredProject{Path: path})
+}
+
+// projectMetricsFor reports metrics for a discovered project entry, supporting
+// both root projects and sub-projects under <Path>/.roady/projects/<SubProject>.
+func (s *OrgService) projectMetricsFor(p DiscoveredProject) org.ProjectMetrics {
+	repo, repoErr := storage.NewFilesystemRepositoryForProject(p.Path, p.SubProject)
+	if repoErr != nil {
+		// Invalid sub-project name; fall back to legacy root repo so we don't
+		// silently drop the entry.
+		repo = storage.NewFilesystemRepository(p.Path)
+	}
 	spec, _ := repo.LoadSpec()
 	plan, _ := repo.LoadPlan()
 	state, _ := repo.LoadState()
 
+	displayName := filepath.Base(p.Path)
+	if p.SubProject != "" {
+		displayName = filepath.Base(p.Path) + "/" + p.SubProject
+	}
 	pm := org.ProjectMetrics{
-		Name: filepath.Base(path),
-		Path: path,
+		Name: displayName,
+		Path: p.Path,
+	}
+	if p.SubProject != "" {
+		// Surface the sub-project path so callers see the actual on-disk location.
+		pm.Path = repo.ProjectBase()
 	}
 
-	if absPath, err := filepath.Abs(path); err == nil {
+	if absPath, err := filepath.Abs(pm.Path); err == nil {
 		pm.Path = absPath
 	}
 
 	if spec != nil {
 		pm.Name = spec.Title
+		if p.SubProject != "" && spec.Title != "" {
+			pm.Name = spec.Title + " (" + p.SubProject + ")"
+		}
 	}
 
 	if plan != nil {
@@ -193,9 +264,10 @@ func (s *OrgService) LoadMergedPolicy(projectPath string) (*policy.PolicyConfig,
 	return merged, nil
 }
 
-// DetectCrossDrift discovers projects and aggregates drift reports.
+// DetectCrossDrift discovers projects (including sub-projects) and aggregates
+// drift reports.
 func (s *OrgService) DetectCrossDrift() (*org.CrossDriftReport, error) {
-	projects, err := s.DiscoverProjects()
+	projects, err := s.DiscoverProjectsWithSub()
 	if err != nil {
 		return nil, err
 	}
@@ -203,25 +275,39 @@ func (s *OrgService) DetectCrossDrift() (*org.CrossDriftReport, error) {
 	report := &org.CrossDriftReport{}
 
 	for _, p := range projects {
-		repo := storage.NewFilesystemRepository(p)
+		repo, repoErr := storage.NewFilesystemRepositoryForProject(p.Path, p.SubProject)
+		if repoErr != nil {
+			continue
+		}
 		auditSvc := NewAuditService(repo)
 		policySvc := NewPolicyService(repo)
 		inspector := storage.NewCodebaseInspector()
 		driftSvc := NewDriftService(repo, auditSvc, inspector, policySvc)
 
 		driftReport, err := driftSvc.DetectDrift(context.Background())
+		displayPath := p.Path
+		if p.SubProject != "" {
+			displayPath = repo.ProjectBase()
+		}
+		displayName := filepath.Base(p.Path)
+		if p.SubProject != "" {
+			displayName = filepath.Base(p.Path) + "/" + p.SubProject
+		}
 		summary := org.ProjectDriftSummary{
-			Name: filepath.Base(p),
-			Path: p,
+			Name: displayName,
+			Path: displayPath,
 		}
 
-		if absPath, absErr := filepath.Abs(p); absErr == nil {
+		if absPath, absErr := filepath.Abs(displayPath); absErr == nil {
 			summary.Path = absPath
 		}
 
 		// Try to get project name from spec
 		if spec, specErr := repo.LoadSpec(); specErr == nil && spec != nil {
 			summary.Name = spec.Title
+			if p.SubProject != "" && spec.Title != "" {
+				summary.Name = spec.Title + " (" + p.SubProject + ")"
+			}
 		}
 
 		if err == nil && driftReport != nil && len(driftReport.Issues) > 0 {

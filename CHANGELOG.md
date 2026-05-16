@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added — Nested sub-projects
+
+- A single repository can now host multiple Roady projects side-by-side under one `.roady/` directory by placing each named sub-project at `.roady/projects/<name>/`. See `docs/rfcs/0001-nested-projects.md`.
+- New global CLI flag `--project / -P <name>` (env: `ROADY_PROJECT`) scopes every command to a named sub-project. With no flag, commands target the repo's root project, exactly as before.
+- New MCP request field `project` (optional, alongside the existing `project_path`) routes tool calls to a sub-project. `AppServices` are cached per `(path, project)` key.
+- `roady discover` and `roady org status` now surface sub-projects in addition to root projects.
+- New storage constructor `storage.NewFilesystemRepositoryForProject(root, name)` plus helpers `ProjectBase()`, `SubProject()`, `IsSubProject()`. The legacy `NewFilesystemRepository(root)` continues to return a root-project repository unchanged.
+- New `OrgService.DiscoverProjectsWithSub()` returns both root projects and sub-projects; legacy `DiscoverProjects()` is kept and unchanged in shape.
+- Backward-compatible: existing flat `.roady/` repos continue to work unchanged. No data migration required.
+
 ### Pre-launch infra hardening
 
 - Plugin builds (`asana`, `github`, `mock`, `notion`, `trello`) added to GoReleaser. Every plugin now ships in the bundled release archive (previously only `linear` and `jira` shipped).

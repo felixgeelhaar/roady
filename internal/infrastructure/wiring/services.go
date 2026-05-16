@@ -3,7 +3,6 @@ package wiring
 import (
 	"context"
 	"fmt"
-	"path/filepath"
 
 	"github.com/felixgeelhaar/roady/pkg/application"
 	domainai "github.com/felixgeelhaar/roady/pkg/domain/ai"
@@ -39,28 +38,48 @@ type AppServices struct {
 // If the AI provider cannot be loaded (e.g. not configured), the server still starts —
 // only AI-dependent tools will return errors.
 func BuildAppServices(root string) (*AppServices, error) {
-	workspace := NewWorkspace(root)
+	return BuildAppServicesForProject(root, "")
+}
+
+// BuildAppServicesForProject constructs services scoped to a sub-project under
+// <root>/.roady/projects/<project>/. When project is empty, behaves like
+// BuildAppServices and uses the root project at <root>/.roady/.
+func BuildAppServicesForProject(root, project string) (*AppServices, error) {
+	workspace, err := NewWorkspaceForProject(root, project)
+	if err != nil {
+		return nil, err
+	}
 	provider, loadErr := LoadAIProvider(root)
 	// provider may be nil here — AI-dependent handlers must guard against this.
 
-	return buildServicesWithProvider(workspace, root, provider, loadErr)
+	return buildServicesWithProvider(workspace, provider, loadErr)
 }
 
 // BuildAppServicesWithProvider allows callers to supply a custom AI provider resolver.
+// Operates on the root project; sub-project callers should use BuildAppServicesWithProviderForProject.
 func BuildAppServicesWithProvider(root string, resolver func(string) (domainai.Provider, error)) (*AppServices, error) {
-	workspace := NewWorkspace(root)
+	return BuildAppServicesWithProviderForProject(root, "", resolver)
+}
+
+// BuildAppServicesWithProviderForProject is the sub-project-aware variant of BuildAppServicesWithProvider.
+func BuildAppServicesWithProviderForProject(root, project string, resolver func(string) (domainai.Provider, error)) (*AppServices, error) {
+	workspace, err := NewWorkspaceForProject(root, project)
+	if err != nil {
+		return nil, err
+	}
 	provider, err := resolver(root)
 	if err != nil {
 		return nil, fmt.Errorf("AI provider resolver failed: %w", err)
 	}
 
-	return buildServicesWithProvider(workspace, root, provider, nil)
+	return buildServicesWithProvider(workspace, provider, nil)
 }
 
 // buildServicesWithProvider is the shared implementation for building app services.
-func buildServicesWithProvider(workspace *Workspace, root string, provider domainai.Provider, loadErr error) (*AppServices, error) {
-	// Create event store and publisher for event-sourced audit
-	eventStore, err := storage.NewFileEventStore(filepath.Join(root, storage.RoadyDir))
+func buildServicesWithProvider(workspace *Workspace, provider domainai.Provider, loadErr error) (*AppServices, error) {
+	// Create event store and publisher for event-sourced audit.
+	// Events live next to the project's other files (so sub-projects have isolated event streams).
+	eventStore, err := storage.NewFileEventStore(workspace.Repo.ProjectBase())
 	if err != nil {
 		return nil, fmt.Errorf("create event store: %w", err)
 	}
@@ -116,8 +135,10 @@ func buildServicesWithProvider(workspace *Workspace, root string, provider domai
 
 	forecastSvc := application.NewForecastService(velocityProjection, workspace.Repo)
 
-	// Create dependency service
-	depSvc := application.NewDependencyService(workspace.Repo, root)
+	// Create dependency service. DependencyService resolves cross-repo deps via
+	// the workspace root (not the project base), so sub-projects share the same
+	// dependency search root as the repo they live in.
+	depSvc := application.NewDependencyService(workspace.Repo, workspace.Repo.Root())
 
 	services := &AppServices{
 		Workspace:  workspace,

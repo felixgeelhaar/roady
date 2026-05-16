@@ -291,7 +291,7 @@ func TestServicesForPath_DefaultRoot(t *testing.T) {
 	}
 
 	// Empty override returns cached services
-	svc, err := server.servicesForPath("")
+	svc, err := server.servicesForPath("", "")
 	if err != nil {
 		t.Fatalf("servicesForPath empty: %v", err)
 	}
@@ -300,7 +300,7 @@ func TestServicesForPath_DefaultRoot(t *testing.T) {
 	}
 
 	// Same root returns cached services
-	svc, err = server.servicesForPath(root)
+	svc, err = server.servicesForPath(root, "")
 	if err != nil {
 		t.Fatalf("servicesForPath same root: %v", err)
 	}
@@ -340,7 +340,7 @@ func TestServicesForPath_Override(t *testing.T) {
 	}
 
 	// Override path builds fresh services
-	svc, err := server.servicesForPath(rootB)
+	svc, err := server.servicesForPath(rootB, "")
 	if err != nil {
 		t.Fatalf("servicesForPath override: %v", err)
 	}
@@ -386,11 +386,11 @@ func TestServicesForPath_CacheHitAndEviction(t *testing.T) {
 	}
 
 	// First call builds, second call should return the cached instance.
-	svc1, err := srv.servicesForPath(dirs[0])
+	svc1, err := srv.servicesForPath(dirs[0], "")
 	if err != nil {
 		t.Fatalf("first call: %v", err)
 	}
-	svc2, err := srv.servicesForPath(dirs[0])
+	svc2, err := srv.servicesForPath(dirs[0], "")
 	if err != nil {
 		t.Fatalf("cached call: %v", err)
 	}
@@ -400,13 +400,13 @@ func TestServicesForPath_CacheHitAndEviction(t *testing.T) {
 
 	// Fill the cache beyond the cap.
 	for _, d := range dirs[1:] {
-		if _, err := srv.servicesForPath(d); err != nil {
+		if _, err := srv.servicesForPath(d, ""); err != nil {
 			t.Fatalf("fill cache: %v", err)
 		}
 	}
 
 	// The first entry should have been evicted.
-	svc3, err := srv.servicesForPath(dirs[0])
+	svc3, err := srv.servicesForPath(dirs[0], "")
 	if err != nil {
 		t.Fatalf("post-eviction call: %v", err)
 	}

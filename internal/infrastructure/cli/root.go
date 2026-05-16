@@ -13,6 +13,10 @@ var (
 	Commit      = "none"
 	Date        = "unknown"
 	projectPath string
+	// subProjectFlag scopes commands to a named sub-project under
+	// <root>/.roady/projects/<name>/. Empty = the root project.
+	// Falls back to the ROADY_PROJECT environment variable when not set.
+	subProjectFlag string
 )
 
 // RootCmd represents the base command when called without any subcommands
@@ -54,4 +58,6 @@ func Execute() error {
 func init() {
 	RootCmd.PersistentFlags().StringVarP(&projectPath, "path", "C", "",
 		"Path to the roady project directory (defaults to current directory)")
+	RootCmd.PersistentFlags().StringVarP(&subProjectFlag, "project", "P", "",
+		"Sub-project name under .roady/projects/<name>/ (defaults to ROADY_PROJECT env or root project)")
 }

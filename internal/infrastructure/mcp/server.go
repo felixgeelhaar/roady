@@ -103,12 +103,17 @@ func capSlice(s []string) []string {
 	return s
 }
 
-// servicesForPath returns the default services for the server root,
-// or builds a fresh set of services for the given override path.
+// servicesForPath returns services for the requested project scope.
+// When pathOverride is empty (or matches the server root) AND project is empty,
+// the server's default services are returned. Otherwise a fresh AppServices set
+// is built and cached per (path, project) key — sub-projects under the same
+// repo get their own cached entries.
+//
 // Cross-project services are cached to avoid rebuilding the full stack
 // (event replay, AI config loading, etc.) on every request.
-func (s *Server) servicesForPath(override string) (*wiring.AppServices, error) {
-	if override == "" || override == s.root {
+func (s *Server) servicesForPath(pathOverride, project string) (*wiring.AppServices, error) {
+	usingDefault := (pathOverride == "" || pathOverride == s.root) && project == ""
+	if usingDefault {
 		if s.services != nil {
 			return s.services, nil
 		}
@@ -132,19 +137,25 @@ func (s *Server) servicesForPath(override string) (*wiring.AppServices, error) {
 		}, nil
 	}
 
+	root := pathOverride
+	if root == "" {
+		root = s.root
+	}
+	cacheKey := root + "\x00" + project
+
 	// Check cache first.
-	if cached, ok := s.svcCache.Load(override); ok {
+	if cached, ok := s.svcCache.Load(cacheKey); ok {
 		return cached.(*wiring.AppServices), nil
 	}
 
 	// Build fresh services (expensive — involves event replay, AI config, etc.).
-	svc, err := wiring.BuildAppServices(override)
+	svc, err := wiring.BuildAppServicesForProject(root, project)
 	if err != nil && svc == nil {
 		return nil, err
 	}
 
 	// Atomically store; if another goroutine raced us, use theirs.
-	if existing, loaded := s.svcCache.LoadOrStore(override, svc); loaded {
+	if existing, loaded := s.svcCache.LoadOrStore(cacheKey, svc); loaded {
 		return existing.(*wiring.AppServices), nil
 	}
 
@@ -155,7 +166,7 @@ func (s *Server) servicesForPath(override string) (*wiring.AppServices, error) {
 		s.svcKeys = s.svcKeys[1:]
 		s.svcCache.Delete(evict)
 	}
-	s.svcKeys = append(s.svcKeys, override)
+	s.svcKeys = append(s.svcKeys, cacheKey)
 	s.svcCacheMu.Unlock()
 
 	return svc, nil
@@ -213,89 +224,110 @@ func NewServer(root string) (*Server, error) {
 type InitArgs struct {
 	Name        string `json:"name" jsonschema:"description=The name of the project"`
 	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
+	Project     string `json:"project,omitempty" jsonschema:"description=Sub-project name under .roady/projects/<name>/ (default: root project)"`
 }
 
 type UpdatePlanArgs struct {
 	Tasks       []planning.Task `json:"tasks" jsonschema:"description=The list of tasks to define the plan"`
 	ProjectPath string          `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
+	Project     string `json:"project,omitempty" jsonschema:"description=Sub-project name under .roady/projects/<name>/ (default: root project)"`
 }
 
 // Args structs for handlers that previously used struct{}
 
 type GetSpecArgs struct {
 	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
+	Project     string `json:"project,omitempty" jsonschema:"description=Sub-project name under .roady/projects/<name>/ (default: root project)"`
 }
 
 type GetPlanArgs struct {
 	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
+	Project     string `json:"project,omitempty" jsonschema:"description=Sub-project name under .roady/projects/<name>/ (default: root project)"`
 }
 
 type GetStateArgs struct {
 	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
+	Project     string `json:"project,omitempty" jsonschema:"description=Sub-project name under .roady/projects/<name>/ (default: root project)"`
 }
 
 type GeneratePlanArgs struct {
 	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
+	Project     string `json:"project,omitempty" jsonschema:"description=Sub-project name under .roady/projects/<name>/ (default: root project)"`
 }
 
 type DetectDriftArgs struct {
 	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
+	Project     string `json:"project,omitempty" jsonschema:"description=Sub-project name under .roady/projects/<name>/ (default: root project)"`
 }
 
 type ApprovePlanArgs struct {
 	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
+	Project     string `json:"project,omitempty" jsonschema:"description=Sub-project name under .roady/projects/<name>/ (default: root project)"`
 }
 
 type ExplainSpecArgs struct {
 	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
+	Project     string `json:"project,omitempty" jsonschema:"description=Sub-project name under .roady/projects/<name>/ (default: root project)"`
 }
 
 type ExplainDriftArgs struct {
 	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
+	Project     string `json:"project,omitempty" jsonschema:"description=Sub-project name under .roady/projects/<name>/ (default: root project)"`
 }
 
 type AcceptDriftArgs struct {
 	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
+	Project     string `json:"project,omitempty" jsonschema:"description=Sub-project name under .roady/projects/<name>/ (default: root project)"`
 }
 
 type GetUsageArgs struct {
 	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
+	Project     string `json:"project,omitempty" jsonschema:"description=Sub-project name under .roady/projects/<name>/ (default: root project)"`
 }
 
 type CheckPolicyArgs struct {
 	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
+	Project     string `json:"project,omitempty" jsonschema:"description=Sub-project name under .roady/projects/<name>/ (default: root project)"`
 }
 
 type ForecastArgs struct {
 	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
+	Project     string `json:"project,omitempty" jsonschema:"description=Sub-project name under .roady/projects/<name>/ (default: root project)"`
 }
 
 type GitSyncArgs struct {
 	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
+	Project     string `json:"project,omitempty" jsonschema:"description=Sub-project name under .roady/projects/<name>/ (default: root project)"`
 }
 
 type SuggestPrioritiesArgs struct {
 	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
+	Project     string `json:"project,omitempty" jsonschema:"description=Sub-project name under .roady/projects/<name>/ (default: root project)"`
 }
 
 type ReviewSpecArgs struct {
 	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
+	Project     string `json:"project,omitempty" jsonschema:"description=Sub-project name under .roady/projects/<name>/ (default: root project)"`
 }
 
 type GetSnapshotArgs struct {
 	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
+	Project     string `json:"project,omitempty" jsonschema:"description=Sub-project name under .roady/projects/<name>/ (default: root project)"`
 }
 
 type GetReadyTasksArgs struct {
 	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
+	Project     string `json:"project,omitempty" jsonschema:"description=Sub-project name under .roady/projects/<name>/ (default: root project)"`
 }
 
 type GetBlockedTasksArgs struct {
 	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
+	Project     string `json:"project,omitempty" jsonschema:"description=Sub-project name under .roady/projects/<name>/ (default: root project)"`
 }
 
 type GetInProgressTasksArgs struct {
 	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
+	Project     string `json:"project,omitempty" jsonschema:"description=Sub-project name under .roady/projects/<name>/ (default: root project)"`
 }
 
 // TasksArgs supersedes the three legacy roady_get_*_tasks tools by adding a
@@ -304,6 +336,7 @@ type GetInProgressTasksArgs struct {
 type TasksArgs struct {
 	Status      string `json:"status,omitempty" jsonschema:"description=Which tasks to return: ready (unlocked + pending), in_progress, blocked, or all. Defaults to ready.,enum=ready,enum=in_progress,enum=blocked,enum=all"`
 	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
+	Project     string `json:"project,omitempty" jsonschema:"description=Sub-project name under .roady/projects/<name>/ (default: root project)"`
 }
 
 // CostEstimateArgs are the inputs for roady_cost_estimate. Operation defaults
@@ -312,23 +345,28 @@ type TasksArgs struct {
 type CostEstimateArgs struct {
 	Operation   string `json:"operation,omitempty" jsonschema:"description=AI operation to estimate. Defaults to generate_plan.,enum=generate_plan,enum=smart_decompose,enum=review_spec,enum=explain_drift,enum=query"`
 	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
+	Project     string `json:"project,omitempty" jsonschema:"description=Sub-project name under .roady/projects/<name>/ (default: root project)"`
 }
 
 type SmartDecomposeArgs struct {
 	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
+	Project     string `json:"project,omitempty" jsonschema:"description=Sub-project name under .roady/projects/<name>/ (default: root project)"`
 }
 
 type WorkspacePushArgs struct {
 	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
+	Project     string `json:"project,omitempty" jsonschema:"description=Sub-project name under .roady/projects/<name>/ (default: root project)"`
 }
 
 type WorkspacePullArgs struct {
 	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
+	Project     string `json:"project,omitempty" jsonschema:"description=Sub-project name under .roady/projects/<name>/ (default: root project)"`
 }
 
 type SyncArgs struct {
 	PluginPath  string `json:"plugin_path" jsonschema:"description=Path to the syncer plugin binary"`
 	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
+	Project     string `json:"project,omitempty" jsonschema:"description=Sub-project name under .roady/projects/<name>/ (default: root project)"`
 }
 
 func (s *Server) registerTools() {
@@ -693,7 +731,7 @@ func (s *Server) registerTools() {
 }
 
 func (s *Server) handleForecast(ctx context.Context, args ForecastArgs) (any, error) {
-	svc, err := s.servicesForPath(args.ProjectPath)
+	svc, err := s.servicesForPath(args.ProjectPath, args.Project)
 	if err != nil {
 		return nil, mcpErr("Failed to load project at the given path.")
 	}
@@ -782,7 +820,7 @@ func (s *Server) handleOrgStatus(ctx context.Context, args GetSpecArgs) (any, er
 }
 
 func (s *Server) handleGitSync(ctx context.Context, args GitSyncArgs) (any, error) {
-	svc, err := s.servicesForPath(args.ProjectPath)
+	svc, err := s.servicesForPath(args.ProjectPath, args.Project)
 	if err != nil {
 		return nil, mcpErr("Failed to load project at the given path.")
 	}
@@ -794,7 +832,7 @@ func (s *Server) handleGitSync(ctx context.Context, args GitSyncArgs) (any, erro
 }
 
 func (s *Server) handleSync(ctx context.Context, args SyncArgs) (any, error) {
-	svc, err := s.servicesForPath(args.ProjectPath)
+	svc, err := s.servicesForPath(args.ProjectPath, args.Project)
 	if err != nil {
 		return nil, mcpErr("Failed to load project at the given path.")
 	}
@@ -806,7 +844,7 @@ func (s *Server) handleSync(ctx context.Context, args SyncArgs) (any, error) {
 }
 
 func (s *Server) handleExplainDrift(ctx context.Context, args ExplainDriftArgs) (string, error) {
-	svc, err := s.servicesForPath(args.ProjectPath)
+	svc, err := s.servicesForPath(args.ProjectPath, args.Project)
 	if err != nil {
 		return "", mcpErr("Failed to load project at the given path.")
 	}
@@ -826,7 +864,7 @@ func (s *Server) handleExplainDrift(ctx context.Context, args ExplainDriftArgs) 
 }
 
 func (s *Server) handleAcceptDrift(ctx context.Context, args AcceptDriftArgs) (string, error) {
-	svc, err := s.servicesForPath(args.ProjectPath)
+	svc, err := s.servicesForPath(args.ProjectPath, args.Project)
 	if err != nil {
 		return "", mcpErr("Failed to load project at the given path.")
 	}
@@ -840,10 +878,11 @@ type AddFeatureArgs struct {
 	Title       string `json:"title" jsonschema:"description=The title of the new feature"`
 	Description string `json:"description" jsonschema:"description=A detailed description of the feature"`
 	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
+	Project     string `json:"project,omitempty" jsonschema:"description=Sub-project name under .roady/projects/<name>/ (default: root project)"`
 }
 
 func (s *Server) handleAddFeature(ctx context.Context, args AddFeatureArgs) (string, error) {
-	svc, err := s.servicesForPath(args.ProjectPath)
+	svc, err := s.servicesForPath(args.ProjectPath, args.Project)
 	if err != nil {
 		return "", mcpErr("Failed to load project at the given path.")
 	}
@@ -855,7 +894,7 @@ func (s *Server) handleAddFeature(ctx context.Context, args AddFeatureArgs) (str
 }
 
 func (s *Server) handleGetUsage(ctx context.Context, args GetUsageArgs) (any, error) {
-	svc, err := s.servicesForPath(args.ProjectPath)
+	svc, err := s.servicesForPath(args.ProjectPath, args.Project)
 	if err != nil {
 		return nil, mcpErr("Failed to load project at the given path.")
 	}
@@ -867,7 +906,7 @@ func (s *Server) handleGetUsage(ctx context.Context, args GetUsageArgs) (any, er
 }
 
 func (s *Server) handleApprovePlan(ctx context.Context, args ApprovePlanArgs) (string, error) {
-	svc, err := s.servicesForPath(args.ProjectPath)
+	svc, err := s.servicesForPath(args.ProjectPath, args.Project)
 	if err != nil {
 		return "", mcpErr("Failed to load project at the given path.")
 	}
@@ -879,7 +918,7 @@ func (s *Server) handleApprovePlan(ctx context.Context, args ApprovePlanArgs) (s
 }
 
 func (s *Server) handleExplainSpec(ctx context.Context, args ExplainSpecArgs) (string, error) {
-	svc, err := s.servicesForPath(args.ProjectPath)
+	svc, err := s.servicesForPath(args.ProjectPath, args.Project)
 	if err != nil {
 		return "", mcpErr("Failed to load project at the given path.")
 	}
@@ -897,13 +936,14 @@ func (s *Server) handleExplainSpec(ctx context.Context, args ExplainSpecArgs) (s
 type QueryArgs struct {
 	Question    string `json:"question" jsonschema:"description=A natural language question about the project"`
 	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
+	Project     string `json:"project,omitempty" jsonschema:"description=Sub-project name under .roady/projects/<name>/ (default: root project)"`
 }
 
 func (s *Server) handleQuery(ctx context.Context, args QueryArgs) (string, error) {
 	if args.Question == "" {
 		return "", mcpErr("A question is required.")
 	}
-	svc, err := s.servicesForPath(args.ProjectPath)
+	svc, err := s.servicesForPath(args.ProjectPath, args.Project)
 	if err != nil {
 		return "", mcpErr("Failed to load project at the given path.")
 	}
@@ -919,7 +959,7 @@ func (s *Server) handleQuery(ctx context.Context, args QueryArgs) (string, error
 }
 
 func (s *Server) handleSuggestPriorities(ctx context.Context, args SuggestPrioritiesArgs) (any, error) {
-	svc, err := s.servicesForPath(args.ProjectPath)
+	svc, err := s.servicesForPath(args.ProjectPath, args.Project)
 	if err != nil {
 		return nil, mcpErr("Failed to load project at the given path.")
 	}
@@ -935,7 +975,7 @@ func (s *Server) handleSuggestPriorities(ctx context.Context, args SuggestPriori
 }
 
 func (s *Server) handleReviewSpec(ctx context.Context, args ReviewSpecArgs) (any, error) {
-	svc, err := s.servicesForPath(args.ProjectPath)
+	svc, err := s.servicesForPath(args.ProjectPath, args.Project)
 	if err != nil {
 		return nil, mcpErr("Failed to load project at the given path.")
 	}
@@ -956,12 +996,14 @@ type TransitionTaskArgs struct {
 	Evidence    string `json:"evidence,omitempty" jsonschema:"description=Optional evidence for the transition (e.g. commit hash)"`
 	Actor       string `json:"actor,omitempty" jsonschema:"description=The actor performing the transition (defaults to ai-agent)"`
 	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
+	Project     string `json:"project,omitempty" jsonschema:"description=Sub-project name under .roady/projects/<name>/ (default: root project)"`
 }
 
 type AssignTaskArgs struct {
 	TaskID      string `json:"task_id" jsonschema:"description=The ID of the task to assign"`
 	Assignee    string `json:"assignee" jsonschema:"description=The person or agent to assign the task to"`
 	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
+	Project     string `json:"project,omitempty" jsonschema:"description=Sub-project name under .roady/projects/<name>/ (default: root project)"`
 }
 
 // FlexBool accepts both boolean and string ("true"/"false") JSON values.
@@ -1014,10 +1056,11 @@ type StatusArgs struct {
 	Limit       FlexInt  `json:"limit,omitempty" jsonschema:"description=Limit number of tasks returned"`
 	JSON        FlexBool `json:"json,omitempty" jsonschema:"description=Return structured JSON output instead of text"`
 	ProjectPath string   `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
+	Project     string `json:"project,omitempty" jsonschema:"description=Sub-project name under .roady/projects/<name>/ (default: root project)"`
 }
 
 func (s *Server) handleAssignTask(ctx context.Context, args AssignTaskArgs) (string, error) {
-	svc, err := s.servicesForPath(args.ProjectPath)
+	svc, err := s.servicesForPath(args.ProjectPath, args.Project)
 	if err != nil {
 		return "", mcpErr("Failed to load project at the given path.")
 	}
@@ -1029,7 +1072,7 @@ func (s *Server) handleAssignTask(ctx context.Context, args AssignTaskArgs) (str
 }
 
 func (s *Server) handleTransitionTask(ctx context.Context, args TransitionTaskArgs) (string, error) {
-	svc, err := s.servicesForPath(args.ProjectPath)
+	svc, err := s.servicesForPath(args.ProjectPath, args.Project)
 	if err != nil {
 		return "", mcpErr("Failed to load project at the given path.")
 	}
@@ -1045,7 +1088,7 @@ func (s *Server) handleTransitionTask(ctx context.Context, args TransitionTaskAr
 }
 
 func (s *Server) handleInit(ctx context.Context, args InitArgs) (string, error) {
-	svc, err := s.servicesForPath(args.ProjectPath)
+	svc, err := s.servicesForPath(args.ProjectPath, args.Project)
 	if err != nil {
 		return "", mcpErr("Failed to load project at the given path.")
 	}
@@ -1057,7 +1100,7 @@ func (s *Server) handleInit(ctx context.Context, args InitArgs) (string, error) 
 }
 
 func (s *Server) handleGetSpec(ctx context.Context, args GetSpecArgs) (any, error) {
-	svc, err := s.servicesForPath(args.ProjectPath)
+	svc, err := s.servicesForPath(args.ProjectPath, args.Project)
 	if err != nil {
 		return nil, mcpErr("Failed to load project at the given path.")
 	}
@@ -1069,7 +1112,7 @@ func (s *Server) handleGetSpec(ctx context.Context, args GetSpecArgs) (any, erro
 }
 
 func (s *Server) handleGetPlan(ctx context.Context, args GetPlanArgs) (any, error) {
-	svc, err := s.servicesForPath(args.ProjectPath)
+	svc, err := s.servicesForPath(args.ProjectPath, args.Project)
 	if err != nil {
 		return nil, mcpErr("Failed to load project at the given path.")
 	}
@@ -1081,7 +1124,7 @@ func (s *Server) handleGetPlan(ctx context.Context, args GetPlanArgs) (any, erro
 }
 
 func (s *Server) handleGetState(ctx context.Context, args GetStateArgs) (any, error) {
-	svc, err := s.servicesForPath(args.ProjectPath)
+	svc, err := s.servicesForPath(args.ProjectPath, args.Project)
 	if err != nil {
 		return nil, mcpErr("Failed to load project at the given path.")
 	}
@@ -1093,7 +1136,7 @@ func (s *Server) handleGetState(ctx context.Context, args GetStateArgs) (any, er
 }
 
 func (s *Server) handleGeneratePlan(ctx context.Context, args GeneratePlanArgs) (string, error) {
-	svc, err := s.servicesForPath(args.ProjectPath)
+	svc, err := s.servicesForPath(args.ProjectPath, args.Project)
 	if err != nil {
 		return "", mcpErr("Failed to load project at the given path.")
 	}
@@ -1105,7 +1148,7 @@ func (s *Server) handleGeneratePlan(ctx context.Context, args GeneratePlanArgs) 
 }
 
 func (s *Server) handleUpdatePlan(ctx context.Context, args UpdatePlanArgs) (string, error) {
-	svc, err := s.servicesForPath(args.ProjectPath)
+	svc, err := s.servicesForPath(args.ProjectPath, args.Project)
 	if err != nil {
 		return "", mcpErr("Failed to load project at the given path.")
 	}
@@ -1117,7 +1160,7 @@ func (s *Server) handleUpdatePlan(ctx context.Context, args UpdatePlanArgs) (str
 }
 
 func (s *Server) handleDetectDrift(ctx context.Context, args DetectDriftArgs) (any, error) {
-	svc, err := s.servicesForPath(args.ProjectPath)
+	svc, err := s.servicesForPath(args.ProjectPath, args.Project)
 	if err != nil {
 		return nil, mcpErr("Failed to load project at the given path.")
 	}
@@ -1129,7 +1172,7 @@ func (s *Server) handleDetectDrift(ctx context.Context, args DetectDriftArgs) (a
 }
 
 func (s *Server) handleStatus(ctx context.Context, args StatusArgs) (any, error) {
-	svc, err := s.servicesForPath(args.ProjectPath)
+	svc, err := s.servicesForPath(args.ProjectPath, args.Project)
 	if err != nil {
 		return nil, mcpErr("Failed to load project at the given path.")
 	}
@@ -1320,7 +1363,7 @@ func containsPriority(priorities []planning.TaskPriority, p planning.TaskPriorit
 }
 
 func (s *Server) handleCheckPolicy(ctx context.Context, args CheckPolicyArgs) (any, error) {
-	svc, err := s.servicesForPath(args.ProjectPath)
+	svc, err := s.servicesForPath(args.ProjectPath, args.Project)
 	if err != nil {
 		return nil, mcpErr("Failed to load project at the given path.")
 	}
@@ -1478,7 +1521,7 @@ func (s *Server) handleDebtTrend(ctx context.Context, args DebtTrendArgs) (any, 
 // Coordinator-based snapshot and task query handlers (v0.6.0)
 
 func (s *Server) handleGetSnapshot(ctx context.Context, args GetSnapshotArgs) (any, error) {
-	svc, err := s.servicesForPath(args.ProjectPath)
+	svc, err := s.servicesForPath(args.ProjectPath, args.Project)
 	if err != nil {
 		return nil, mcpErr("Failed to load project at the given path.")
 	}
@@ -1520,7 +1563,7 @@ func (s *Server) handleGetSnapshot(ctx context.Context, args GetSnapshotArgs) (a
 // read from .roady/ai.yaml and overridden by env vars at provider load time;
 // here we only need provider/model identifiers, not a live provider.
 func (s *Server) handleCostEstimate(ctx context.Context, args CostEstimateArgs) (any, error) {
-	svc, err := s.servicesForPath(args.ProjectPath)
+	svc, err := s.servicesForPath(args.ProjectPath, args.Project)
 	if err != nil {
 		return nil, mcpErr("Failed to load project at the given path.")
 	}
@@ -1569,7 +1612,7 @@ type domainProviderLike interface {
 // The legacy per-status handlers below delegate to it so the response shape
 // stays identical and a single code path serves both old and new tool names.
 func (s *Server) handleTasks(ctx context.Context, args TasksArgs) (any, error) {
-	svc, err := s.servicesForPath(args.ProjectPath)
+	svc, err := s.servicesForPath(args.ProjectPath, args.Project)
 	if err != nil {
 		return nil, mcpErr("Failed to load project at the given path.")
 	}
@@ -1639,7 +1682,7 @@ func (s *Server) handleWorkspacePush(ctx context.Context, args WorkspacePushArgs
 	root := s.root
 	auditSvc := s.auditSvc
 	if args.ProjectPath != "" && args.ProjectPath != s.root {
-		overrideSvc, err := s.servicesForPath(args.ProjectPath)
+		overrideSvc, err := s.servicesForPath(args.ProjectPath, args.Project)
 		if err != nil {
 			return nil, mcpErr("Failed to load project at the given path.")
 		}
@@ -1658,7 +1701,7 @@ func (s *Server) handleWorkspacePull(ctx context.Context, args WorkspacePullArgs
 	root := s.root
 	auditSvc := s.auditSvc
 	if args.ProjectPath != "" && args.ProjectPath != s.root {
-		overrideSvc, err := s.servicesForPath(args.ProjectPath)
+		overrideSvc, err := s.servicesForPath(args.ProjectPath, args.Project)
 		if err != nil {
 			return nil, mcpErr("Failed to load project at the given path.")
 		}
@@ -1676,7 +1719,7 @@ func (s *Server) handleWorkspacePull(ctx context.Context, args WorkspacePullArgs
 // --- Smart Decompose Handler ---
 
 func (s *Server) handleSmartDecompose(ctx context.Context, args SmartDecomposeArgs) (any, error) {
-	svc, err := s.servicesForPath(args.ProjectPath)
+	svc, err := s.servicesForPath(args.ProjectPath, args.Project)
 	if err != nil {
 		return nil, mcpErr("Failed to load project at the given path.")
 	}
@@ -1701,15 +1744,17 @@ type TeamAddArgs struct {
 	Name        string `json:"name" jsonschema:"description=The name of the team member"`
 	Role        string `json:"role" jsonschema:"description=The role: admin, member, or viewer"`
 	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
+	Project     string `json:"project,omitempty" jsonschema:"description=Sub-project name under .roady/projects/<name>/ (default: root project)"`
 }
 
 type TeamRemoveArgs struct {
 	Name        string `json:"name" jsonschema:"description=The name of the team member to remove"`
 	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
+	Project     string `json:"project,omitempty" jsonschema:"description=Sub-project name under .roady/projects/<name>/ (default: root project)"`
 }
 
 func (s *Server) handleTeamList(ctx context.Context, args GetSpecArgs) (any, error) {
-	svc, err := s.servicesForPath(args.ProjectPath)
+	svc, err := s.servicesForPath(args.ProjectPath, args.Project)
 	if err != nil {
 		return nil, mcpErr("Failed to load project at the given path.")
 	}
@@ -1727,7 +1772,7 @@ func (s *Server) handleTeamAdd(ctx context.Context, args TeamAddArgs) (string, e
 	if args.Role == "" {
 		return "", mcpErr("role is required")
 	}
-	svc, err := s.servicesForPath(args.ProjectPath)
+	svc, err := s.servicesForPath(args.ProjectPath, args.Project)
 	if err != nil {
 		return "", mcpErr("Failed to load project at the given path.")
 	}
@@ -1741,7 +1786,7 @@ func (s *Server) handleTeamRemove(ctx context.Context, args TeamRemoveArgs) (str
 	if args.Name == "" {
 		return "", mcpErr("name is required")
 	}
-	svc, err := s.servicesForPath(args.ProjectPath)
+	svc, err := s.servicesForPath(args.ProjectPath, args.Project)
 	if err != nil {
 		return "", mcpErr("Failed to load project at the given path.")
 	}
@@ -1753,10 +1798,11 @@ func (s *Server) handleTeamRemove(ctx context.Context, args TeamRemoveArgs) (str
 
 type RateListArgs struct {
 	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
+	Project     string `json:"project,omitempty" jsonschema:"description=Sub-project name under .roady/projects/<name>/ (default: root project)"`
 }
 
 func (s *Server) handleRateList(ctx context.Context, args RateListArgs) (any, error) {
-	svc, err := s.servicesForPath(args.ProjectPath)
+	svc, err := s.servicesForPath(args.ProjectPath, args.Project)
 	if err != nil {
 		return nil, mcpErr("Failed to load project at the given path.")
 	}
@@ -1773,13 +1819,14 @@ type RateAddArgs struct {
 	HourlyRate  float64 `json:"hourly_rate" jsonschema:"description=Hourly rate amount"`
 	IsDefault   bool    `json:"is_default" jsonschema:"description=Set as default rate"`
 	ProjectPath string  `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
+	Project     string `json:"project,omitempty" jsonschema:"description=Sub-project name under .roady/projects/<name>/ (default: root project)"`
 }
 
 func (s *Server) handleRateAdd(ctx context.Context, args RateAddArgs) (string, error) {
 	if args.ID == "" || args.Name == "" {
 		return "", mcpErr("id and name are required")
 	}
-	svc, err := s.servicesForPath(args.ProjectPath)
+	svc, err := s.servicesForPath(args.ProjectPath, args.Project)
 	if err != nil {
 		return "", mcpErr("Failed to load project at the given path.")
 	}
@@ -1801,13 +1848,14 @@ type TaskLogTimeArgs struct {
 	RateID      string `json:"rate_id" jsonschema:"description=Rate ID (optional)"`
 	Description string `json:"description" jsonschema:"description=Description (optional)"`
 	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
+	Project     string `json:"project,omitempty" jsonschema:"description=Sub-project name under .roady/projects/<name>/ (default: root project)"`
 }
 
 func (s *Server) handleTaskLogTime(ctx context.Context, args TaskLogTimeArgs) (string, error) {
 	if args.TaskID == "" || args.Minutes <= 0 {
 		return "", mcpErr("task_id and minutes are required")
 	}
-	svc, err := s.servicesForPath(args.ProjectPath)
+	svc, err := s.servicesForPath(args.ProjectPath, args.Project)
 	if err != nil {
 		return "", mcpErr("Failed to load project at the given path.")
 	}
@@ -1822,10 +1870,11 @@ type CostReportArgs struct {
 	Period      string `json:"period" jsonschema:"description=Filter by period (optional)"`
 	Format      string `json:"format" jsonschema:"description=Output format: text, json, csv, markdown"`
 	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
+	Project     string `json:"project,omitempty" jsonschema:"description=Sub-project name under .roady/projects/<name>/ (default: root project)"`
 }
 
 func (s *Server) handleCostReport(ctx context.Context, args CostReportArgs) (any, error) {
-	svc, err := s.servicesForPath(args.ProjectPath)
+	svc, err := s.servicesForPath(args.ProjectPath, args.Project)
 	if err != nil {
 		return nil, mcpErr("Failed to load project at the given path.")
 	}
@@ -1846,10 +1895,11 @@ func (s *Server) handleCostReport(ctx context.Context, args CostReportArgs) (any
 
 type CostBudgetArgs struct {
 	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
+	Project     string `json:"project,omitempty" jsonschema:"description=Sub-project name under .roady/projects/<name>/ (default: root project)"`
 }
 
 func (s *Server) handleCostBudget(ctx context.Context, args CostBudgetArgs) (any, error) {
-	svc, err := s.servicesForPath(args.ProjectPath)
+	svc, err := s.servicesForPath(args.ProjectPath, args.Project)
 	if err != nil {
 		return nil, mcpErr("Failed to load project at the given path.")
 	}
@@ -1866,13 +1916,14 @@ func (s *Server) handleCostBudget(ctx context.Context, args CostBudgetArgs) (any
 type RateRemoveArgs struct {
 	ID          string `json:"id" jsonschema:"description=Rate ID to remove"`
 	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
+	Project     string `json:"project,omitempty" jsonschema:"description=Sub-project name under .roady/projects/<name>/ (default: root project)"`
 }
 
 func (s *Server) handleRateRemove(ctx context.Context, args RateRemoveArgs) (string, error) {
 	if args.ID == "" {
 		return "", mcpErr("rate id is required")
 	}
-	svc, err := s.servicesForPath(args.ProjectPath)
+	svc, err := s.servicesForPath(args.ProjectPath, args.Project)
 	if err != nil {
 		return "", mcpErr("Failed to load project at the given path.")
 	}
@@ -1885,13 +1936,14 @@ func (s *Server) handleRateRemove(ctx context.Context, args RateRemoveArgs) (str
 type RateSetDefaultArgs struct {
 	ID          string `json:"id" jsonschema:"description=Rate ID to set as default"`
 	ProjectPath string `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
+	Project     string `json:"project,omitempty" jsonschema:"description=Sub-project name under .roady/projects/<name>/ (default: root project)"`
 }
 
 func (s *Server) handleRateSetDefault(ctx context.Context, args RateSetDefaultArgs) (string, error) {
 	if args.ID == "" {
 		return "", mcpErr("rate id is required")
 	}
-	svc, err := s.servicesForPath(args.ProjectPath)
+	svc, err := s.servicesForPath(args.ProjectPath, args.Project)
 	if err != nil {
 		return "", mcpErr("Failed to load project at the given path.")
 	}
@@ -1906,6 +1958,7 @@ type RateTaxArgs struct {
 	Percent     float64 `json:"percent" jsonschema:"description=Tax percentage (e.g., 20 for 20%%)"`
 	Included    bool    `json:"included" jsonschema:"description=Tax is included in rate"`
 	ProjectPath string  `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
+	Project     string `json:"project,omitempty" jsonschema:"description=Sub-project name under .roady/projects/<name>/ (default: root project)"`
 }
 
 func (s *Server) handleRateTax(ctx context.Context, args RateTaxArgs) (string, error) {
@@ -1915,7 +1968,7 @@ func (s *Server) handleRateTax(ctx context.Context, args RateTaxArgs) (string, e
 	if args.Percent < 0 || args.Percent > 100 {
 		return "", mcpErr("tax percent must be between 0 and 100")
 	}
-	svc, err := s.servicesForPath(args.ProjectPath)
+	svc, err := s.servicesForPath(args.ProjectPath, args.Project)
 	if err != nil {
 		return "", mcpErr("Failed to load project at the given path.")
 	}

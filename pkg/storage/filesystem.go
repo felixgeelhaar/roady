@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 
@@ -18,6 +19,7 @@ import (
 )
 
 const RoadyDir = ".roady"
+const ProjectsDir = "projects"
 const SpecFile = "spec.yaml"
 const SpecLockFile = "spec.lock.json"
 const PlanFile = "plan.json"
@@ -30,11 +32,40 @@ const DeadLetterFile = "deadletters.jsonl"
 const RatesFile = "rates.yaml"
 const TimeEntriesFile = "time_entries.yaml"
 
+// projectNamePattern restricts sub-project names to a safe, lowercase, slug-like form.
+// Names must start with [a-z0-9] and may contain [a-z0-9._-]. Max 64 chars.
+// The literal "projects" is reserved because it is the parent directory name.
+var projectNamePattern = regexp.MustCompile(`^[a-z0-9][a-z0-9._-]{0,63}$`)
+
+// ValidateProjectName returns nil if name is a valid sub-project identifier.
+// Empty name is valid and refers to the root project.
+func ValidateProjectName(name string) error {
+	if name == "" {
+		return nil
+	}
+	if name == "." || name == ".." {
+		return fmt.Errorf("invalid project name: %q", name)
+	}
+	if name == ProjectsDir {
+		return fmt.Errorf("project name %q is reserved", name)
+	}
+	if strings.ContainsAny(name, "/\\") {
+		return fmt.Errorf("project name must not contain path separators: %q", name)
+	}
+	if !projectNamePattern.MatchString(name) {
+		return fmt.Errorf("project name must match %s: %q", projectNamePattern, name)
+	}
+	return nil
+}
+
 type FilesystemRepository struct {
 	root        string
+	subProject  string // empty = root project; otherwise stored under .roady/projects/<name>/
 	retryConfig retry.Config
 }
 
+// NewFilesystemRepository returns a repository scoped to the root project
+// (<root>/.roady/). Equivalent to NewFilesystemRepositoryForProject(root, "").
 func NewFilesystemRepository(root string) *FilesystemRepository {
 	return &FilesystemRepository{
 		root: root,
@@ -46,23 +77,60 @@ func NewFilesystemRepository(root string) *FilesystemRepository {
 	}
 }
 
+// NewFilesystemRepositoryForProject returns a repository scoped to a named
+// sub-project at <root>/.roady/projects/<project>/. When project is empty,
+// behaves like NewFilesystemRepository. Returns an error if the project name
+// is invalid.
+func NewFilesystemRepositoryForProject(root, project string) (*FilesystemRepository, error) {
+	if err := ValidateProjectName(project); err != nil {
+		return nil, err
+	}
+	r := NewFilesystemRepository(root)
+	r.subProject = project
+	return r, nil
+}
+
 // Root returns the workspace root directory.
 func (r *FilesystemRepository) Root() string {
 	return r.root
 }
 
-// ResolvePath ensures the path is within the .roady directory and prevents traversal.
+// SubProject returns the sub-project name this repository is scoped to,
+// or "" if it is scoped to the root project.
+func (r *FilesystemRepository) SubProject() string {
+	return r.subProject
+}
+
+// IsSubProject reports whether this repository is scoped to a named
+// sub-project rather than the root project.
+func (r *FilesystemRepository) IsSubProject() bool {
+	return r.subProject != ""
+}
+
+// ProjectBase returns the directory that contains this project's files.
+// For the root project that is <root>/.roady. For a sub-project it is
+// <root>/.roady/projects/<name>.
+func (r *FilesystemRepository) ProjectBase() string {
+	base := filepath.Join(r.root, RoadyDir)
+	if r.subProject == "" {
+		return base
+	}
+	return filepath.Join(base, ProjectsDir, r.subProject)
+}
+
+// ResolvePath ensures the path is within this project's directory and prevents
+// traversal. For root projects the base is <root>/.roady; for sub-projects it
+// is <root>/.roady/projects/<name>. Only direct children are allowed.
 func (r *FilesystemRepository) ResolvePath(filename string) (string, error) {
 	if filename == "" {
 		return "", fmt.Errorf("filename cannot be empty")
 	}
 
-	// Base directory is strictly root/.roady
-	baseDir := filepath.Join(r.root, RoadyDir)
+	baseDir := r.ProjectBase()
 	fullPath := filepath.Join(baseDir, filename)
 	cleanPath := filepath.Clean(fullPath)
 
-	// Check for traversal and ensure it's a direct child (no nested subdirs in .roady for now)
+	// Ensure the resolved path is a direct child of baseDir.
 	if !strings.HasPrefix(cleanPath, baseDir) || filepath.Dir(cleanPath) != baseDir {
 		return "", fmt.Errorf("invalid file path: %s", filename)
 	}
@@ -71,16 +139,16 @@ func (r *FilesystemRepository) ResolvePath(filename string) (string, error) {
 }
 
 func (r *FilesystemRepository) Initialize() error {
-	path := filepath.Join(r.root, RoadyDir)
+	path := r.ProjectBase()
 	// G301: Use 0700 for directories
 	if err := os.MkdirAll(path, 0700); err != nil {
-		return fmt.Errorf("failed to create .roady directory: %w", err)
+		return fmt.Errorf("failed to create project directory: %w", err)
 	}
 	return nil
 }
 
 func (r *FilesystemRepository) IsInitialized() bool {
-	_, err := os.Stat(filepath.Join(r.root, RoadyDir))
+	_, err := os.Stat(r.ProjectBase())
 	return err == nil
 }
 

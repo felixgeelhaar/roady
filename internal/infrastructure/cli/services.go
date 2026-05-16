@@ -9,7 +9,11 @@ import (
 )
 
 func loadServices(root string) (*wiring.AppServices, error) {
-	services, loadErr := wiring.BuildAppServices(root)
+	return loadServicesForProject(root, currentSubProject())
+}
+
+func loadServicesForProject(root, project string) (*wiring.AppServices, error) {
+	services, loadErr := wiring.BuildAppServicesForProject(root, project)
 	if services == nil {
 		return nil, fmt.Errorf("failed to build services: %w", loadErr)
 	}
@@ -17,6 +21,16 @@ func loadServices(root string) (*wiring.AppServices, error) {
 		fmt.Printf("Warning: %v\n", loadErr)
 	}
 	return services, nil
+}
+
+// currentSubProject resolves the active sub-project name from the --project
+// flag, falling back to the ROADY_PROJECT environment variable. Empty string
+// means the root project.
+func currentSubProject() string {
+	if subProjectFlag != "" {
+		return subProjectFlag
+	}
+	return os.Getenv("ROADY_PROJECT")
 }
 
 func getProjectRoot() (string, error) {
@@ -42,5 +56,5 @@ func loadServicesForCurrentDir() (*wiring.AppServices, error) {
 	if err != nil {
 		return nil, err
 	}
-	return loadServices(root)
+	return loadServicesForProject(root, currentSubProject())
 }

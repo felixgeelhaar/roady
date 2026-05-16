@@ -109,10 +109,12 @@ func TestFilesystemRepository_Thorough(t *testing.T) {
 		t.Error("Expected error for traversal")
 	}
 
-	// 8.1 ResolvePath Nested (blocked)
+	// 8.1 ResolvePath rejects arbitrary nested paths on a root-project repo.
+	// Sub-project files are addressed by constructing a sub-project repository
+	// (NewFilesystemRepositoryForProject), not by passing a nested filename here.
 	_, err = repo.ResolvePath("sub/file.yaml")
 	if err == nil {
-		t.Error("expected error for nested path")
+		t.Error("expected error for nested path on root-project repo")
 	}
 
 	validPath, _ := repo.ResolvePath("spec.yaml")
