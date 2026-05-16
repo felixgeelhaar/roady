@@ -230,7 +230,7 @@ type InitArgs struct {
 type UpdatePlanArgs struct {
 	Tasks       []planning.Task `json:"tasks" jsonschema:"description=The list of tasks to define the plan"`
 	ProjectPath string          `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
-	Project     string `json:"project,omitempty" jsonschema:"description=Sub-project name under .roady/projects/<name>/ (default: root project)"`
+	Project     string          `json:"project,omitempty" jsonschema:"description=Sub-project name under .roady/projects/<name>/ (default: root project)"`
 }
 
 // Args structs for handlers that previously used struct{}
@@ -1056,7 +1056,7 @@ type StatusArgs struct {
 	Limit       FlexInt  `json:"limit,omitempty" jsonschema:"description=Limit number of tasks returned"`
 	JSON        FlexBool `json:"json,omitempty" jsonschema:"description=Return structured JSON output instead of text"`
 	ProjectPath string   `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
-	Project     string `json:"project,omitempty" jsonschema:"description=Sub-project name under .roady/projects/<name>/ (default: root project)"`
+	Project     string   `json:"project,omitempty" jsonschema:"description=Sub-project name under .roady/projects/<name>/ (default: root project)"`
 }
 
 func (s *Server) handleAssignTask(ctx context.Context, args AssignTaskArgs) (string, error) {
@@ -1819,7 +1819,7 @@ type RateAddArgs struct {
 	HourlyRate  float64 `json:"hourly_rate" jsonschema:"description=Hourly rate amount"`
 	IsDefault   bool    `json:"is_default" jsonschema:"description=Set as default rate"`
 	ProjectPath string  `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
-	Project     string `json:"project,omitempty" jsonschema:"description=Sub-project name under .roady/projects/<name>/ (default: root project)"`
+	Project     string  `json:"project,omitempty" jsonschema:"description=Sub-project name under .roady/projects/<name>/ (default: root project)"`
 }
 
 func (s *Server) handleRateAdd(ctx context.Context, args RateAddArgs) (string, error) {
@@ -1958,7 +1958,7 @@ type RateTaxArgs struct {
 	Percent     float64 `json:"percent" jsonschema:"description=Tax percentage (e.g., 20 for 20%%)"`
 	Included    bool    `json:"included" jsonschema:"description=Tax is included in rate"`
 	ProjectPath string  `json:"project_path,omitempty" jsonschema:"description=Path to the roady project directory (default: server root)"`
-	Project     string `json:"project,omitempty" jsonschema:"description=Sub-project name under .roady/projects/<name>/ (default: root project)"`
+	Project     string  `json:"project,omitempty" jsonschema:"description=Sub-project name under .roady/projects/<name>/ (default: root project)"`
 }
 
 func (s *Server) handleRateTax(ctx context.Context, args RateTaxArgs) (string, error) {

@@ -122,12 +122,6 @@ func (s *OrgService) AggregateMetrics() (*org.OrgMetrics, error) {
 	return metrics, nil
 }
 
-// projectMetrics is the legacy single-arg form, kept for backward compatibility.
-// It scopes to the root project at <path>/.roady/.
-func (s *OrgService) projectMetrics(path string) org.ProjectMetrics {
-	return s.projectMetricsFor(DiscoveredProject{Path: path})
-}
-
 // projectMetricsFor reports metrics for a discovered project entry, supporting
 // both root projects and sub-projects under <Path>/.roady/projects/<SubProject>.
 func (s *OrgService) projectMetricsFor(p DiscoveredProject) org.ProjectMetrics {
