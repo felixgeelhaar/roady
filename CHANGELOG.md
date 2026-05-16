@@ -7,12 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added — Kanban dashboard view
+## [0.11.0] - 2026-05-16
 
-- New `/kanban` route on the web dashboard (`roady dashboard serve`) renders the project's tasks across five status columns: **Backlog · Ready · In Progress · Blocked · Done**. Auto-refreshes every 30s.
-- "Ready" computes dependency satisfaction so unblocked pending tasks surface separately from backlog items waiting on upstream work. "Done" rolls Verified into Done.
-- New JSON endpoint `/api/kanban` returns the same board for external tools / IDE plugins / CI.
-- Nav bar across dashboard pages gains a Kanban link.
+Adds two user-facing surfaces that lay the groundwork for an agent
+managing many parallel feature streams in one repo: nested sub-projects
+and a live Kanban view. Both are fully backward-compatible.
 
 ### Added — Nested sub-projects
 
@@ -24,7 +23,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New `OrgService.DiscoverProjectsWithSub()` returns both root projects and sub-projects; legacy `DiscoverProjects()` is kept and unchanged in shape.
 - Backward-compatible: existing flat `.roady/` repos continue to work unchanged. No data migration required.
 
-### Pre-launch infra hardening
+### Added — Kanban dashboard view
+
+- New `/kanban` route on the web dashboard (`roady dashboard serve`) renders the project's tasks across five status columns: **Backlog · Ready · In Progress · Blocked · Done**. Auto-refreshes every 30s.
+- "Ready" computes dependency satisfaction so unblocked pending tasks surface separately from backlog items waiting on upstream work. "Done" rolls Verified into Done.
+- New JSON endpoint `/api/kanban` returns the same board for external tools / IDE plugins / CI.
+- Nav bar across dashboard pages gains a Kanban link.
+
+## [0.10.1] - 2026-05-03
+
+Patch release. No user-facing feature changes. Closes audit gaps flagged before the public launch wave.
 
 - Plugin builds (`asana`, `github`, `mock`, `notion`, `trello`) added to GoReleaser. Every plugin now ships in the bundled release archive (previously only `linear` and `jira` shipped).
 - CI gains a `golangci-lint` job. Full repo on main pushes; `--new-from-rev=origin/main` on PRs to avoid drowning new contributions in pre-existing warnings.
@@ -32,6 +40,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Cloud waitlist form replaced its hidden-localStorage backend with a transparent `mailto:` fallback. No more form-without-a-server pattern.
 - New GitHub Pages workflow (`.github/workflows/website.yml`) auto-deploys the Astro site on every main push affecting `website/`, `README.md`, or `docs/`.
 - This `CHANGELOG.md` extended through v0.10.
+- `fix(ci)`: website deploy uses Node 22 for Astro 5+ compatibility.
+- `fix(ci)`: pin golangci-lint to `@latest` for go 1.26 compatibility.
 
 ## [0.10.0] - 2026-05-03
 
