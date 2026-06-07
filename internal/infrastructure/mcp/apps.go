@@ -4,7 +4,7 @@ import (
 	"context"
 	"embed"
 
-	mcplib "github.com/felixgeelhaar/mcp-go"
+	mcplib "go.klarlabs.de/mcp"
 )
 
 //go:embed all:dist

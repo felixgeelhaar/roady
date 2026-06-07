@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/felixgeelhaar/mcp-go/client"
+	"go.klarlabs.de/mcp/client"
 )
 
 func TestTextResult(t *testing.T) {
@@ -132,7 +132,7 @@ func TestIntegrationInitGetSpec(t *testing.T) {
 
 	// Use environment variables for AI config so project can be initialized
 	cmd := fmt.Sprintf("cd '%s' && ROADY_AI_PROVIDER=mock ROADY_AI_MODEL=test '%s' mcp --transport stdio", tempDir, binPath)
-	transport, err := client.NewStdioTransport("bash", "-lc", cmd)
+	transport, err := client.NewUnsafeStdioTransport("bash", "-lc", cmd)
 	if err != nil {
 		t.Fatalf("stdio transport: %v", err)
 	}

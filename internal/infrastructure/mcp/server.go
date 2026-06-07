@@ -8,13 +8,13 @@ import (
 	"sync"
 	"time"
 
-	"github.com/felixgeelhaar/mcp-go"
 	"github.com/felixgeelhaar/roady/internal/infrastructure/config"
 	"github.com/felixgeelhaar/roady/internal/infrastructure/wiring"
 	"github.com/felixgeelhaar/roady/pkg/application"
 	"github.com/felixgeelhaar/roady/pkg/domain/billing"
 	"github.com/felixgeelhaar/roady/pkg/domain/planning"
 	"github.com/felixgeelhaar/roady/pkg/domain/team"
+	"go.klarlabs.de/mcp"
 )
 
 // defaultHandlerTimeout is the maximum time a tool handler may run before

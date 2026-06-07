@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/felixgeelhaar/fortify/retry"
-	"github.com/felixgeelhaar/mcp-go/client"
+	"go.klarlabs.de/fortify/retry"
+	"go.klarlabs.de/mcp/client"
 )
 
 // Client is a typed Go client for the Roady MCP server.
@@ -47,7 +47,7 @@ func (c *Client) Close() error {
 // call invokes a tool with retry.
 func (c *Client) call(ctx context.Context, tool string, args map[string]any) (*client.ToolResult, error) {
 	r := retry.New[*client.ToolResult](c.retryCfg)
-	result, err := r.Do(ctx, func(ctx context.Context) (*client.ToolResult, error) {
+	result, err := r.Execute(ctx, func(ctx context.Context) (*client.ToolResult, error) {
 		return c.mcp.CallTool(ctx, tool, args)
 	})
 	if err != nil {

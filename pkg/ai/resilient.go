@@ -4,9 +4,9 @@ import (
 	"context"
 	"time"
 
-	"github.com/felixgeelhaar/fortify/retry"
-	"github.com/felixgeelhaar/fortify/timeout"
 	"github.com/felixgeelhaar/roady/pkg/domain/ai"
+	"go.klarlabs.de/fortify/retry"
+	"go.klarlabs.de/fortify/timeout"
 )
 
 // ResilienceConfig holds retry and timeout settings for AI providers.
@@ -64,7 +64,7 @@ func (p *ResilientProvider) Complete(ctx context.Context, req ai.CompletionReque
 	})
 
 	return t.Execute(ctx, p.config.Timeout, func(ctx context.Context) (*ai.CompletionResponse, error) {
-		res, err := r.Do(ctx, func(ctx context.Context) (*ai.CompletionResponse, error) {
+		res, err := r.Execute(ctx, func(ctx context.Context) (*ai.CompletionResponse, error) {
 			return p.inner.Complete(ctx, req)
 		})
 		return res, err

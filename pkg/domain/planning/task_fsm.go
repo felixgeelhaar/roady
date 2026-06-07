@@ -3,7 +3,7 @@ package planning
 import (
 	"fmt"
 
-	"github.com/felixgeelhaar/statekit"
+	"go.klarlabs.de/statekit"
 )
 
 // State constants for statekit integration.

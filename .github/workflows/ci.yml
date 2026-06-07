@@ -67,7 +67,7 @@ jobs:
       run: go test -v -coverprofile=coverage.out -coverpkg=./... ./...
 
     - name: Install coverctl
-      run: go install github.com/felixgeelhaar/coverctl/cmd/coverctl@latest
+      run: go install go.klarlabs.de/coverctl/cmd/coverctl@v1.17.0
 
     - name: Coverage policy gate
       # Domain thresholds live in .coverctl.yaml (cmd / application /

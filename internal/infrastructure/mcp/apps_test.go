@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/felixgeelhaar/mcp-go/testutil"
+	"go.klarlabs.de/mcp/testutil"
 )
 
 func TestServer_ReadSchemaResource(t *testing.T) {

@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	mcplib "github.com/felixgeelhaar/mcp-go"
+	mcplib "go.klarlabs.de/mcp"
 )
 
 func init() {

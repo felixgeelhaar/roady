@@ -5,9 +5,9 @@ import (
 	"sync"
 	"testing"
 
-	mcplib "github.com/felixgeelhaar/mcp-go"
-	mcpserver "github.com/felixgeelhaar/mcp-go/server"
 	domainai "github.com/felixgeelhaar/roady/pkg/domain/ai"
+	mcplib "go.klarlabs.de/mcp"
+	mcpserver "go.klarlabs.de/mcp/server"
 )
 
 // fakeProgressReporter records every ReportWithMessage call so tests can

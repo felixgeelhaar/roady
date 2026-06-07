@@ -14,8 +14,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/felixgeelhaar/mcp-go/client"
 	"github.com/gorilla/websocket"
+	"go.klarlabs.de/mcp/client"
 )
 
 type jsonRPCRequest struct {
@@ -119,7 +119,7 @@ func TestMCPStdioTransport(t *testing.T) {
 	}
 
 	cmd := fmt.Sprintf("cd %s && ROADY_AI_PROVIDER=mock ROADY_AI_MODEL=test %s mcp --transport stdio", shellEscape(tempDir), shellEscape(binPath))
-	transport, err := client.NewStdioTransport("bash", "-lc", cmd)
+	transport, err := client.NewUnsafeStdioTransport("bash", "-lc", cmd)
 	if err != nil {
 		t.Fatalf("stdio transport: %v", err)
 	}

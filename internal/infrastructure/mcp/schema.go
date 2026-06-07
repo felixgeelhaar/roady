@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 
-	mcplib "github.com/felixgeelhaar/mcp-go"
+	mcplib "go.klarlabs.de/mcp"
 )
 
 // SchemaVersion is the current MCP tool schema version (semver).

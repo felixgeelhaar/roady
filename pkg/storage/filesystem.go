@@ -10,11 +10,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/felixgeelhaar/fortify/retry"
 	"github.com/felixgeelhaar/roady/pkg/domain"
 	"github.com/felixgeelhaar/roady/pkg/domain/billing"
 	"github.com/felixgeelhaar/roady/pkg/domain/events"
 	"github.com/felixgeelhaar/roady/pkg/domain/spec"
+	"go.klarlabs.de/fortify/retry"
 	"gopkg.in/yaml.v3"
 )
 
@@ -170,7 +170,7 @@ func (r *FilesystemRepository) SaveSpec(s *spec.ProductSpec) error {
 func (r *FilesystemRepository) LoadSpec() (*spec.ProductSpec, error) {
 	retryer := retry.New[*spec.ProductSpec](r.retryConfig)
 
-	return retryer.Do(context.Background(), func(ctx context.Context) (*spec.ProductSpec, error) {
+	return retryer.Execute(context.Background(), func(ctx context.Context) (*spec.ProductSpec, error) {
 		path, err := r.ResolvePath(SpecFile)
 		if err != nil {
 			return nil, err

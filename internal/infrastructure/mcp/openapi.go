@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	mcplib "github.com/felixgeelhaar/mcp-go"
+	mcplib "go.klarlabs.de/mcp"
 )
 
 // OpenAPISpec represents a minimal OpenAPI 3.0 document.

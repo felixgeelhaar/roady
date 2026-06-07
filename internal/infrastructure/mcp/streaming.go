@@ -3,8 +3,8 @@ package mcp
 import (
 	"context"
 
-	mcplib "github.com/felixgeelhaar/mcp-go"
 	domainai "github.com/felixgeelhaar/roady/pkg/domain/ai"
+	mcplib "go.klarlabs.de/mcp"
 )
 
 // withMCPStreaming returns a context that, when the MCP request carries a
